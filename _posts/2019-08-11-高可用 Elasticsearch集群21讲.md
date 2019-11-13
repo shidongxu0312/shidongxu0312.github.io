@@ -1,10 +1,4 @@
----
-layout: post
-title:  高可用Elasticsearch集群21讲
-categories: ELK
-description: 高可用Elasticsearch集群21讲
-keywords: ELK
----
+[TOC]
 ## 1 .如何构建一个高可用、低延迟的 Elasticsearch 集群？
 
 我们从 1.x 开始使用 Elasticsearch ，发展到现在大大小小的集群有 5000+，最大的集群物理主机 100+，单集群最大数据量几百 TB，几千亿条 doc。在这个大规模的应用过程中我们积累了很多宝贵经验，在此与大家分享。
@@ -1550,6 +1544,32 @@ cat documents.json |head -n 3
 ```
 
 **2. 定义索引映射**
+
+样本数据准备好之后，我们需要为其配置索引映射和设置信息，我们建立 `index.json` 文件，写入如下内容：
+
+```
+{
+    "settings": {
+        "index.refresh_interval": "120s",
+        "index.translog.durability" : "async",
+        "index.translog.flush_threshold_size" : "5000mb",
+        "index.translog.sync_interval" : "120s",
+        "index.number_of_replicas": 0,
+        "index.number_of_shards": 8
+    },
+    "mappings": {
+        "doc": {
+            "dynamic": false,
+            "properties": {
+                "name":{"type":"keyword"}
+            }
+        }
+    }
+}
+```
+
+在 index.json 中添加你自己的索引设置，并在 mappings 中描述字段类型等信息。
+
 **3. 编写 track.json 文件**
 
 该配置文件是 track 的核心配置文件，本例中，编写内容如下：
