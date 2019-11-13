@@ -1,8 +1,8 @@
 ---
 layout: post
-title:  Elasticsearch 集群 21 讲
+title:  高可用Elasticsearch集群21讲
 categories: ELK
-description: Elasticsearch 集群 21 讲
+description: 高可用Elasticsearch集群21讲
 keywords: ELK
 ---
 ## 1 .如何构建一个高可用、低延迟的 Elasticsearch 集群？
