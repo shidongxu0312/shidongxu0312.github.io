@@ -1552,7 +1552,6 @@ cat documents.json |head -n 3
 **2. 定义索引映射**
 
 样本数据准备好之后，我们需要为其配置索引映射和设置信息，我们建立 `index.json` 文件，写入如下内容：
-
 ```
 {
     "settings": {
@@ -1573,7 +1572,6 @@ cat documents.json |head -n 3
     }
 }
 ```
-
 **3. 编写 track.json 文件**
 
 该配置文件是 track 的核心配置文件，本例中，编写内容如下：
