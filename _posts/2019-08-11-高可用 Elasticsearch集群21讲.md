@@ -1575,7 +1575,6 @@ cat documents.json |head -n 3
 该配置文件是 track 的核心配置文件，本例中，编写内容如下：
 
 ```
-{% import "rally.helpers" as rally %}
 {
   "version": 2,
   "description": "Demo benchmark for Rally",
