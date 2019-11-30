@@ -1,4 +1,10 @@
-[TOC]
+---
+layout: post
+title:  高可用 Elasticsearch集群21讲
+categories: ELK
+description: 高可用 Elasticsearch集群21讲
+keywords: ELK
+---
 ## 1 .如何构建一个高可用、低延迟的 Elasticsearch 集群？
 
 我们从 1.x 开始使用 Elasticsearch ，发展到现在大大小小的集群有 5000+，最大的集群物理主机 100+，单集群最大数据量几百 TB，几千亿条 doc。在这个大规模的应用过程中我们积累了很多宝贵经验，在此与大家分享。
