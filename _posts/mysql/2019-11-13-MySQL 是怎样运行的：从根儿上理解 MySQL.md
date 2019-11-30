@@ -1,8 +1,8 @@
 ---
 layout: post
-title:  如何愉快的阅读本小册
+title:  MySQL 是怎样运行的：从根儿上理解 MySQL
 categories: Mysql
-description: 如何愉快的阅读本小册
+description: MySQL 是怎样运行的：从根儿上理解 MySQL
 keywords: Mysql
 ---
 # 01万里长征第一步（非常重要） —— 如何愉快的阅读本小册
