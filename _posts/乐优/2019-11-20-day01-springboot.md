@@ -1185,3 +1185,35280 @@ spring.thymeleaf.cache=false
 ​	eclipse中没有测试过。
 
 我们可以修改页面，测试一下。
+---
+layout: post
+title:  认识微服务
+categories: 乐优
+description: 认识微服务
+keywords: 乐优
+---
+# 0.学习目标
+
+- 了解系统架构的演变
+- 了解RPC与Http的区别
+- 掌握HttpClient的简单使用
+- 知道什么是SpringCloud
+- 独立搭建Eureka注册中心
+- 独立配置Robbin负载均衡
+
+
+
+-Xms128m -Xmx128m
+
+# 1.系统架构演变
+
+随着互联网的发展，网站应用的规模不断扩大。需求的激增，带来的是技术上的压力。系统架构也因此也不断的演进、升级、迭代。从单一应用，到垂直拆分，到分布式服务，到SOA，以及现在火热的微服务架构，还有在Google带领下来势汹涌的Service Mesh。我们到底是该乘坐微服务的船只驶向远方，还是偏安一隅得过且过？
+
+其实生活不止眼前的苟且，还有诗和远方。所以我们今天就回顾历史，看一看系统架构演变的历程；把握现在，学习现在最火的技术架构；展望未来，争取成为一名优秀的Java工程师。
+
+## 1.1. 集中式架构
+
+当网站流量很小时，只需一个应用，将所有功能都部署在一起，以减少部署节点和成本。此时，用于简化增删改查工作量的数据访问框架(ORM)是影响项目开发的关键。
+
+ ![1525529091749](/images/leyou/1525529091749.png)
+
+存在的问题：
+
+- 代码耦合，开发维护困难
+- 无法针对不同模块进行针对性优化
+- 无法水平扩展
+- 单点容错率低，并发能力差
+
+
+
+## 1.2.垂直拆分
+
+当访问量逐渐增大，单一应用无法满足需求，此时为了应对更高的并发和业务需求，我们根据业务功能对系统进行拆分：
+
+ ![1525529671801](/images/leyou/1525529671801.png)
+
+优点：
+
+- 系统拆分实现了流量分担，解决了并发问题
+- 可以针对不同模块进行优化
+- 方便水平扩展，负载均衡，容错率提高
+
+缺点：
+
+- 系统间相互独立，会有很多重复开发工作，影响开发效率
+
+## 1.3.分布式服务
+
+当垂直应用越来越多，应用之间交互不可避免，将核心业务抽取出来，作为独立的服务，逐渐形成稳定的服务中心，使前端应用能更快速的响应多变的市场需求。此时，用于提高业务复用及整合的分布式调用是关键。
+
+ ![1525530657919](/images/leyou/1525530657919.png)
+
+优点：
+
+- 将基础服务进行了抽取，系统间相互调用，提高了代码复用和开发效率
+
+缺点：
+
+- 系统间耦合度变高，调用关系错综复杂，难以维护
+
+
+
+## 1.4.服务治理（SOA）
+
+当服务越来越多，容量的评估，小服务资源的浪费等问题逐渐显现，此时需增加一个调度中心基于访问压力实时管理集群容量，提高集群利用率。此时，用于提高机器利用率的资源调度和治理中心(SOA)是关键
+
+![1525530804753](/images/leyou/1525530804753.png)
+
+以前出现了什么问题？
+
+- 服务越来越多，需要管理每个服务的地址
+- 调用关系错综复杂，难以理清依赖关系
+- 服务过多，服务状态难以管理，无法根据服务情况动态管理
+
+服务治理要做什么？
+
+- 服务注册中心，实现服务自动注册和发现，无需人为记录服务地址
+- 服务自动订阅，服务列表自动推送，服务调用透明化，无需关心依赖关系
+-  动态监控服务状态监控报告，人为控制服务状态
+
+缺点：
+
+- 服务间会有依赖关系，一旦某个环节出错会影响较大
+- 服务关系复杂，运维、测试部署困难，不符合DevOps思想
+
+## 1.5.微服务
+
+前面说的SOA，英文翻译过来是面向服务。微服务，似乎也是服务，都是对系统进行拆分。因此两者非常容易混淆，但其实缺有一些差别：
+
+![1525532344817](/images/leyou/1525532344817.png)
+
+微服务的特点：
+
+- 单一职责：微服务中每一个服务都对应唯一的业务能力，做到单一职责
+- 微：微服务的服务拆分粒度很小，例如一个用户管理就可以作为一个服务。每个服务虽小，但“五脏俱全”。
+- 面向服务：面向服务是说每个服务都要对外暴露服务接口API。并不关心服务的技术实现，做到与平台和语言无关，也不限定用什么技术实现，只要提供Rest的接口即可。
+- 自治：自治是说服务间互相独立，互不干扰
+  - 团队独立：每个服务都是一个独立的开发团队，人数不能过多。
+  - 技术独立：因为是面向服务，提供Rest接口，使用什么技术没有别人干涉
+  - 前后端分离：采用前后端分离开发，提供统一Rest接口，后端不用再为PC、移动段开发不同接口
+  - 数据库分离：每个服务都使用自己的数据源
+  - 部署独立，服务间虽然有调用，但要做到服务重启不影响其它服务。有利于持续集成和持续交付。每个服务都是独立的组件，可复用，可替换，降低耦合，易维护
+
+
+
+微服务结构图：
+
+![1526860071166](/images/leyou/1526860071166.png)
+
+
+
+
+
+# 2.远程调用方式
+
+无论是微服务还是SOA，都面临着服务间的远程调用。那么服务间的远程调用方式有哪些呢？
+
+常见的远程调用方式有以下几种：
+
+- RPC：Remote Produce Call远程过程调用，类似的还有RMI。自定义数据格式，基于原生TCP通信，速度快，效率高。早期的webservice，现在热门的dubbo，都是RPC的典型
+
+- Http：http其实是一种网络传输协议，基于TCP，规定了数据传输的格式。现在客户端浏览器与服务端通信基本都是采用Http协议。也可以用来进行远程服务调用。缺点是消息封装臃肿。
+
+  现在热门的Rest风格，就可以通过http协议来实现。
+
+## 2.1.认识RPC
+
+RPC，即 Remote Procedure Call（远程过程调用），是一个计算机通信协议。 该协议允许运行于一台计算机的程序调用另一台计算机的子程序，而程序员无需额外地为这个交互作用编程。说得通俗一点就是：A计算机提供一个服务，B计算机可以像调用本地服务那样调用A计算机的服务。
+
+通过上面的概念，我们可以知道，实现RPC主要是做到两点： 
+
+- 实现远程调用其他计算机的服务
+  - 要实现远程调用，肯定是通过网络传输数据。A程序提供服务，B程序通过网络将请求参数传递给A，A本地执行后得到结果，再将结果返回给B程序。这里需要关注的有两点：
+    - 1）采用何种网络通讯协议？
+      - 现在比较流行的RPC框架，都会采用TCP作为底层传输协议
+    - 2）数据传输的格式怎样？
+      - 两个程序进行通讯，必须约定好数据传输格式。就好比两个人聊天，要用同一种语言，否则无法沟通。所以，我们必须定义好请求和响应的格式。另外，数据在网路中传输需要进行序列化，所以还需要约定统一的序列化的方式。
+- 像调用本地服务一样调用远程服务 
+  - 如果仅仅是远程调用，还不算是RPC，因为RPC强调的是过程调用，调用的过程对用户而言是应该是透明的，用户不应该关心调用的细节，可以像调用本地服务一样调用远程服务。所以RPC一定要对调用的过程进行封装
+
+RPC调用流程图：
+
+![1525568965976](/images/leyou/1525568965976.png)
+
+想要了解详细的RPC实现，给大家推荐一篇文章：[自己动手实现RPC](https://legacy.gitbook.com/book/huge0612/tour-of-rpc/details)
+
+
+
+## 2.2.认识Http
+
+Http协议：超文本传输协议，是一种应用层协议。规定了网络传输的请求格式、响应格式、资源定位和操作的方式等。但是底层采用什么网络传输协议，并没有规定，不过现在都是采用TCP协议作为底层传输协议。说到这里，大家可能觉得，Http与RPC的远程调用非常像，都是按照某种规定好的数据格式进行网络通信，有请求，有响应。没错，在这点来看，两者非常相似，但是还是有一些细微差别。
+
+- RPC并没有规定数据传输格式，这个格式可以任意指定，不同的RPC协议，数据格式不一定相同。
+- Http中还定义了资源定位的路径，RPC中并不需要
+- 最重要的一点：RPC需要满足像调用本地服务一样调用远程服务，也就是对调用过程在API层面进行封装。Http协议没有这样的要求，因此请求、响应等细节需要我们自己去实现。
+  - 优点：RPC方式更加透明，对用户更方便。Http方式更灵活，没有规定API和语言，跨语言、跨平台
+  - 缺点：RPC方式需要在API层面进行封装，限制了开发的语言环境。
+
+例如我们通过浏览器访问网站，就是通过Http协议。只不过浏览器把请求封装，发起请求以及接收响应，解析响应的事情都帮我们做了。如果是不通过浏览器，那么这些事情都需要自己去完成。
+
+![1525569352313](/images/leyou/1525569352313.png)
+
+
+
+## 2.3.如何选择？
+
+既然两种方式都可以实现远程调用，我们该如何选择呢？
+
+- 速度来看，RPC要比http更快，虽然底层都是TCP，但是http协议的信息往往比较臃肿，不过可以采用gzip压缩。
+- 难度来看，RPC实现较为复杂，http相对比较简单
+- 灵活性来看，http更胜一筹，因为它不关心实现细节，跨平台、跨语言。
+
+因此，两者都有不同的使用场景：
+
+- 如果对效率要求更高，并且开发过程使用统一的技术栈，那么用RPC还是不错的。
+- 如果需要更加灵活，跨语言、跨平台，显然http更合适
+
+
+
+那么我们该怎么选择呢？
+
+微服务，更加强调的是独立、自治、灵活。而RPC方式的限制较多，因此微服务框架中，一般都会采用基于Http的Rest风格服务。
+
+
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+# 3.Http客户端工具
+
+既然微服务选择了Http，那么我们就需要考虑自己来实现对请求和响应的处理。不过开源世界已经有很多的http客户端工具，能够帮助我们做这些事情，例如：
+
+- HttpClient
+- OKHttp
+- URLConnection
+
+接下来，我们就一起了解一款比较流行的客户端工具：HttpClient
+
+## 3.1.HttpClient
+
+### 3.1.1.介绍
+
+HttpClient是Apache公司的产品，是Http Components下的一个组件。
+
+[官网地址：http://hc.apache.org/index.html](http://hc.apache.org/index.html)
+
+![1525570921966](/images/leyou/1525570921966.png)
+
+特点：
+
+- 基于标准、纯净的Java语言。实现了Http1.0和Http1.1
+- 以可扩展的面向对象的结构实现了Http全部的方法（GET, POST, PUT, DELETE, HEAD, OPTIONS, and TRACE）
+- 支持HTTPS协议。
+-  通过Http代理建立透明的连接。
+-  自动处理Set-Cookie中的Cookie。
+
+
+
+### 3.1.2.使用
+
+我们导入课前资料提供的demo工程：《http-demo》
+
+发起get请求：
+
+```java
+    @Test
+    public void testGet() throws IOException {
+        HttpGet request = new HttpGet("http://www.baidu.com");
+        String response = this.httpClient.execute(request, new BasicResponseHandler());
+        System.out.println(response);
+    }
+
+```
+
+发起Post请求：
+
+```java
+@Test
+public void testPost() throws IOException {
+    HttpPost request = new HttpPost("http://www.oschina.net/");
+    request.setHeader("User-Agent",
+                      "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36");
+    String response = this.httpClient.execute(request, new BasicResponseHandler());
+    System.out.println(response);
+}
+```
+
+尝试访问昨天编写的接口：http://localhost/hello
+
+这个接口返回一个User对象
+
+```java
+@Test
+public void testGetPojo() throws IOException {
+    HttpGet request = new HttpGet("http://localhost/hello");
+    String response = this.httpClient.execute(request, new BasicResponseHandler());
+    System.out.println(response);
+}
+```
+
+我们实际得到的是一个json字符串：
+
+```json
+{
+    "id": 8,
+    "userName": "liuyan",
+    "password": "123456",
+    "name": "柳岩",
+    "age": 21,
+    "sex": 2,
+    "birthday": "1995-08-07T16:00:00.000+0000",
+    "created": "2014-09-20T03:41:15.000+0000",
+    "updated": "2014-09-20T03:41:15.000+0000",
+    "note": "柳岩同学在传智播客学表演"
+}
+```
+
+如果想要得到对象，我们还需要手动进行Json反序列化，这一点比较麻烦。
+
+### 3.1.3.Json转换工具
+
+HttpClient请求数据后是json字符串，需要我们自己把Json字符串反序列化为对象，我们会使用JacksonJson工具来实现。
+
+`JacksonJson`是SpringMVC内置的json处理工具，其中有一个`ObjectMapper`类，可以方便的实现对json的处理：
+
+#### 对象转json
+
+```java
+// json处理工具
+    private ObjectMapper mapper = new ObjectMapper();
+    @Test
+    public void testJson() throws JsonProcessingException {
+        User user = new User();
+        user.setId(8L);
+        user.setAge(21);
+        user.setName("柳岩");
+        user.setUserName("liuyan");
+        // 序列化
+        String json = mapper.writeValueAsString(user);
+        System.out.println("json = " + json);
+    }
+```
+
+结果：
+
+![1526877496885](/images/leyou/1526877496885.png)
+
+
+
+#### json转普通对象
+
+```java
+// json处理工具
+private ObjectMapper mapper = new ObjectMapper();
+@Test
+public void testJson() throws IOException {
+    User user = new User();
+    user.setId(8L);
+    user.setAge(21);
+    user.setName("柳岩");
+    user.setUserName("liuyan");
+    // 序列化
+    String json = mapper.writeValueAsString(user);
+
+    // 反序列化，接收两个参数：json数据，反序列化的目标类字节码
+    User result = mapper.readValue(json, User.class);
+    System.out.println("result = " + result);
+}
+```
+
+结果：
+
+![1526877647406](/images/leyou/1526877647406.png)
+
+
+
+#### json转集合
+
+json转集合比较麻烦，因为你无法同时把集合的class和元素的class同时传递到一个参数。
+
+因此Jackson做了一个类型工厂，用来解决这个问题：
+
+```java
+// json处理工具
+private ObjectMapper mapper = new ObjectMapper();
+@Test
+public void testJson() throws IOException {
+    User user = new User();
+    user.setId(8L);
+    user.setAge(21);
+    user.setName("柳岩");
+    user.setUserName("liuyan");
+
+    // 序列化,得到对象集合的json字符串
+    String json = mapper.writeValueAsString(Arrays.asList(user, user));
+
+    // 反序列化，接收两个参数：json数据，反序列化的目标类字节码
+    List<User> users = mapper.readValue(json, mapper.getTypeFactory().constructCollectionType(List.class, User.class));
+    for (User u : users) {
+        System.out.println("u = " + u);
+    }
+}
+```
+
+结果：
+
+![1526877995530](/images/leyou/1526877995530.png)
+
+#### json转任意复杂类型
+
+当对象泛型关系复杂时，类型工厂也不好使了。这个时候Jackson提供了TypeReference来接收类型泛型，然后底层通过反射来获取泛型上的具体类型。实现数据转换。
+
+```java
+// json处理工具
+private ObjectMapper mapper = new ObjectMapper();
+@Test
+public void testJson() throws IOException {
+    User user = new User();
+    user.setId(8L);
+    user.setAge(21);
+    user.setName("柳岩");
+    user.setUserName("liuyan");
+
+    // 序列化,得到对象集合的json字符串
+    String json = mapper.writeValueAsString(Arrays.asList(user, user));
+
+    // 反序列化，接收两个参数：json数据，反序列化的目标类字节码
+    List<User> users = mapper.readValue(json, new TypeReference<List<User>>(){});
+    for (User u : users) {
+        System.out.println("u = " + u);
+    }
+}
+```
+
+结果：
+
+ ![1526877988488](/images/leyou/1526877988488.png)
+
+
+
+## 3.3.Spring的RestTemplate
+
+Spring提供了一个RestTemplate模板工具类，对基于Http的客户端进行了封装，并且实现了对象与json的序列化和反序列化，非常方便。RestTemplate并没有限定Http的客户端类型，而是进行了抽象，目前常用的3种都有支持：
+
+- HttpClient
+- OkHttp
+- JDK原生的URLConnection（默认的）
+
+首先在项目中注册一个`RestTemplate`对象，可以在启动类位置注册：
+
+```java
+@SpringBootApplication
+public class HttpDemoApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(HttpDemoApplication.class, args);
+	}
+
+	@Bean
+	public RestTemplate restTemplate() {
+        // 默认的RestTemplate，底层是走JDK的URLConnection方式。
+		return new RestTemplate();
+	}
+}
+```
+
+
+
+在测试类中直接`@Autowired`注入：
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = HttpDemoApplication.class)
+public class HttpDemoApplicationTests {
+
+	@Autowired
+	private RestTemplate restTemplate;
+
+	@Test
+	public void httpGet() {
+		User user = this.restTemplate.getForObject("http://localhost/hello", User.class);
+		System.out.println(user);
+	}
+}
+```
+
+- 通过RestTemplate的getForObject()方法，传递url地址及实体类的字节码，RestTemplate会自动发起请求，接收响应，并且帮我们对响应结果进行反序列化。
+
+![1525573702492](/images/leyou/1525573702492.png)
+
+
+
+学习完了Http客户端工具，接下来就可以正式学习微服务了。
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+# 4.初始SpringCloud
+
+微服务是一种架构方式，最终肯定需要技术架构去实施。
+
+微服务的实现方式很多，但是最火的莫过于Spring Cloud了。为什么？
+
+- 后台硬：作为Spring家族的一员，有整个Spring全家桶靠山，背景十分强大。
+- 技术强：Spring作为Java领域的前辈，可以说是功力深厚。有强力的技术团队支撑，一般人还真比不了
+- 群众基础好：可以说大多数程序员的成长都伴随着Spring框架，试问：现在有几家公司开发不用Spring？SpringCloud与Spring的各个框架无缝整合，对大家来说一切都是熟悉的配方，熟悉的味道。
+- 使用方便：相信大家都体会到了SpringBoot给我们开发带来的便利，而SpringCloud完全支持SpringBoot的开发，用很少的配置就能完成微服务框架的搭建
+
+
+
+## 4.1.简介
+
+SpringCloud是Spring旗下的项目之一，[官网地址：http://projects.spring.io/spring-cloud/](http://projects.spring.io/spring-cloud/)
+
+Spring最擅长的就是集成，把世界上最好的框架拿过来，集成到自己的项目中。
+
+SpringCloud也是一样，它将现在非常流行的一些技术整合到一起，实现了诸如：配置管理，服务发现，智能路由，负载均衡，熔断器，控制总线，集群状态等等功能。其主要涉及的组件包括：
+
+netflix
+
+- Eureka：注册中心
+- Zuul：服务网关
+- Ribbon：负载均衡
+- Feign：服务调用
+- Hystix：熔断器
+
+以上只是其中一部分，架构图：
+
+![1525575656796](/images/leyou/1525575656796.png)
+
+## 4.2.版本
+
+SpringCloud的版本命名比较特殊，因为它不是一个组件，而是许多组件的集合，它的命名是以A到Z的为首字母的一些单词组成：
+
+ ![1525575903675](/images/leyou/1525575903675.png)
+
+我们在项目中，会是以Finchley的版本。
+
+其中包含的组件，也都有各自的版本，如下表：
+
+| Component                 | Edgware.SR3    | Finchley.RC1     | Finchley.BUILD-SNAPSHOT |
+| ------------------------- | -------------- | ---------------- | ----------------------- |
+| spring-cloud-aws          | 1.2.2.RELEASE  | 2.0.0.RC1        | 2.0.0.BUILD-SNAPSHOT    |
+| spring-cloud-bus          | 1.3.2.RELEASE  | 2.0.0.RC1        | 2.0.0.BUILD-SNAPSHOT    |
+| spring-cloud-cli          | 1.4.1.RELEASE  | 2.0.0.RC1        | 2.0.0.BUILD-SNAPSHOT    |
+| spring-cloud-commons      | 1.3.3.RELEASE  | 2.0.0.RC1        | 2.0.0.BUILD-SNAPSHOT    |
+| spring-cloud-contract     | 1.2.4.RELEASE  | 2.0.0.RC1        | 2.0.0.BUILD-SNAPSHOT    |
+| spring-cloud-config       | 1.4.3.RELEASE  | 2.0.0.RC1        | 2.0.0.BUILD-SNAPSHOT    |
+| spring-cloud-netflix      | 1.4.4.RELEASE  | 2.0.0.RC1        | 2.0.0.BUILD-SNAPSHOT    |
+| spring-cloud-security     | 1.2.2.RELEASE  | 2.0.0.RC1        | 2.0.0.BUILD-SNAPSHOT    |
+| spring-cloud-cloudfoundry | 1.1.1.RELEASE  | 2.0.0.RC1        | 2.0.0.BUILD-SNAPSHOT    |
+| spring-cloud-consul       | 1.3.3.RELEASE  | 2.0.0.RC1        | 2.0.0.BUILD-SNAPSHOT    |
+| spring-cloud-sleuth       | 1.3.3.RELEASE  | 2.0.0.RC1        | 2.0.0.BUILD-SNAPSHOT    |
+| spring-cloud-stream       | Ditmars.SR3    | Elmhurst.RELEASE | Elmhurst.BUILD-SNAPSHOT |
+| spring-cloud-zookeeper    | 1.2.1.RELEASE  | 2.0.0.RC1        | 2.0.0.BUILD-SNAPSHOT    |
+| spring-boot               | 1.5.10.RELEASE | 2.0.1.RELEASE    | 2.0.0.BUILD-SNAPSHOT    |
+| spring-cloud-task         | 1.2.2.RELEASE  | 2.0.0.RC1        | 2.0.0.RELEASE           |
+| spring-cloud-vault        | 1.1.0.RELEASE  | 2.0.0.RC1        | 2.0.0.BUILD-SNAPSHOT    |
+| spring-cloud-gateway      | 1.0.1.RELEASE  | 2.0.0.RC1        | 2.0.0.BUILD-SNAPSHOT    |
+| spring-cloud-openfeign    |                | 2.0.0.RC1        | 2.0.0.BUILD-SNAPSHOT    |
+
+接下来，我们就一一学习SpringCloud中的重要组件。
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+# 5.微服务场景模拟
+
+首先，我们需要模拟一个服务调用的场景。方便后面学习微服务架构
+
+## 5.1.服务提供者
+
+我们新建一个项目，对外提供查询用户的服务。
+
+### 5.1.1.Spring脚手架创建工程
+
+借助于Spring提供的快速搭建工具：
+
+![1525576816916](/images/leyou/1525576816916.png)
+
+填写项目信息：
+
+ ![1525576909381](/images/leyou/1525576909381.png)
+
+添加web依赖：
+
+![1525576950842](/images/leyou/1525576950842.png)
+
+添加mybatis依赖：
+
+![1525576999052](/images/leyou/1525576999052.png)
+
+填写项目位置：
+
+![1525577029150](/images/leyou/1525577029150.png)
+
+生成的项目结构：
+
+ ![1525577106711](/images/leyou/1525577106711.png)
+
+依赖也已经全部自动引入：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.leyou.demo</groupId>
+	<artifactId>user-service-demo</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>user-service-demo</name>
+	<description>Demo project for Spring Boot</description>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.0.1.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mybatis.spring.boot</groupId>
+			<artifactId>mybatis-spring-boot-starter</artifactId>
+			<version>1.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+</project>
+
+```
+
+当然，因为要使用通用mapper，所以我们需要手动加一条依赖：
+
+```xml
+<dependency>
+    <groupId>tk.mybatis</groupId>
+    <artifactId>mapper-spring-boot-starter</artifactId>
+    <version>2.0.2</version>
+</dependency>
+```
+
+非常快捷啊！
+
+### 5.1.2.编写代码
+
+添加一个对外查询的接口：
+
+```java
+@RestController
+@RequestMapping("user")
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping("/{id}")
+    public User queryById(@PathVariable("id") Long id) {
+        return this.userService.queryById(id);
+    }
+}
+```
+
+Service：
+
+```java
+@Service
+public class UserService {
+
+    @Autowired
+    private UserMapper userMapper;
+
+    public User queryById(Long id) {
+        return this.userMapper.selectByPrimaryKey(id);
+    }
+}
+```
+
+mapper:
+
+```java
+@Mapper
+public interface UserMapper extends tk.mybatis.mapper.common.Mapper<User>{
+}
+```
+
+实体类：
+
+```java
+@Table(name = "tb_user")
+public class User implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // 用户名
+    private String userName;
+
+    // 密码
+    private String password;
+
+    // 姓名
+    private String name;
+
+    // 年龄
+    private Integer age;
+
+    // 性别，1男性，2女性
+    private Integer sex;
+
+    // 出生日期
+    private Date birthday;
+
+    // 创建时间
+    private Date created;
+
+    // 更新时间
+    private Date updated;
+
+    // 备注
+    private String note;
+
+   // 。。。省略getters和setters
+}
+
+```
+
+属性文件,这里我们采用了yaml语法，而不是properties：
+
+```yaml
+server:
+  port: 8081
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/mydb01
+    username: root
+    password: 123
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+mybatis:
+  type-aliases-package: com.leyou.userservice.pojo
+```
+
+
+
+项目结构：
+
+ ![1525577911331](/images/leyou/1525577911331.png)
+
+### 5.1.3.启动并测试：
+
+启动项目，访问接口：http://localhost:8081/user/7
+
+ ![1525593139364](/images/leyou/1525593139364.png)
+
+
+
+## 5.2.服务调用者
+
+### 5.2.1.创建工程
+
+与上面类似，这里不再赘述，需要注意的是，我们调用user-service的功能，因此不需要mybatis相关依赖了。
+
+pom：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.leyou.demo</groupId>
+	<artifactId>user-consumer-demo</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>user-consumer-demo</name>
+	<description>Demo project for Spring Boot</description>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.0.1.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+        <!-- 添加OkHttp支持 -->
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+			<version>3.9.0</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+```
+
+### 5.2.2.编写代码
+
+首先在启动类中注册`RestTemplate`：
+
+```java
+@SpringBootApplication
+public class UserConsumerDemoApplication {
+
+    @Bean
+    public RestTemplate restTemplate() {
+        // 这次我们使用了OkHttp客户端,只需要注入工厂即可
+        return new RestTemplate(new OkHttp3ClientHttpRequestFactory());
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(UserConsumerDemoApplication.class, args);
+    }
+}
+```
+
+
+
+然后编写UserDao，注意，这里不是调用mapper查数据库，而是通过RestTemplate远程查询user-service-demo中的接口：
+
+```java
+@Component
+public class UserDao {
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    public User queryUserById(Long id){
+        String url = "http://localhost:8081/user/" + id;
+        return this.restTemplate.getForObject(url, User.class);
+    }
+}
+```
+
+
+
+然后编写user-service，循环查询UserDAO信息：
+
+```java
+@Service
+public class UserService {
+
+    @Autowired
+    private UserDao userDao;
+
+    public List<User> querUserByIds(List<Long> ids){
+        List<User> users = new ArrayList<>();
+        for (Long id : ids) {
+            User user = this.userDao.queryUserById(id);
+            users.add(user);
+        }
+        return users;
+    }
+}
+```
+
+编写controller：
+
+```java
+@RestController
+@RequestMapping("consume")
+public class ConsumerController {
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping
+    public List<User> consume(@RequestParam("ids") List<Long> ids) {
+        return this.userService.queryUserByIds(ids);
+    }
+}
+```
+
+
+
+### 5.2.3.启动测试：
+
+因为我们没有配置端口，那么默认就是8080，我们访问：http://localhost:8080/consume?ids=6,7,8
+
+ ![1525594222408](/images/leyou/1525594222408.png)
+
+一个简单的远程服务调用案例就实现了。
+
+## 5.3.有没有问题？
+
+简单回顾一下，刚才我们写了什么：
+
+- use-service-demo：一个提供根据id查询用户的微服务
+- consumer-demo：一个服务调用者，通过RestTemplate远程调用user-service-demo
+
+流程如下：
+
+![1525595012668](/images/leyou/1525595012668.png)
+
+存在什么问题？
+
+- 在consumer中，我们把url地址硬编码到了代码中，不方便后期维护
+- consumer需要记忆user-service的地址，如果出现变更，可能得不到通知，地址将失效
+- consumer不清楚user-service的状态，服务宕机也不知道
+- user-service只有1台服务，不具备高可用性
+- 即便user-service形成集群，consumer还需自己实现负载均衡
+
+其实上面说的问题，概括一下就是分布式服务必然要面临的问题：
+
+- 服务管理
+  - 如何自动注册和发现
+  - 如何实现状态监管
+  - 如何实现动态路由
+- 服务如何实现负载均衡
+- 服务如何解决容灾问题
+- 服务如何实现统一配置
+
+以上的问题，我们都将在SpringCloud中得到答案。
+
+
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+# 6.Eureka注册中心
+
+## 6.1.认识Eureka
+
+首先我们来解决第一问题，服务的管理。
+
+> 问题分析
+
+在刚才的案例中，user-service对外提供服务，需要对外暴露自己的地址。而consumer（调用者）需要记录服务提供者的地址。将来地址出现变更，还需要及时更新。这在服务较少的时候并不觉得有什么，但是在现在日益复杂的互联网环境，一个项目肯定会拆分出十几，甚至数十个微服务。此时如果还人为管理地址，不仅开发困难，将来测试、发布上线都会非常麻烦，这与DevOps的思想是背道而驰的。
+
+> 网约车
+
+这就好比是 网约车出现以前，人们出门叫车只能叫出租车。一些私家车想做出租却没有资格，被称为黑车。而很多人想要约车，但是无奈出租车太少，不方便。私家车很多却不敢拦，而且满大街的车，谁知道哪个才是愿意载人的。一个想要，一个愿意给，就是缺少引子，缺乏管理啊。
+
+此时滴滴这样的网约车平台出现了，所有想载客的私家车全部到滴滴注册，记录你的车型（服务类型），身份信息（联系方式）。这样提供服务的私家车，在滴滴那里都能找到，一目了然。
+
+此时要叫车的人，只需要打开APP，输入你的目的地，选择车型（服务类型），滴滴自动安排一个符合需求的车到你面前，为你服务，完美！
+
+> Eureka做什么？
+
+Eureka就好比是滴滴，负责管理、记录服务提供者的信息。服务调用者无需自己寻找服务，而是把自己的需求告诉Eureka，然后Eureka会把符合你需求的服务告诉你。
+
+同时，服务提供方与Eureka之间通过`“心跳”`机制进行监控，当某个服务提供方出现问题，Eureka自然会把它从服务列表中剔除。
+
+这就实现了服务的自动注册、发现、状态监控。
+
+## 6.2.原理图
+
+> 基本架构：
+
+ ![1525597885059](/images/leyou/1525597885059.png)
+
+
+
+- Eureka：就是服务注册中心（可以是一个集群），对外暴露自己的地址
+- 提供者：启动后向Eureka注册自己信息（地址，提供什么服务）
+- 消费者：向Eureka订阅服务，Eureka会将对应服务的所有提供者地址列表发送给消费者，并且定期更新
+- 心跳(续约)：提供者定期通过http方式向Eureka刷新自己的状态
+
+
+
+## 6.3.入门案例
+
+### 6.3.1.编写EurekaServer
+
+接下来我们创建一个项目，启动一个EurekaServer：
+
+依然使用spring提供的快速搭建工具：
+
+![1525598231170](/images/leyou/1525598231170.png)
+
+选择依赖：
+
+![1525598312368](/images/leyou/1525598312368.png)
+
+完整的Pom文件：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.leyou.demo</groupId>
+	<artifactId>eureka-demo</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>eureka-demo</name>
+	<description>Demo project for Spring Boot</description>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.0.1.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+        <!-- SpringCloud版本，是最新的F系列 -->
+		<spring-cloud.version>Finchley.RC1</spring-cloud.version>
+	</properties>
+
+	<dependencies>
+        <!-- Eureka服务端 -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+		</dependency>
+	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+            <!-- SpringCloud依赖，一定要放到dependencyManagement中，起到管理版本的作用即可 -->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>spring-milestones</id>
+			<name>Spring Milestones</name>
+			<url>https://repo.spring.io/milestone</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+</project>
+```
+
+编写启动类：
+
+```java
+@SpringBootApplication
+@EnableEurekaServer // 声明这个应用是一个EurekaServer
+public class EurekaDemoApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(EurekaDemoApplication.class, args);
+	}
+}
+```
+
+编写配置：
+
+```yaml
+server:
+  port: 10086 # 端口
+spring:
+  application:
+    name: eureka-server # 应用名称，会在Eureka中显示
+eureka:
+  client:
+    register-with-eureka: false # 是否注册自己的信息到EurekaServer，默认是true
+    fetch-registry: false # 是否拉取其它服务的信息，默认是true
+    service-url: # EurekaServer的地址，现在是自己的地址，如果是集群，需要加上其它Server的地址。
+      defaultZone: http://127.0.0.1:${server.port}/eureka
+
+```
+
+启动服务，并访问：http://127.0.0.1:10086/eureka
+
+![1525604959508](/images/leyou/1525604959508.png)
+
+![1525605081129](/images/leyou/1525605081129.png)
+
+
+
+### 6.3.2.将user-service注册到Eureka
+
+注册服务，就是在服务上添加Eureka的客户端依赖，客户端代码会自动把服务注册到EurekaServer中。
+
+
+
+> 我们在user-service-demo中添加Eureka客户端依赖：
+
+先添加SpringCloud依赖：
+
+```xml
+<!-- SpringCloud的依赖 -->
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-dependencies</artifactId>
+            <version>Finchley.RC1</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+<!-- Spring的仓库地址 -->
+<repositories>
+    <repository>
+        <id>spring-milestones</id>
+        <name>Spring Milestones</name>
+        <url>https://repo.spring.io/milestone</url>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+    </repository>
+</repositories>
+```
+
+然后是Eureka客户端：
+
+```xml
+<!-- Eureka客户端 -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+```
+
+
+
+> 在启动类上开启Eureka客户端功能
+
+通过添加`@EnableDiscoveryClient`来开启Eureka客户端功能
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient // 开启EurekaClient功能
+public class UserServiceDemoApplication {
+	public static void main(String[] args) {
+		SpringApplication.run(UserServiceDemoApplication.class, args);
+	}
+}
+```
+
+
+
+> 编写配置
+
+```yaml
+server:
+  port: 8081
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/mydb01
+    username: root
+    password: 123
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+  application:
+    name: user-service # 应用名称
+mybatis:
+  type-aliases-package: com.leyou.userservice.pojo
+eureka:
+  client:
+    service-url: # EurekaServer地址
+      defaultZone: http://127.0.0.1:10086/eureka
+  instance:
+    prefer-ip-address: true # 当调用getHostname获取实例的hostname时，返回ip而不是host名称
+    ip-address: 127.0.0.1 # 指定自己的ip信息，不指定的话会自己寻找
+```
+
+注意：
+
+- 这里我们添加了spring.application.name属性来指定应用名称，将来会作为应用的id使用。
+- 不用指定register-with-eureka和fetch-registry，因为默认是true
+
+
+
+> 重启项目，访问[Eureka监控页面](http://127.0.0.1:10086/eureka)查看
+
+![1525609225152](/images/leyou/1525609225152.png)
+
+我们发现user-service服务已经注册成功了
+
+
+
+### 6.3.3.消费者从Eureka获取服务
+
+接下来我们修改consumer-demo，尝试从EurekaServer获取服务。
+
+方法与消费者类似，只需要在项目中添加EurekaClient依赖，就可以通过服务名称来获取信息了！
+
+1）添加依赖：
+
+先添加SpringCloud依赖：
+
+```xml
+<!-- SpringCloud的依赖 -->
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-dependencies</artifactId>
+            <version>Finchley.RC1</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+<!-- Spring的仓库地址 -->
+<repositories>
+    <repository>
+        <id>spring-milestones</id>
+        <name>Spring Milestones</name>
+        <url>https://repo.spring.io/milestone</url>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+    </repository>
+</repositories>
+```
+
+然后是Eureka客户端：
+
+```xml
+<!-- Eureka客户端 -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+```
+
+
+
+2）在启动类开启Eureka客户端
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient // 开启Eureka客户端
+public class UserConsumerDemoApplication {
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate(new OkHttp3ClientHttpRequestFactory());
+    }
+    public static void main(String[] args) {
+        SpringApplication.run(UserConsumerDemoApplication.class, args);
+    }
+}
+
+```
+
+3）修改配置：
+
+```yaml
+server:
+  port: 8080
+spring:
+  application:
+    name: consumer # 应用名称
+eureka:
+  client:
+    service-url: # EurekaServer地址
+      defaultZone: http://127.0.0.1:10086/eureka
+  instance:
+    prefer-ip-address: true # 当其它服务获取地址时提供ip而不是hostname
+    ip-address: 127.0.0.1 # 指定自己的ip信息，不指定的话会自己寻找
+```
+
+4）修改代码，用DiscoveryClient类的方法，根据服务名称，获取服务实例：
+
+```java
+@Service
+public class UserService {
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Autowired
+    private DiscoveryClient discoveryClient;// Eureka客户端，可以获取到服务实例信息
+
+    public List<User> queryUserByIds(List<Long> ids) {
+        List<User> users = new ArrayList<>();
+        // String baseUrl = "http://localhost:8081/user/";
+        // 根据服务名称，获取服务实例
+        List<ServiceInstance> instances = discoveryClient.getInstances("user-service");
+        // 因为只有一个UserService,因此我们直接get(0)获取
+        ServiceInstance instance = instances.get(0);
+        // 获取ip和端口信息
+        String baseUrl = "http://"+instance.getHost() + ":" + instance.getPort()+"/user/";
+        ids.forEach(id -> {
+            // 我们测试多次查询，
+            users.add(this.restTemplate.getForObject(baseUrl + id, User.class));
+            // 每次间隔500毫秒
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        return users;
+    }
+}
+```
+
+
+
+5）Debug跟踪运行：
+
+![1525613025086](/images/leyou/1525613025086.png)
+
+生成的URL：
+
+![1525613051210](/images/leyou/1525613051210.png)
+
+访问结果：
+
+ ![1525613160920](/images/leyou/1525613160920.png)
+
+
+
+## 6.4.Eureka详解
+
+接下来我们详细讲解Eureka的原理及配置。
+
+### 6.4.1.基础架构
+
+Eureka架构中的三个核心角色：
+
+- 服务注册中心
+
+  Eureka的服务端应用，提供服务注册和发现功能，就是刚刚我们建立的eureka-demo
+
+- 服务提供者
+
+  提供服务的应用，可以是SpringBoot应用，也可以是其它任意技术实现，只要对外提供的是Rest风格服务即可。本例中就是我们实现的user-service-demo
+
+- 服务消费者
+
+  消费应用从注册中心获取服务列表，从而得知每个服务方的信息，知道去哪里调用服务方。本例中就是我们实现的consumer-demo
+
+### 6.4.2.高可用的Eureka Server
+
+Eureka Server即服务的注册中心，在刚才的案例中，我们只有一个EurekaServer，事实上EurekaServer也可以是一个集群，形成高可用的Eureka中心。
+
+> 服务同步
+
+多个Eureka Server之间也会互相注册为服务，当服务提供者注册到Eureka Server集群中的某个节点时，该节点会把服务的信息同步给集群中的每个节点，从而实现**数据同步**。因此，无论客户端访问到Eureka Server集群中的任意一个节点，都可以获取到完整的服务列表信息。
+
+
+
+> 动手搭建高可用的EurekaServer
+
+我们假设要搭建两条EurekaServer的集群，端口分别为：10086和10087
+
+1）我们修改原来的EurekaServer配置：
+
+```yaml
+server:
+  port: 10086 # 端口
+spring:
+  application:
+    name: eureka-server # 应用名称，会在Eureka中显示
+eureka:
+  client:
+    service-url: # 配置其他Eureka服务的地址，而不是自己，比如10087
+      defaultZone: http://127.0.0.1:10087/eureka
+
+```
+
+所谓的高可用注册中心，其实就是把EurekaServer自己也作为一个服务进行注册，这样多个EurekaServer之间就能互相发现对方，从而形成集群。因此我们做了以下修改：
+
+- 删除了register-with-eureka=false和fetch-registry=false两个配置。因为默认值是true，这样就会吧自己注册到注册中心了。
+- 把service-url的值改成了另外一台EurekaServer的地址，而不是自己
+
+2）另外一台配置恰好相反：
+
+```yaml
+server:
+  port: 10087 # 端口
+spring:
+  application:
+    name: eureka-server # 应用名称，会在Eureka中显示
+eureka:
+  client:
+    service-url: # 配置其他Eureka服务的地址，而不是自己，比如10087
+      defaultZone: http://127.0.0.1:10086/eureka
+
+```
+
+注意：idea中一个应用不能启动两次，我们需要重新配置一个启动器：
+
+ ![1525615070033](/images/leyou/1525615070033.png)
+
+ ![1525615095693](/images/leyou/1525615095693.png)
+
+![1525615026937](/images/leyou/1525615026937.png)
+
+然后启动即可。
+
+3）启动测试：
+
+![1525615165157](/images/leyou/1525615165157.png)
+
+4）客户端注册服务到集群
+
+因为EurekaServer不止一个，因此注册服务的时候，service-url参数需要变化：
+
+```yaml
+eureka:
+  client:
+    service-url: # EurekaServer地址,多个地址以','隔开
+      defaultZone: http://127.0.0.1:10086/eureka,http://127.0.0.1:10087/eureka
+```
+
+
+
+
+
+### 6.4.3.服务提供者
+
+服务提供者要向EurekaServer注册服务，并且完成服务续约等工作。
+
+> 服务注册
+
+服务提供者在启动时，会检测配置属性中的：`eureka.client.register-with-erueka=true`参数是否正确，事实上默认就是true。如果值确实为true，则会向EurekaServer发起一个Rest请求，并携带自己的元数据信息，Eureka Server会把这些信息保存到一个双层Map结构中。第一层Map的Key就是服务名称，第二层Map的key是服务的实例id。
+
+> 服务续约
+
+在注册服务完成以后，服务提供者会维持一个心跳（定时向EurekaServer发起Rest请求），告诉EurekaServer：“我还活着”。这个我们称为服务的续约（renew）；
+
+有两个重要参数可以修改服务续约的行为：
+
+```yaml
+eureka:
+  instance:
+    lease-expiration-duration-in-seconds: 90
+    lease-renewal-interval-in-seconds: 30
+```
+
+- lease-renewal-interval-in-seconds：服务续约(renew)的间隔，默认为30秒
+- lease-expiration-duration-in-seconds：服务失效时间，默认值90秒
+
+也就是说，默认情况下每个30秒服务会向注册中心发送一次心跳，证明自己还活着。如果超过90秒没有发送心跳，EurekaServer就会认为该服务宕机，会从服务列表中移除，这两个值在生产环境不要修改，默认即可。
+
+但是在开发时，这个值有点太长了，经常我们关掉一个服务，会发现Eureka依然认为服务在活着。所以我们在开发阶段可以适当调小。
+
+```yaml
+eureka:
+  instance:
+    lease-expiration-duration-in-seconds: 10 # 10秒即过期
+    lease-renewal-interval-in-seconds: 5 # 5秒一次心跳
+```
+
+
+
+> 实例id
+
+先来看一下服务状态信息：
+
+在Eureka监控页面，查看服务注册信息：
+
+![1525617060656](/images/leyou/1525617060656.png)
+
+在status一列中，显示以下信息：
+
+- UP(1)：代表现在是启动了1个示例，没有集群
+- DESKTOP-2MVEC12:user-service:8081：是示例的名称（instance-id），
+  - 默认格式是：`${hostname} + ${spring.application.name} + ${server.port}`
+  - instance-id是区分同一服务的不同实例的唯一标准，因此不能重复。
+
+我们可以通过instance-id属性来修改它的构成：
+
+```yaml
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${server.port}
+```
+
+重启服务再试试看：
+
+![1525617542081](/images/leyou/1525617542081.png)
+
+
+
+### 6.4.4.服务消费者
+
+> 获取服务列表
+
+当服务消费者启动是，会检测`eureka.client.fetch-registry=true`参数的值，如果为true，则会从Eureka Server服务的列表只读备份，然后缓存在本地。并且`每隔30秒`会重新获取并更新数据。我们可以通过下面的参数来修改：
+
+```yaml
+eureka:
+  client:
+    registry-fetch-interval-seconds: 5
+```
+
+生产环境中，我们不需要修改这个值。
+
+但是为了开发环境下，能够快速得到服务的最新状态，我们可以将其设置小一点。
+
+
+
+### 6.4.5.失效剔除和自我保护
+
+> 失效剔除
+
+有些时候，我们的服务提供方并不一定会正常下线，可能因为内存溢出、网络故障等原因导致服务无法正常工作。Eureka Server需要将这样的服务剔除出服务列表。因此它会开启一个定时任务，每隔60秒对所有失效的服务（超过90秒未响应）进行剔除。
+
+可以通过`eureka.server.eviction-interval-timer-in-ms`参数对其进行修改，单位是毫秒，生成环境不要修改。
+
+这个会对我们开发带来极大的不变，你对服务重启，隔了60秒Eureka才反应过来。开发阶段可以适当调整，比如10S
+
+> 自我保护
+
+我们关停一个服务，就会在Eureka面板看到一条警告：
+
+![1525618396076](/images/leyou/1525618396076.png)
+
+这是触发了Eureka的自我保护机制。当一个服务未按时进行心跳续约时，Eureka会统计最近15分钟心跳失败的服务实例的比例是否超过了85%。在生产环境下，因为网络延迟等原因，心跳失败实例的比例很有可能超标，但是此时就把服务剔除列表并不妥当，因为服务可能没有宕机。Eureka就会把当前实例的注册信息保护起来，不予剔除。生产环境下这很有效，保证了大多数服务依然可用。
+
+但是这给我们的开发带来了麻烦， 因此开发阶段我们都会关闭自我保护模式：
+
+```yaml
+eureka:
+  server:
+    enable-self-preservation: false # 关闭自我保护模式（缺省为打开）
+    eviction-interval-timer-in-ms: 1000 # 扫描失效服务的间隔时间（缺省为60*1000ms）
+```
+
+
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+# 7.负载均衡Robbin
+
+在刚才的案例中，我们启动了一个user-service，然后通过DiscoveryClient来获取服务实例信息，然后获取ip和端口来访问。
+
+但是实际环境中，我们往往会开启很多个user-service的集群。此时我们获取的服务列表中就会有多个，到底该访问哪一个呢？
+
+一般这种情况下我们就需要编写负载均衡算法，在多个实例列表中进行选择。
+
+不过Eureka中已经帮我们集成了负载均衡组件：Ribbon，简单修改代码即可使用。
+
+什么是Ribbon：
+
+![1525619257397](/images/leyou/1525619257397.png)
+
+
+
+接下来，我们就来使用Ribbon实现负载均衡。
+
+
+
+## 7.1.启动两个服务实例
+
+首先我们启动两个user-service实例，一个8081，一个8082。
+
+ ![1525619515586](/images/leyou/1525619515586.png)
+
+Eureka监控面板：
+
+![1525619546904](/images/leyou/1525619546904.png)
+
+## 7.2.开启负载均衡
+
+因为Eureka中已经集成了Ribbon，所以我们无需引入新的依赖。直接修改代码：
+
+在RestTemplate的配置方法上添加`@LoadBalanced`注解：
+
+```java
+@Bean
+@LoadBalanced
+public RestTemplate restTemplate() {
+    return new RestTemplate(new OkHttp3ClientHttpRequestFactory());
+}
+```
+
+
+
+修改调用方式，不再手动获取ip和端口，而是直接通过服务名称调用：
+
+```java
+@Service
+public class UserService {
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Autowired
+    private DiscoveryClient discoveryClient;
+
+    public List<User> queryUserByIds(List<Long> ids) {
+        List<User> users = new ArrayList<>();
+        // 地址直接写服务名称即可
+        String baseUrl = "http://user-service/user/";
+        ids.forEach(id -> {
+            // 我们测试多次查询，
+            users.add(this.restTemplate.getForObject(baseUrl + id, User.class));
+            // 每次间隔500毫秒
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        return users;
+    }
+}
+```
+
+访问页面，查看结果：
+
+ ![1525620305704](/images/leyou/1525620305704.png)
+
+完美！
+
+## 7.3.源码跟踪
+
+为什么我们只输入了service名称就可以访问了呢？之前还要获取ip和端口。
+
+显然有人帮我们根据service名称，获取到了服务实例的ip和端口。它就是`LoadBalancerInterceptor`
+
+我们进行源码跟踪：
+
+![1525620483637](/images/leyou/1525620483637.png)
+
+继续跟入execute方法：发现获取了8082端口的服务
+
+![1525620787090](/images/leyou/1525620787090.png)
+
+再跟下一次，发现获取的是8081：
+
+ ![1525620835911](/images/leyou/1525620835911.png)
+
+
+
+## 7.4.负载均衡策略
+
+Ribbon默认的负载均衡策略是简单的轮询，我们可以测试一下：
+
+编写测试类，在刚才的源码中我们看到拦截中是使用RibbonLoadBalanceClient来进行负载均衡的，其中有一个choose方法，是这样介绍的：
+
+ ![1525622320277](/images/leyou/1525622320277.png)
+
+现在这个就是负载均衡获取实例的方法。
+
+我们对注入这个类的对象，然后对其测试：
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = UserConsumerDemoApplication.class)
+public class LoadBalanceTest {
+
+    @Autowired
+    RibbonLoadBalancerClient client;
+
+    @Test
+    public void test(){
+        for (int i = 0; i < 100; i++) {
+            ServiceInstance instance = this.client.choose("user-service");
+            System.out.println(instance.getHost() + ":" + instance.getPort());
+        }
+    }
+}
+
+```
+
+结果：
+
+ ![1525622357371](/images/leyou/1525622357371.png)
+
+符合了我们的预期推测，确实是轮询方式。
+
+
+
+我们是否可以修改负载均衡的策略呢？
+
+继续跟踪源码，发现这么一段代码：
+
+ ![1525622652849](/images/leyou/1525622652849.png)
+
+我们看看这个rule是谁：
+
+ ![1525622699666](/images/leyou/1525622699666.png)
+
+这里的rule默认值是一个`RoundRobinRule`，看类的介绍：
+
+ ![1525622754316](/images/leyou/1525622754316.png)
+
+这不就是轮询的意思嘛。
+
+我们注意到，这个类其实是实现了接口IRule的，查看一下：
+
+ ![1525622817451](/images/leyou/1525622817451.png)
+
+定义负载均衡的规则接口。
+
+它有以下实现：
+
+ ![1525622876842](/images/leyou/1525622876842.png)
+
+SpringBoot也帮我们提供了修改负载均衡规则的配置入口：
+
+```yaml
+user-service:
+  ribbon:
+    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
+```
+
+格式是：`{服务名称}.ribbon.NFLoadBalancerRuleClassName`，值就是IRule的实现类。
+
+
+
+再次测试，发现结果变成了随机：
+
+ ![1525623193949](/images/leyou/1525623193949.png)
+
+
+
+## 7.5.重试机制
+
+Eureka的服务治理强调了CAP原则中的AP，即可用性和可靠性。它与Zookeeper这一类强调CP（一致性，可靠性）的服务治理框架最大的区别在于：Eureka为了实现更高的服务可用性，牺牲了一定的一致性，极端情况下它宁愿接收故障实例也不愿丢掉健康实例，正如我们上面所说的自我保护机制。
+
+但是，此时如果我们调用了这些不正常的服务，调用就会失败，从而导致其它服务不能正常工作！这显然不是我们愿意看到的。
+
+我们现在关闭一个user-service实例：
+
+ ![1525653565855](/images/leyou/1525653565855.png)
+
+因为服务剔除的延迟，consumer并不会立即得到最新的服务列表，此时再次访问你会得到错误提示：
+
+![1525653715488](/images/leyou/1525653715488.png)
+
+但是此时，8081服务其实是正常的。
+
+因此Spring Cloud 整合了Spring Retry 来增强RestTemplate的重试能力，当一次服务调用失败后，不会立即抛出一次，而是再次重试另一个服务。
+
+只需要简单配置即可实现Ribbon的重试：
+
+```yaml
+spring:
+  cloud:
+    loadbalancer:
+      retry:
+        enabled: true # 开启Spring Cloud的重试功能
+user-service:
+  ribbon:
+    ConnectTimeout: 250 # Ribbon的连接超时时间
+    ReadTimeout: 1000 # Ribbon的数据读取超时时间
+    OkToRetryOnAllOperations: true # 是否对所有操作都进行重试
+    MaxAutoRetriesNextServer: 1 # 切换实例的重试次数
+    MaxAutoRetries: 1 # 对当前实例的重试次数
+```
+
+根据如上配置，当访问到某个服务超时后，它会再次尝试访问下一个服务实例，如果不行就再换一个实例，如果不行，则返回失败。切换次数取决于`MaxAutoRetriesNextServer`参数的值
+
+引入spring-retry依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.retry</groupId>
+    <artifactId>spring-retry</artifactId>
+</dependency>
+```
+
+
+
+我们重启user-consumer-demo，测试，发现即使user-service2宕机，也能通过另一台服务实例获取到结果！
+
+ ![1525658269456](/images/leyou/1525658269456.png)
+---
+layout: post
+title:  认识微服务2
+categories: 乐优
+description: 认识微服务2
+keywords: 乐优
+---
+# 0.学习目标
+
+- 会配置Hystix熔断
+- 会使用Feign进行远程调用
+- 能独立搭建Zuul网关
+- 能编写Zuul的拦截器
+
+
+
+# 1.Hystix
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 1.1.简介
+
+Hystix，即熔断器。
+
+主页：https://github.com/Netflix/Hystrix/
+
+![1525658740266](/images/leyou/1525658740266.png)
+
+
+
+Hystix是Netflix开源的一个延迟和容错库，用于隔离访问远程服务、第三方库，防止出现级联失败。
+
+![1525658562507](/images/leyou/1525658562507.png)
+
+
+
+## 1.2.熔断器的工作机制：
+
+![1525658640314](/images/leyou/1525658640314.png)
+
+正常工作的情况下，客户端请求调用服务API接口：
+
+![1525658906255](/images/leyou/1525658906255.png)
+
+当有服务出现异常时，直接进行失败回滚，服务降级处理：
+
+![1525658983518](/images/leyou/1525658983518.png)
+
+当服务繁忙时，如果服务出现异常，不是粗暴的直接报错，而是返回一个友好的提示，虽然拒绝了用户的访问，但是会返回一个结果。
+
+这就好比去买鱼，平常超市买鱼会额外赠送杀鱼的服务。等到逢年过节，超时繁忙时，可能就不提供杀鱼服务了，这就是服务的降级。
+
+系统特别繁忙时，一些次要服务暂时中断，优先保证主要服务的畅通，一切资源优先让给主要服务来使用，在双十一、618时，京东天猫都会采用这样的策略。
+
+
+
+## 1.3.动手实践
+
+### 1.3.1.引入依赖
+
+首先在user-consumer中引入Hystix依赖：
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+</dependency>
+```
+
+### 1.3.2.开启熔断
+
+
+
+### 1.3.2.改造消费者
+
+我们改造user-consumer，添加一个用来访问的user服务的DAO，并且声明一个失败时的回滚处理函数：
+
+```java
+@Component
+public class UserDao {
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
+
+    @HystrixCommand(fallbackMethod = "queryUserByIdFallback")
+    public User queryUserById(Long id){
+        long begin = System.currentTimeMillis();
+        String url = "http://user-service/user/" + id;
+        User user = this.restTemplate.getForObject(url, User.class);
+        long end = System.currentTimeMillis();
+        // 记录访问用时：
+        logger.info("访问用时：{}", end - begin);
+        return user;
+    }
+
+    public User queryUserByIdFallback(Long id){
+        User user = new User();
+        user.setId(id);
+        user.setName("用户信息查询出现异常！");
+        return user;
+    }
+}
+```
+
+- `@HystrixCommand(fallbackMethod="queryUserByIdFallback")`：声明一个失败回滚处理函数queryUserByIdFallback，当queryUserById执行超时（默认是1000毫秒），就会执行fallback函数，返回错误提示。
+- 为了方便查看熔断的触发时机，我们记录请求访问时间。
+
+在原来的业务逻辑中调用这个DAO：
+
+```java
+@Service
+public class UserService {
+
+    @Autowired
+    private UserDao userDao;
+
+    public List<User> queryUserByIds(List<Long> ids) {
+        List<User> users = new ArrayList<>();
+        ids.forEach(id -> {
+            // 我们测试多次查询，
+            users.add(this.userDao.queryUserById(id));
+        });
+        return users;
+    }
+}
+```
+
+### 1.3.3.改造服务提供者
+
+改造服务提供者，随机休眠一段时间，以触发熔断：
+
+```java
+@Service
+public class UserService {
+
+    @Autowired
+    private UserMapper userMapper;
+
+    public User queryById(Long id) throws InterruptedException {
+        // 为了演示超时现象，我们在这里然线程休眠,时间随机 0~2000毫秒
+        Thread.sleep(new Random().nextInt(2000));
+        return this.userMapper.selectByPrimaryKey(id);
+    }
+}
+
+```
+
+### 1.3.4.启动测试
+
+然后运行并查看日志：
+
+id为9、10、11的访问时间分别是：
+
+ ![1525661641660](/images/leyou/1525661641660.png)
+
+id为12的访问时间：
+
+ ![1525661669136](/images/leyou/1525661669136.png)
+
+因此，只有12是正常访问，其它都会触发熔断，我们来查看结果：
+
+![1525661720656](/images/leyou/1525661720656.png)
+
+
+
+### 1.3.5.优化
+
+虽然熔断实现了，但是我们的重试机制似乎没有生效，是这样吗？
+
+其实这里是因为我们的Ribbon超时时间设置的是1000ms:
+
+​	![1525666632542](/images/leyou/1525666632542.png)
+
+而Hystix的超时时间默认也是1000ms，因此重试机制没有被触发，而是先触发了熔断。
+
+所以，Ribbon的超时时间一定要小于Hystix的超时时间。
+
+我们可以通过`hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds`来设置Hystrix超时时间。
+
+```yaml
+hystrix:
+  command:
+  	default:
+        execution:
+          isolation:
+            thread:
+              timeoutInMillisecond: 6000 # 设置hystrix的超时时间为6000ms
+```
+
+
+
+# 2.Feign
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+在前面的学习中，我们使用了Ribbon的负载均衡功能，大大简化了远程调用时的代码：
+
+```java
+String baseUrl = "http://user-service/user/";
+User user = this.restTemplate.getForObject(baseUrl + id, User.class)
+```
+
+如果就学到这里，你可能以后需要编写类似的大量重复代码，格式基本相同，无非参数不一样。有没有更优雅的方式，来对这些代码再次优化呢？
+
+这就是我们接下来要学的Feign的功能了。
+
+## 2.1.简介
+
+有道词典的英文解释：
+
+​	![1525662976679](/images/leyou/1525662976679.png)
+
+为什么叫伪装？
+
+Feign可以把Rest的请求进行隐藏，伪装成类似SpringMVC的Controller一样。你不用再自己拼接url，拼接参数等等操作，一切都交给Feign去做。
+
+
+
+项目主页：https://github.com/OpenFeign/feign
+
+![1525652009416](/images/leyou/1525652009416.png)
+
+## 2.2.快速入门
+
+### 2.2.1.导入依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+```
+
+### 2.2.2.Feign的客户端
+
+```java
+@FeignClient("user-service")
+public interface UserFeignClient {
+
+    @GetMapping("/user/{id}")
+    User queryUserById(@PathVariable("id") Long id);
+}
+```
+
+- 首先这是一个接口，Feign会通过动态代理，帮我们生成实现类。这点跟mybatis的mapper很像
+- `@FeignClient`，声明这是一个Feign客户端，类似`@Mapper`注解。同时通过`value`属性指定服务名称
+- 接口中的定义方法，完全采用SpringMVC的注解，Feign会根据注解帮我们生成URL，并访问获取结果
+
+改造原来的调用逻辑，不再调用UserDao：
+
+```java
+@Service
+public class UserService {
+
+    @Autowired
+    private UserFeignClient userFeignClient;
+
+    public List<User> queryUserByIds(List<Long> ids) {
+        List<User> users = new ArrayList<>();
+        ids.forEach(id -> {
+            // 我们测试多次查询，
+            users.add(this.userFeignClient.queryUserById(id));
+        });
+        return users;
+    }
+}
+```
+
+### 2.2.3.开启Feign功能
+
+我们在启动类上，添加注解，开启Feign功能
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+@EnableHystrix
+@EnableFeignClients // 开启Feign功能
+public class UserConsumerDemoApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(UserConsumerDemoApplication.class, args);
+    }
+}
+```
+
+- 你会发现RestTemplate的注册被我删除了。Feign中已经自动集成了Ribbon负载均衡，因此我们不需要自己定义RestTemplate了
+
+### 2.2.4.启动测试：
+
+访问接口：
+
+ ![1525666476326](/images/leyou/1525666476326.png)
+
+正常获取到了结果。
+
+## 2.3.负载均衡
+
+Feign中本身已经集成了Ribbon依赖和自动配置：
+
+​	![1525672070679](/images/leyou/1525672070679.png)
+
+因此我们不需要额外引入依赖，也不需要再注册`RestTemplate`对象。
+
+另外，我们可以像上节课中讲的那样去配置Ribbon，可以通过`ribbon.xx`来进行全局配置。也可以通过`服务名.ribbon.xx`来对指定服务配置：
+
+```yaml
+user-service:
+  ribbon:
+    ConnectTimeout: 250 # 连接超时时间(ms)
+    ReadTimeout: 1000 # 通信超时时间(ms)
+    OkToRetryOnAllOperations: true # 是否对所有操作重试
+    MaxAutoRetriesNextServer: 1 # 同一服务不同实例的重试次数
+    MaxAutoRetries: 1 # 同一实例的重试次数
+```
+
+## 2.4.Hystix支持
+
+Feign默认也有对Hystix的集成：
+
+​	![1525672466192](/images/leyou/1525672466192.png)
+
+只不过，默认情况下是关闭的。我们需要通过下面的参数来开启：
+
+```yaml
+feign:
+  hystrix:
+    enabled: true # 开启Feign的熔断功能
+```
+
+但是，Feign中的Fallback配置不像Ribbon中那样简单了。
+
+1）首先，我们要定义一个类，实现刚才编写的UserFeignClient，作为fallback的处理类
+
+```java
+@Component
+public class UserFeignClientFallback implements UserFeignClient {
+    @Override
+    public User queryUserById(Long id) {
+        User user = new User();
+        user.setId(id);
+        user.setName("用户查询出现异常！");
+        return user;
+    }
+}
+
+```
+
+2）然后在UserFeignClient中，指定刚才编写的实现类
+
+```java
+@FeignClient(value = "user-service", fallback = UserFeignClientFallback.class)
+public interface UserFeignClient {
+
+    @GetMapping("/user/{id}")
+    User queryUserById(@PathVariable("id") Long id);
+}
+
+```
+
+3）重启测试：
+
+我们关闭user-service服务，然后在页面访问：
+
+![1525673049875](/images/leyou/1525673049875.png)
+
+## 2.5.请求压缩(了解)
+
+Spring Cloud Feign 支持对请求和响应进行GZIP压缩，以减少通信过程中的性能损耗。通过下面的参数即可开启请求与响应的压缩功能：
+
+```yaml
+feign:
+  compression:
+    request:
+      enabled: true # 开启请求压缩
+    response:
+      enabled: true # 开启响应压缩
+```
+
+同时，我们也可以对请求的数据类型，以及触发压缩的大小下限进行设置：
+
+```yaml
+feign:
+  compression:
+    request:
+      enabled: true # 开启请求压缩
+      mime-types: text/html,application/xml,application/json # 设置压缩的数据类型
+      min-request-size: 2048 # 设置触发压缩的大小下限
+```
+
+注：上面的数据类型、压缩大小下限均为默认值。
+
+
+
+## 2.6.日志级别(了解)
+
+前面讲过，通过`logging.level.xx=debug`来设置日志级别。然而这个对Fegin客户端而言不会产生效果。因为`@FeignClient`注解修改的客户端在被代理时，都会创建一个新的Fegin.Logger实例。我们需要额外指定这个日志的级别才可以。
+
+1）设置com.leyou包下的日志级别都为debug
+
+```yaml
+logging:
+  level:
+    com.leyou: debug
+```
+
+2）编写配置类，定义日志级别
+
+```java
+@Configuration
+public class FeignConfig {
+    @Bean
+    Logger.Level feignLoggerLevel(){
+        return Logger.Level.FULL;
+    }
+}
+```
+
+这里指定的Level级别是FULL，Feign支持4种级别：
+
+​	![1525674373507](/images/leyou/1525674373507.png)
+
+- NONE：不记录任何日志信息，这是默认值。
+- BASIC：仅记录请求的方法，URL以及响应状态码和执行时间
+- HEADERS：在BASIC的基础上，额外记录了请求和响应的头信息
+- FULL：记录所有请求和响应的明细，包括头信息、请求体、元数据。
+
+
+
+3）在FeignClient中指定配置类：
+
+```java
+@FeignClient(value = "user-service", fallback = UserFeignClientFallback.class, configuration = FeignConfig.class)
+public interface UserFeignClient {
+    @GetMapping("/user/{id}")
+    User queryUserById(@PathVariable("id") Long id);
+}
+```
+
+4）重启项目，即可看到每次访问的日志：
+
+![1525674544569](/images/leyou/1525674544569.png)
+
+
+
+# 3.Zuul网关
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+通过前面的学习，使用Spring Cloud实现微服务的架构基本成型，大致是这样的：
+
+![1525674644660](/images/leyou/1525674644660.png)
+
+
+
+我们使用Spring Cloud Netflix中的Eureka实现了服务注册中心以及服务注册与发现；而服务间通过Ribbon或Feign实现服务的消费以及均衡负载；通过Spring Cloud Config实现了应用多环境的外部化配置以及版本管理。为了使得服务集群更为健壮，使用Hystrix的融断机制来避免在微服务架构中个别服务出现异常时引起的故障蔓延。
+
+ 
+
+在该架构中，我们的服务集群包含：内部服务Service A和Service B，他们都会注册与订阅服务至Eureka Server，而Open Service是一个对外的服务，通过均衡负载公开至服务调用方。我们把焦点聚集在对外服务这块，直接暴露我们的服务地址，这样的实现是否合理，或者是否有更好的实现方式呢？
+
+ 
+
+先来说说这样架构需要做的一些事儿以及存在的不足：
+
+- 首先，破坏了服务无状态特点。
+  - 为了保证对外服务的安全性，我们需要实现对服务访问的权限控制，而开放服务的权限控制机制将会贯穿并污染整个开放服务的业务逻辑，这会带来的最直接问题是，破坏了服务集群中REST API无状态的特点。
+  -  从具体开发和测试的角度来说，在工作中除了要考虑实际的业务逻辑之外，还需要额外考虑对接口访问的控制处理。
+- 其次，无法直接复用既有接口。
+  - 当我们需要对一个即有的集群内访问接口，实现外部服务访问时，我们不得不通过在原有接口上增加校验逻辑，或增加一个代理调用来实现权限控制，无法直接复用原有的接口。
+
+
+
+面对类似上面的问题，我们要如何解决呢？答案是：服务网关！
+
+
+
+为了解决上面这些问题，我们需要将权限控制这样的东西从我们的服务单元中抽离出去，而最适合这些逻辑的地方就是处于对外访问最前端的地方，我们需要一个更强大一些的均衡负载器的 服务网关。
+
+ 
+
+服务网关是微服务架构中一个不可或缺的部分。通过服务网关统一向外系统提供REST API的过程中，除了具备服务路由、均衡负载功能之外，它还具备了`权限控制`等功能。Spring Cloud Netflix中的Zuul就担任了这样的一个角色，为微服务架构提供了前门保护的作用，同时将权限控制这些较重的非业务逻辑内容迁移到服务路由层面，使得服务集群主体能够具备更高的可复用性和可测试性。
+
+
+
+## 3.1.简介
+
+官网：https://github.com/Netflix/zuul
+
+​	![1525675037152](/images/leyou/1525675037152.png)
+
+Zuul：维基百科：
+
+电影《捉鬼敢死队》中的怪兽，Zuul，在纽约引发了巨大骚乱。
+
+事实上，在微服务架构中，Zuul就是守门的大Boss！一夫当关，万夫莫开！
+
+![1525675168152](/images/leyou/1525675168152.png)
+
+
+
+
+
+## 3.2.Zuul加入后的架构
+
+![1525675648881](/images/leyou/1525675648881.png)
+
+
+
+- 不管是来自于客户端（PC或移动端）的请求，还是服务内部调用。一切对服务的请求都会经过Zuul这个网关，然后再由网关来实现 鉴权、动态路由等等操作。Zuul就是我们服务的统一入口。
+
+## 3.3.快速入门
+
+### 3.3.1.新建工程
+
+填写基本信息：
+
+![1525675928548](/images/leyou/1525675928548.png)
+
+添加Zuul依赖：
+
+![1525675991833](/images/leyou/1525675991833.png)
+
+### 3.3.2.编写启动类
+
+通过`@EnableZuulProxy `注解开启Zuul的功能：
+
+```java
+@SpringBootApplication
+@EnableZuulProxy // 开启Zuul的网关功能
+public class ZuulDemoApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ZuulDemoApplication.class, args);
+	}
+}
+```
+
+### 3.3.3.编写配置
+
+```yaml
+server:
+  port: 10010 #服务端口
+spring: 
+  application:  
+    name: api-gateway #指定服务名
+```
+
+### 3.3.4.编写路由规则
+
+我们需要用Zuul来代理user-service服务，先看一下控制面板中的服务状态：
+
+![1525676797879](/images/leyou/1525676797879.png)
+
+- ip为：127.0.0.1
+- 端口为：8081
+
+映射规则：
+
+```yaml
+zuul:
+  routes:
+    user-service: # 这里是路由id，随意写
+      path: /user-service/** # 这里是映射路径
+      url: http://127.0.0.1:8081 # 映射路径对应的实际url地址
+```
+
+我们将符合`path` 规则的一切请求，都代理到 `url`参数指定的地址
+
+本例中，我们将 `/user-service/**`开头的请求，代理到http://127.0.0.1:8081
+
+### 3.3.5.启动测试：
+
+访问的路径中需要加上配置规则的映射路径，我们访问：http://127.0.0.1:8081/user-service/user/10
+
+​	![1525677046705](/images/leyou/1525677046705.png)
+
+
+
+## 3.4.面向服务的路由
+
+在刚才的路由规则中，我们把路径对应的服务地址写死了！如果同一服务有多个实例的话，这样做显然就不合理了。
+
+我们应该根据服务的名称，去Eureka注册中心查找 服务对应的所有实例列表，然后进行动态路由才对！
+
+
+
+### 3.4.1.添加Eureka客户端依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+```
+
+
+
+### 3.4.2.开启Eureka客户端发现功能
+
+```java
+@SpringBootApplication
+@EnableZuulProxy // 开启Zuul的网关功能
+@EnableDiscoveryClient
+public class ZuulDemoApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ZuulDemoApplication.class, args);
+	}
+}
+```
+
+### 3.4.3.添加Eureka配置，获取服务信息
+
+```yaml
+eureka:
+  client:
+    registry-fetch-interval-seconds: 5 # 获取服务列表的周期：5s
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+  instance:
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+```
+
+### 3.4.4.修改映射配置，通过服务名称获取
+
+因为已经有了Eureka客户端，我们可以从Eureka获取服务的地址信息，因此映射时无需指定IP地址，而是通过服务名称来访问，而且Zuul已经集成了Ribbon的负载均衡功能。
+
+```yaml
+zuul:
+  routes:
+    user-service: # 这里是路由id，随意写
+      path: /user-service/** # 这里是映射路径
+      serviceId: user-service # 指定服务名称
+```
+
+
+
+### 3.4.5.启动测试
+
+再次启动，这次Zuul进行代理时，会利用Ribbon进行负载均衡访问：
+
+​	![1525677821212](/images/leyou/1525677821212.png)
+
+日志中可以看到使用了负载均衡器：
+
+![1525677891119](/images/leyou/1525677891119.png)
+
+
+
+## 3.5.简化的路由配置
+
+在刚才的配置中，我们的规则是这样的：
+
+- `zuul.routes.<route>.path=/xxx/**`： 来指定映射路径。`<route>`是自定义的路由名
+- `zuul.routes.<route>.serviceId=/user-service`：来指定服务名。
+
+而大多数情况下，我们的`<route>`路由名称往往和 服务名会写成一样的。因此Zuul就提供了一种简化的配置语法：`zuul.routes.<serviceId>=<path>`
+
+比方说上面我们关于user-service的配置可以简化为一条：
+
+```yaml
+zuul:
+  routes:
+    user-service: /user-service/** # 这里是映射路径
+```
+
+省去了对服务名称的配置。
+
+## 3.6.默认的路由规则
+
+在使用Zuul的过程中，上面讲述的规则已经大大的简化了配置项。但是当服务较多时，配置也是比较繁琐的。因此Zuul就指定了默认的路由规则：
+
+- 默认情况下，一切服务的映射路径就是服务名本身。
+  - 例如服务名为：`user-service`，则默认的映射路径就是：`/user-service/**`
+
+也就是说，刚才的映射规则我们完全不配置也是OK的，不信就试试看。
+
+## 3.7.路由前缀
+
+配置示例：
+
+```yaml
+zuul:
+  prefix: /api # 添加路由前缀
+  routes:
+      user-service: # 这里是路由id，随意写
+        path: /user-service/** # 这里是映射路径
+        service-id: user-service # 指定服务名称
+```
+
+我们通过`zuul.prefix=/api`来指定了路由的前缀，这样在发起请求时，路径就要以/api开头。
+
+路径`/api/user-service/user/1`将会被代理到`/user-service/user/1`
+
+
+
+## 3.8.过滤器
+
+Zuul作为网关的其中一个重要功能，就是实现请求的鉴权。而这个动作我们往往是通过Zuul提供的过滤器来实现的。
+
+### 3.8.1.ZuulFilter
+
+ZuulFilter是过滤器的顶级父类。在这里我们看一下其中定义的4个最重要的方法：
+
+```java
+public abstract ZuulFilter implements IZuulFilter{
+
+    abstract public String filterType();
+
+    abstract public int filterOrder();
+    
+    boolean shouldFilter();// 来自IZuulFilter
+
+    Object run() throws ZuulException;// IZuulFilter
+}
+```
+
+- `shouldFilter`：返回一个`Boolean`值，判断该过滤器是否需要执行。返回true执行，返回false不执行。
+- `run`：过滤器的具体业务逻辑。
+- `filterType`：返回字符串，代表过滤器的类型。包含以下4种：
+  - `pre`：请求在被路由之前执行
+  - `routing`：在路由请求时调用
+  - `post`：在routing和errror过滤器之后调用
+  - `error`：处理请求时发生错误调用
+- `filterOrder`：通过返回的int值来定义过滤器的执行顺序，数字越小优先级越高。
+
+
+
+### 3.8.2.过滤器执行生命周期：
+
+这张是Zuul官网提供的请求生命周期图，清晰的表现了一个请求在各个过滤器的执行顺序。
+
+​	![1525681866862](/images/leyou/1525681866862.png)
+
+- 正常流程：
+  - 请求到达首先会经过pre类型过滤器，而后到达routing类型，进行路由，请求就到达真正的服务提供者，执行请求，返回结果后，会到达post过滤器。而后返回响应。
+- 异常流程：
+  - 整个过程中，pre或者routing过滤器出现异常，都会直接进入error过滤器，再error处理完毕后，会将请求交给POST过滤器，最后返回给用户。
+  - 如果是error过滤器自己出现异常，最终也会进入POST过滤器，而后返回。
+  - 如果是POST过滤器出现异常，会跳转到error过滤器，但是与pre和routing不同的时，请求不会再到达POST过滤器了。
+
+所有内置过滤器列表：
+
+​	![1525682427811](/images/leyou/1525682427811.png)
+
+### 3.8.3.使用场景
+
+场景非常多：
+
+- 请求鉴权：一般放在pre类型，如果发现没有访问权限，直接就拦截了
+- 异常处理：一般会在error类型和post类型过滤器中结合来处理。
+- 服务调用时长统计：pre和post结合使用。
+
+## 3.9.自定义过滤器
+
+接下来我们来自定义一个过滤器，模拟一个登录的校验。基本逻辑：如果请求中有access-token参数，则认为请求有效，放行。
+
+### 3.9.1.定义过滤器类
+
+```java
+@Component
+public class LoginFilter extends ZuulFilter{
+    @Override
+    public String filterType() {
+        // 登录校验，肯定是在前置拦截
+        return "pre";
+    }
+
+    @Override
+    public int filterOrder() {
+        // 顺序设置为1
+        return 1;
+    }
+
+    @Override
+    public boolean shouldFilter() {
+        // 返回true，代表过滤器生效。
+        return true;
+    }
+
+    @Override
+    public Object run() throws ZuulException {
+        // 登录校验逻辑。
+        // 1）获取Zuul提供的请求上下文对象
+        RequestContext ctx = RequestContext.getCurrentContext();
+        // 2) 从上下文中获取request对象
+        HttpServletRequest req = ctx.getRequest();
+        // 3) 从请求中获取token
+        String token = req.getParameter("access-token");
+        // 4) 判断
+        if(token == null || "".equals(token.trim())){
+            // 没有token，登录校验失败，拦截
+            ctx.setSendZuulResponse(false);
+            // 返回401状态码。也可以考虑重定向到登录页。
+            ctx.setResponseStatusCode(HttpStatus.UNAUTHORIZED.value());
+        }
+        // 校验通过，可以考虑把用户信息放入上下文，继续向后执行
+        return null;
+    }
+}
+
+```
+
+
+
+### 3.9.2.测试
+
+没有token参数时，访问失败：
+
+​	![1525683285697](/images/leyou/1525683285697.png)
+
+添加token参数后：
+
+​	![1525683354113](/images/leyou/1525683354113.png)
+
+## 3.10.负载均衡和熔断
+
+Zuul中默认就已经集成了Ribbon负载均衡和Hystix熔断机制。但是所有的超时策略都是走的默认值，比如熔断超时时间只有1S，很容易就触发了。因此建议我们手动进行配置：
+
+```yaml
+zuul:
+  retryable: true
+ribbon:
+  ConnectTimeout: 250 # 连接超时时间(ms)
+  ReadTimeout: 2000 # 通信超时时间(ms)
+  OkToRetryOnAllOperations: true # 是否对所有操作重试
+  MaxAutoRetriesNextServer: 2 # 同一服务不同实例的重试次数
+  MaxAutoRetries: 1 # 同一实例的重试次数
+hystrix:
+  command:
+  	default:
+        execution:
+          isolation:
+            thread:
+              timeoutInMillisecond: 6000 # 熔断超时时长：6000ms
+```
+
+---
+layout: post
+title:  乐优商城项目搭建
+categories: 乐优
+description: 乐优商城项目搭建
+keywords: 乐优
+---
+# 0.学习目标
+
+- 了解电商行业
+- 了解乐优商城项目结构
+- 能独立搭建项目基本框架
+- 能参考使用ES6的新语法
+
+
+
+# 1.了解电商行业
+
+学习电商项目，自然要先了解这个行业，所以我们首先来聊聊电商行业
+
+## 1.1.项目分类
+
+主要从需求方、盈利模式、技术侧重点这三个方面来看它们的不同
+
+### 1.1.1.传统项目
+
+各种企业里面用的管理系统（ERP、HR、OA、CRM、物流管理系统。。。。。。。）
+
+- 需求方：公司、企业内部
+- 盈利模式：项目本身卖钱
+- 技术侧重点：业务功能
+
+ 
+
+### 1.1.2.互联网项目
+
+门户网站、电商网站：baidu.com、qq.com、taobao.com、jd.com  ...... 
+
+- 需求方：广大用户群体
+- 盈利模式：虚拟币、增值服务、广告收益......
+- 技术侧重点：网站性能、业务功能
+
+
+
+而我们今天要聊的就是互联网项目中的重要角色：电商
+
+
+
+## 1.2.电商行业的发展
+
+### 1.2.1.钱景
+
+近年来，中国的电子商务快速发展，交易额连创新高，电子商务在各领域的应用不断拓展和深化、相关服务业蓬勃发展、支撑体系不断健全完善、创新的动力和能力不断增强。电子商务正在与实体经济深度融合，进入规模性发展阶段，对经济社会生活的影响不断增大，正成为我国经济发展的新引擎。
+
+中国电子商务研究中心数据显示，截止到 2012 年底，中国电子商务市场交易规模达 7.85万亿人民币，同比增长 30.83%。其中，B2B 电子商务交易额达 6.25 万亿，同比增长 27%。而 2011 年全年，中国电子商务市场交易额达 6 万亿人民币，同比增长 33%，占 GDP 比重上升到 13%；2012 年，电子商务占 GDP 的比重已经高达 15%。
+
+ 	![1525686041466](/images/leyou/1525686041466.png)
+
+
+
+### 1.2.2.数据
+
+来看看双十一的成交数据：
+
+![1525686135308](/images/leyou/1525686135308.png)
+
+![1525686160411](/images/leyou/1525686160411.png)
+
+
+
+2016双11开场30分钟，创造**每秒交易峰值17.5万笔**，**每秒**支付峰值**12万笔**的新纪录。菜鸟单日物流订单量超过**4.67亿**，创历史新高。
+
+
+
+### 1.2.3.技术特点
+
+从上面的数据我们不仅要看到钱，更要看到背后的技术实力。正是得益于电商行业的高强度并发压力，促使了BAT等巨头们的技术进步。电商行业有些什么特点呢？
+
+- 技术范围广
+- 技术新
+- 高并发（分布式、静态化技术、缓存技术、异步并发、池化、队列）
+- 高可用（集群、负载均衡、限流、降级、熔断）
+- 数据量大
+- 业务复杂
+- 数据安全
+
+
+
+
+
+## 1.3.常见电商模式
+
+电商行业的一些常见模式：
+
+- B2C：商家对个人，如：亚马逊、当当等
+- C2C平台：个人对个人，如：咸鱼、拍拍网、ebay
+- B2B平台：商家对商家，如：阿里巴巴、八方资源网等
+- O2O：线上和线下结合，如：饿了么、电影票、团购等
+- P2P：在线金融，贷款，如：网贷之家、人人聚财等。
+- B2C平台：天猫、京东、一号店等
+
+
+
+## 1.4.一些专业术语
+
+- SaaS：软件即服务
+
+- SOA：面向服务
+
+- RPC：远程过程调用
+
+- RMI：远程方法调用
+
+- PV：(page view)，即页面浏览量；
+
+  用户每1次对网站中的每个网页访问均被记录1次。用户对同一页面的多次访问，访问量累计
+
+- UV：(unique visitor)，独立访客
+
+  指访问某个站点或点击某条新闻的不同IP地址的人数。在同一天内，uv只记录第一次进入网站的具有独立IP的访问者，在同一天内再次访问该网站则不计数。
+
+- PV与带宽：
+
+  - 计算带宽大小需要关注两个指标：峰值流量和页面的平均大小。
+  - 计算公式是：网站带宽= ( PV * 平均页面大小（单位MB）* 8 )/统计时间（换算到秒）
+  - 为什么要乘以8？
+    - 网站大小为单位是字节(Byte)，而计算带宽的单位是bit，1Byte=8bit
+  - 这个计算的是平均带宽，高峰期还需要扩大一定倍数
+
+- PV、QPS、并发
+
+  - QPS：每秒处理的请求数量。8000/s
+  
+  - 比如你的程序处理一个请求平均需要0.1S，那么1秒就可以处理10个请求。QPS自然就是10，多线程情况下，这个数字可能就会有所增加。
+  
+  - 由PV和QPS如何需要部署的服务器数量？
+    - 根据二八原则，80%的请求集中在20%的时间来计算峰值压力：
+    - （每日PV * 80%） / （3600s * 24 * 20%） * 每个页面的请求数  = 每个页面每秒的请求数量
+  - 然后除以服务器的QPS值，即可计算得出需要部署的服务器数量
+  
+
+
+
+
+
+
+## 1.5.项目开发流程
+
+项目经理：管人
+
+产品经理：设计需求原型
+
+测试：
+
+前端：大前端。node
+
+后端：
+
+移动端：
+
+项目开发流程图：
+
+​	![1525697632643](/images/leyou/1525697632643.png)	
+
+公司现状：
+
+​	![1525697681975](/images/leyou/1525697681975.png)
+
+
+
+# 2.乐优商城介绍
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 2.1.项目介绍
+
+- 乐优商城是一个全品类的电商购物网站（B2C）。
+- 用户可以在线购买商品、加入购物车、下单、秒杀商品
+- 可以品论已购买商品
+- 管理员可以在后台管理商品的上下架、促销活动
+- 管理员可以监控商品销售状况
+- 客服可以在后台处理退款操作
+- 希望未来3到5年可以支持千万用户的使用
+
+
+
+## 2.2.系统架构
+
+### 2.2.1.架构图
+
+乐优商城架构缩略图，大图请参考课前资料：
+
+![1525703759035](/images/leyou/1525703759035.png)
+
+
+
+### 2.2.2.系统架构解读
+
+整个乐优商城可以分为两部分：后台管理系统、前台门户系统。
+
+- 后台管理：
+
+  - 后台系统主要包含以下功能：
+    - 商品管理，包括商品分类、品牌、商品规格等信息的管理
+    - 销售管理，包括订单统计、订单退款处理、促销活动生成等
+    - 用户管理，包括用户控制、冻结、解锁等
+    - 权限管理，整个网站的权限控制，采用JWT鉴权方案，对用户及API进行权限控制
+    - 统计，各种数据的统计分析展示
+  - 后台系统会采用前后端分离开发，而且整个后台管理系统会使用Vue.js框架搭建出单页应用（SPA）。
+  - 预览图：
+
+  ![1525704185158](/images/leyou/1525704185158.png)
+
+- 前台门户
+
+  - 前台门户面向的是客户，包含与客户交互的一切功能。例如：
+    - 搜索商品
+    - 加入购物车
+    - 下单
+    - 评价商品等等
+  - 前台系统我们会使用Thymeleaf模板引擎技术来完成页面开发。出于SEO优化的考虑，我们将不采用单页应用。
+
+  ![1525704277126](/images/leyou/1525704277126.png)
+
+
+
+无论是前台还是后台系统，都共享相同的微服务集群，包括：
+
+- 商品微服务：商品及商品分类、品牌、库存等的服务
+- 搜索微服务：实现搜索功能
+- 订单微服务：实现订单相关
+- 购物车微服务：实现购物车相关功能
+- 用户中心：用户的登录注册等功能
+- Eureka注册中心
+- Zuul网关服务
+- Spring Cloud Config配置中心
+- ...
+
+
+
+
+
+# 3.项目搭建
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 3.1.技术选型
+
+前端技术：
+
+- 基础的HTML、CSS、JavaScript（基于ES6标准）
+- JQuery
+- Vue.js 2.0以及基于Vue的框架：Vuetify
+- 前端构建工具：WebPack
+- 前端安装包工具：NPM
+- Vue脚手架：Vue-cli
+- Vue路由：vue-router
+- ajax框架：axios
+- 基于Vue的富文本框架：quill-editor
+
+后端技术：
+
+- 基础的SpringMVC、Spring 5.0和MyBatis3
+- Spring Boot 2.0.1版本
+- Spring Cloud 最新版 Finchley.RC1
+- Redis-4.0
+- RabbitMQ-3.4
+- Elasticsearch-5.6.8
+- nginx-1.10.2：
+- FastDFS - 5.0.8
+- MyCat
+- Thymeleaf
+
+## 3.2.开发环境
+
+为了保证开发环境的统一，希望每个人都按照我的环境来配置：
+
+- IDE：我们使用Idea 2017.3 版本
+- JDK：统一使用JDK1.8
+- 项目构建：maven3.3.9以上版本即可
+- 版本控制工具：git
+
+
+
+idea大家可以在我的课前资料中找到。另外，使用帮助大家可以参考课前资料的《idea使用指南.md》
+
+
+
+## 3.3.域名
+
+我们在开发的过程中，为了保证以后的生产、测试环境统一。尽量都采用域名来访问项目。
+
+一级域名：www.leyou.com
+
+二级域名：manage.leyou.com , api.leyou.com
+
+我们可以通过switchhost工具来修改自己的host对应的地址，只要把这些域名指向127.0.0.1，那么跟你用localhost的效果是完全一样的。
+
+switchhost可以去课前资料寻找。
+
+
+
+## 3.4.创建父工程
+
+创建统一的父工程：leyou，用来管理依赖及其版本，注意是创建project，而不是moudle
+
+![1525706200704](/images/leyou/1525706200704.png)
+
+填写项目信息：
+
+![1525707023009](/images/leyou/1525707023009.png)
+
+注意：
+
+父工程不需要代码，只是管理依赖，因此我们不选择任何SpringCloud的依赖
+
+跳过依赖选择。
+
+
+
+填写保存的位置信息：
+
+![1525706600181](/images/leyou/1525706600181.png)
+
+然后将pom文件修改成我这个样子：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.leyou.parent</groupId>
+	<artifactId>leyou</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>leyou</name>
+	<description>Demo project for Spring Boot</description>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.0.1.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+		<spring-cloud.version>Finchley.RC1</spring-cloud.version>
+		<mybatis.starter.version>1.3.2</mybatis.starter.version>
+		<mapper.starter.version>2.0.2</mapper.starter.version>
+		<druid.starter.version>1.1.9</druid.starter.version>
+		<mysql.version>5.1.32</mysql.version>
+		<pageHelper.starter.version>1.2.3</pageHelper.starter.version>
+		<leyou.latest.version>1.0.0-SNAPSHOT</leyou.latest.version>
+		<fastDFS.client.version>1.26.1-RELEASE</fastDFS.client.version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- springCloud -->
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<!-- mybatis启动器 -->
+			<dependency>
+				<groupId>org.mybatis.spring.boot</groupId>
+				<artifactId>mybatis-spring-boot-starter</artifactId>
+				<version>${mybatis.starter.version}</version>
+			</dependency>
+			<!-- 通用Mapper启动器 -->
+			<dependency>
+				<groupId>tk.mybatis</groupId>
+				<artifactId>mapper-spring-boot-starter</artifactId>
+				<version>${mapper.starter.version}</version>
+			</dependency>
+			<!-- 分页助手启动器 -->
+			<dependency>
+				<groupId>com.github.pagehelper</groupId>
+				<artifactId>pagehelper-spring-boot-starter</artifactId>
+				<version>${pageHelper.starter.version}</version>
+			</dependency>
+			<!-- mysql驱动 -->
+			<dependency>
+				<groupId>mysql</groupId>
+				<artifactId>mysql-connector-java</artifactId>
+				<version>${mysql.version}</version>
+			</dependency>
+			<!--FastDFS客户端-->
+			<dependency>
+				<groupId>com.github.tobato</groupId>
+				<artifactId>fastdfs-client</artifactId>
+				<version>${fastDFS.client.version}</version>
+			</dependency>
+          </dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>spring-milestones</id>
+			<name>Spring Milestones</name>
+			<url>https://repo.spring.io/milestone</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+</project>
+
+```
+
+可以发现，我们在父工程中引入了SpringCloud等很多以后需要用到的依赖，以后创建的子工程就不需要自己引入了。
+
+
+
+最后，删除自动生成的LeyouApplication启动类、测试类以及application.properties文件，我们不需要。
+
+## 3.5.创建EurekaServer
+
+### 3.5.1.创建工程
+
+这个大家应该比较熟悉了。
+
+我们的注册中心，起名为：ly-registry
+
+这次我们就不Spring使用提供的脚手架了。直接创建maven项目，自然会继承父类的依赖：
+
+选择新建module：
+
+​	![1525707765104](/images/leyou/1525707765104.png)
+
+选择maven安装，但是不要选择骨架：
+
+![1525707850047](/images/leyou/1525707850047.png)
+
+然后填写项目坐标，我们的项目名称为ly-registry:
+
+![1525707949252](/images/leyou/1525707949252.png)
+
+选择安装目录，因为是聚合项目，目录应该是在父工程leyou的下面：
+
+![1525708053551](/images/leyou/1525708053551.png)
+
+
+
+### 3.5.2.添加依赖
+
+添加EurekaServer的依赖：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>leyou</artifactId>
+        <groupId>com.leyou.parent</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leyou.common</groupId>
+    <artifactId>ly-registry</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+### 3.5.3.编写启动类
+
+```java
+@SpringBootApplication
+@EnableEurekaServer
+public class LyRegistry {
+    public static void main(String[] args) {
+        SpringApplication.run(LyRegistry.class, args);
+    }
+}
+```
+
+### 3.5.4.配置文件
+
+```yaml
+server:
+  port: 10086
+spring:
+  application:
+    name: ly-registry
+eureka:
+  client:
+    fetch-registry: false
+    register-with-eureka: false
+    service-url:
+      defaultZone: http://127.0.0.1:${server.port}/eureka
+  server:
+    enable-self-preservation: false # 关闭自我保护
+    eviction-interval-timer-in-ms: 5000 # 每隔5秒进行一次服务列表清理
+```
+
+### 3.5.5.项目的结构：
+
+目前，整个项目的结构如图：
+
+ ![1525708460522](/images/leyou/1525708460522.png)
+
+
+
+## 3.6.创建Zuul网关
+
+### 3.6.1.创建工程
+
+与上面类似，选择maven方式创建Module，然后填写项目名称，我们命名为：ly-api-gateway
+
+![1525708626562](/images/leyou/1525708626562.png)
+
+填写保存的目录：
+
+![1525708677719](/images/leyou/1525708677719.png)
+
+### 3.6.2.添加依赖
+
+这里我们需要添加Zuul和EurekaClient的依赖：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>leyou</artifactId>
+        <groupId>com.leyou.parent</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leyou.common</groupId>
+    <artifactId>ly-api-gateway</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <!--是springboot提供的微服务检测接口，默认对外提供几个接口：/info-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+### 3.6.3.编写启动类
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+@EnableZuulProxy
+public class LyApiGateway {
+    public static void main(String[] args) {
+        SpringApplication.run(LyApiGateway.class, args);
+    }
+}
+```
+
+
+
+### 3.6.4.配置文件
+
+```yaml
+server:
+  port: 10010
+spring:
+  application:
+    name: api-gateway
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+    instance-id: ${spring.application.name}:${server.port}
+zuul:
+  prefix: /api # 添加路由前缀
+  retryable: true
+ribbon:
+  ConnectTimeout: 250 # 连接超时时间(ms)
+  ReadTimeout: 2000 # 通信超时时间(ms)
+  OkToRetryOnAllOperations: true # 是否对所有操作重试
+  MaxAutoRetriesNextServer: 1 # 同一服务不同实例的重试次数
+  MaxAutoRetries: 1 # 同一实例的重试次数
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMillisecond: 10000 # 熔断超时时长：10000ms
+```
+
+### 3.6.5.项目结构
+
+目前，leyou下有两个子模块：
+
+- ly-registry：服务的注册中心（EurekaServer）
+- ly-api-gateway：服务网关（Zuul）
+
+目前，服务的结构如图所示：
+
+ 	![1525709241440](/images/leyou/1525709241440.png)
+
+
+
+截止到这里，我们已经把基础服务搭建完毕，为了便于开发，统一配置中心（ConfigServer）我们留待以后添加。
+
+
+
+## 3.7.创建商品微服务
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+既然是一个全品类的电商购物平台，那么核心自然就是商品。因此我们要搭建的第一个服务，就是商品微服务。其中会包含对于商品相关的一系列内容的管理，包括：
+
+- 商品分类管理
+- 品牌管理
+- 商品规格参数管理
+- 商品管理
+- 库存管理
+
+我们先完成项目的搭建：
+
+### 3.7.1.微服务的结构
+
+因为与商品的品类相关，我们的工程命名为`ly-item`.
+
+需要注意的是，我们的ly-item是一个微服务，那么将来肯定会有其它系统需要来调用服务中提供的接口，因此肯定也会使用到接口中关联的实体类。
+
+因此这里我们需要使用聚合工程，将要提供的接口及相关实体类放到独立子工程中，以后别人引用的时候，只需要知道坐标即可。
+
+我们会在ly-item中创建两个子工程：
+
+- ly-item-interface：主要是对外暴露的接口及相关实体类
+- ly-item-service：所有业务逻辑及内部使用接口
+
+调用关系如图所示：
+
+![1525744281610](/images/leyou/1525744281610.png)
+
+### 3.7.2.创建父工程ly-item
+
+依然是使用maven构建：
+
+![1525744570533](/images/leyou/1525744570533.png)
+
+保存的位置：
+
+![1525744595793](/images/leyou/1525744595793.png)
+
+不需要任何依赖，我们可以把项目打包方式设置为pom
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>leyou</artifactId>
+        <groupId>com.leyou.parent</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leyou.service</groupId>
+    <artifactId>ly-item</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <!-- 打包方式为pom -->
+    <packaging>pom</packaging>
+</project>
+```
+
+
+
+
+
+### 3.7.3.创建ly-item-interface
+
+在ly-item工程上点击右键，选择new > module:
+
+ ![1525744768694](/images/leyou/1525744768694.png)
+
+依然是使用maven构建，注意父工程是ly-item：
+
+![1525744875078](/images/leyou/1525744875078.png)
+
+**注意**：接下来填写的目录结构需要自己手动完成，保存到`ly-item`下的`ly-item-interface`目录中：
+
+![1525744973026](/images/leyou/1525744973026.png)
+
+点击Finish完成。
+
+此时的项目结构：
+
+​	![1525745119573](/images/leyou/1525745119573.png)
+
+### 3.7.4.创建ly-item-service
+
+与`ly-item-interface`类似，我们选择在`ly-item`上右键，新建module，然后填写项目信息：
+
+![1525745247195](/images/leyou/1525745247195.png)
+
+填写存储位置，是在`/ly-item/ly-item-service`目录
+
+![1525745303365](/images/leyou/1525745303365.png)
+
+点击Finish完成。
+
+### 3.7.5.整个微服务结构
+
+如图所示：
+
+​	![1525745407047](/images/leyou/1525745407047.png)
+
+我们打开ly-item的pom查看，会发现ly-item-interface和ly-item-service都已经称为module了：
+
+​	![1525745475108](/images/leyou/1525745475108.png)
+
+### 3.7.6.添加依赖
+
+接下来我们给`ly-item-service`中添加依赖：
+
+思考一下我们需要什么？
+
+- Eureka客户端
+- web启动器
+- mybatis启动器
+- 通用mapper启动器
+- 分页助手启动器
+- 连接池，我们用默认的Hykira
+- mysql驱动
+- 千万不能忘了，我们自己也需要`ly-item-interface`中的实体类
+
+这些依赖，我们在顶级父工程：leyou中已经添加好了。所以直接引入即可：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>ly-item</artifactId>
+        <groupId>com.leyou.service</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leyou.service</groupId>
+    <artifactId>ly-item-service</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <dependencies>
+        <!--Eureka客户端-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <!--web启动器-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- mybatis启动器 -->
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>${mybatis.starter.version}</version>
+        </dependency>
+        <!-- 通用Mapper启动器 -->
+        <dependency>
+            <groupId>tk.mybatis</groupId>
+            <artifactId>mapper-spring-boot-starter</artifactId>
+            <version>${mapper.starter.version}</version>
+        </dependency>
+        <!-- 分页助手启动器 -->
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper-spring-boot-starter</artifactId>
+            <version>${pageHelper.starter.version}</version>
+        </dependency>
+        <!-- mysql驱动 -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.leyou.service</groupId>
+            <artifactId>ly-item-interface</artifactId>
+            <version>${leyou.latest.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+
+
+ly-item-interface中需要什么我们暂时不清楚，所以先不管。
+
+整个结构：
+
+ ![1525747398193](/images/leyou/1525747398193.png)
+
+
+
+### 3.7.7.编写启动和配置
+
+在整个`ly-item工程`中，只有`ly-item-service`是需要启动的。因此在其中编写启动类即可：
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+public class LyItemService {
+    public static void main(String[] args) {
+        SpringApplication.run(LyItemService.class, args);
+    }
+}
+
+```
+
+
+
+然后是全局属性文件：
+
+```yaml
+server:
+  port: 8081
+spring:
+  application:
+    name: item-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/heima
+    username: root
+    password: 123
+    hikari:
+      maximum-pool-size: 30
+      minimum-idle: 10
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+  instance:
+    lease-renewal-interval-in-seconds: 5 # 每隔5秒发送一次心跳
+    lease-expiration-duration-in-seconds: 10 # 10秒不发送就过期
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+    instance-id: ${spring.application.name}:${server.port}
+```
+
+
+
+## 3.8.添加商品微服务的路由规则
+
+既然商品微服务已经创建，接下来肯定要添加路由规则到Zuul中，我们不使用默认的路由规则。
+
+```yaml
+zuul:
+  prefix: /api # 添加路由前缀
+  retryable: true
+  routes:
+    item-service: /item/** # 将商品微服务映射到/item/**
+```
+
+
+
+
+
+## 3.9.启动测试
+
+我们分别启动：ly-registry，ly-api-gateway，ly-item-service
+
+ ![1525749186008](/images/leyou/1525749186008.png)
+
+查看Eureka面板：
+
+![1525749215954](/images/leyou/1525749215954.png)
+
+
+
+## 3.10.测试路由规则
+
+为了测试路由规则是否畅通，我们是不是需要在item-service中编写一个controller接口呢？
+
+其实不需要，Spring提供了一个依赖：actuator
+
+只要我们添加了actuator的依赖，它就会为我们生成一系列的访问接口：
+
+- /info
+- /health
+- /refresh
+- ...
+
+添加依赖：
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+```
+
+重启后访问Eureka控制台：
+
+鼠标悬停在item-service上，会显示一个地址：
+
+![1525749683060](/images/leyou/1525749683060.png)
+
+这就是actuator提供的接口，我们点击访问：
+
+ ![1525749711606](/images/leyou/1525749711606.png)
+
+因为我们没有添加信息，所以是一个空的json，但是可以肯定的是：我们能够访问到item-service了。
+
+接下来我们通过路由访问试试，根据路由规则，我们需要访问的地址是：
+
+http://127.0.0.1:10010/api/item/actuator/info
+
+ ![1525749803191](/images/leyou/1525749803191.png)
+
+
+
+## 3.11.通用工具模块
+
+有些工具或通用的约定内容，我们希望各个服务共享，因此需要创建一个工具模块：`ly-common`
+
+
+
+使用maven来构建module：
+
+![1526046318620](/images/leyou/1526046318620.png)
+
+位置信息：
+
+![1526046349379](/images/leyou/1526046349379.png)
+
+
+
+结构：
+
+ ![1526046432347](/images/leyou/1526046432347.png)
+
+目前还不需要编码。
+
+
+
+
+
+# 4、ES6 语法指南
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+后端项目搭建完毕，接下来就是前端页面了。不过在这之前需要一些准备工作。我们需要学习ES6的语法标准。
+
+什么是ES6？就是ECMAScript第6版标准。
+
+## 4.1.什么是ECMAScript？
+
+来看下前端的发展历程：
+
+> web1.0时代：
+
+- 最初的网页以HTML为主，是纯静态的网页。网页是只读的，信息流只能从服务的到客户端单向流通。**开发人员也只关心页面的样式和内容**即可。
+
+> web2.0时代：
+
+- 1995年，网景工程师Brendan Eich 花了10天时间设计了JavaScript语言。
+- 1996年，微软发布了JScript，其实是JavaScript的逆向工程实现。
+- 1997年，为了统一各种不同script脚本语言，ECMA（欧洲计算机制造商协会）以JavaScript为基础，制定了`ECMAscript`标准规范。JavaScript和JScript都是`ECMAScript`的标准实现者，随后各大浏览器厂商纷纷实现了`ECMAScript`标准。
+
+所以，ECMAScript是浏览器脚本语言的规范，而各种我们熟知的js语言，如JavaScript则是规范的具体实现。
+
+## 4.2.ECMAScript的快速发展
+
+而后，ECMAScript就进入了快速发展期。
+
+- 1998年6月，ECMAScript 2.0 发布。
+
+- 1999年12月，ECMAScript 3.0 发布。这时，ECMAScript 规范本身也相对比较完善和稳定了，但是接下来的事情，就比较悲剧了。
+
+- 2007年10月。。。。ECMAScript 4.0 草案发布。
+
+  这次的新规范，历时颇久，规范的新内容也有了很多争议。在制定ES4的时候，是分成了两个工作组同时工作的。
+
+  - 一边是以 Adobe, Mozilla, Opera 和 Google为主的 ECMAScript 4 工作组。
+  - 一边是以 Microsoft 和 Yahoo 为主的 ECMAScript 3.1 工作组。
+
+  ECMAScript 4 的很多主张比较激进，改动较大。而 ECMAScript 3.1 则主张小幅更新。最终经过 TC39 的会议，决定将一部分不那么激进的改动保留发布为 ECMAScript 3.1，而ES4的内容，则延续到了后来的ECMAScript5和6版本中
+
+- 2009年12月，ECMAScript 5 发布。
+
+- 2011年6月，ECMAScript 5.1 发布。
+
+- 2015年6月，ECMAScript 6，也就是 ECMAScript 2015 发布了。 并且从 ECMAScript 6 开始，开始采用年号来做版本。即 ECMAScript 2015，就是ECMAScript6。 
+
+
+
+## 4.3.ES5和6的一些新特性
+
+我们这里只把一些常用的进行学习，更详细的大家参考：[阮一峰的ES6教程](http://es6.ruanyifeng.com/?search=reduce&x=0&y=0#README)
+
+### 4.3.1.let 和 const 命令
+
+> var
+
+之前，js定义变量只有一个关键字：`var`
+
+`var`有一个问题，就是定义的变量有时会莫名奇妙的成为全局变量。
+
+例如这样的一段代码：
+
+```js
+for(var i = 0; i < 5; i++){
+    console.log(i);
+}
+console.log("循环外：" + i)
+```
+
+你猜下打印的结果是什么？
+
+ ![1526107278999](/images/leyou/1526107278999.png)
+
+
+
+> let
+
+`let`所声明的变量，只在`let`命令所在的代码块内有效。
+
+我们把刚才的`var`改成`let`试试：
+
+```js
+for(let i = 0; i < 5; i++){
+    console.log(i);
+}
+console.log("循环外：" + i)
+```
+
+结果：
+
+ ![1526107347275](/images/leyou/1526107347275.png)
+
+> const
+
+`const`声明的变量是常量，不能被修改
+
+ ![1526107425000](/images/leyou/1526107425000.png)
+
+
+
+### 4.3.2.字符串扩展
+
+> 新的API
+
+ES6为字符串扩展了几个新的API：
+
+- `includes()`：返回布尔值，表示是否找到了参数字符串。
+- `startsWith()`：返回布尔值，表示参数字符串是否在原字符串的头部。
+- `endsWith()`：返回布尔值，表示参数字符串是否在原字符串的尾部。
+
+实验一下：
+
+ ![1526107640349](/images/leyou/1526107640349.png)
+
+
+
+> 字符串模板
+
+ES6中提供了`来作为字符串模板标记。我们可以这么玩：
+
+ ![1526108070980](/images/leyou/1526108070980.png)
+
+在两个`之间的部分都会被作为字符串的值，不管你任意换行，甚至加入js脚本
+
+键盘是的1的左侧，tab的上侧，esc的正下方
+
+### 4.3.3.解构表达式
+
+> 数组解构
+
+比如有一个数组：
+
+```js
+let arr = [1,2,3]
+```
+
+我想获取其中的值，只能通过角标。ES6可以这样：
+
+```js
+const [x,y,z] = arr;// x，y，z将与arr中的每个位置对应来取值
+// 然后打印
+console.log(x,y,z);
+```
+
+结果：
+
+ ![1526109778368](/images/leyou/1526109778368.png)
+
+
+
+> 对象解构
+
+例如有个person对象：
+
+```js
+const person = {
+    name:"jack",
+    age:21,
+    language: ['java','js','css']
+}
+```
+
+我们可以这么做：
+
+```js
+// 解构表达式获取值
+const {name,age,language} = person;
+// 打印
+console.log(name);
+console.log(age);
+console.log(language);
+```
+
+结果：
+
+ ![1526109984544](/images/leyou/1526109984544.png)
+
+
+
+如过想要用其它变量接收，需要额外指定别名：
+
+ ![1526110159450](/images/leyou/1526110159450.png)
+
+- `{name:n}`：name是person中的属性名，冒号后面的n是解构后要赋值给的变量。
+
+
+
+
+
+### 4.3.4.函数优化
+
+> 函数参数默认值
+
+在ES6以前，我们无法给一个函数参数设置默认值，只能采用变通写法：
+
+```js
+    function add(a , b) {
+        // 判断b是否为空，为空就给默认值1
+        b = b || 1;
+        return a + b;
+    }
+    // 传一个参数
+    console.log(add(10));
+```
+
+现在可以这么写：
+
+```js
+function add(a , b = 1) {
+    return a + b;
+}
+// 传一个参数
+console.log(add(10));
+```
+
+
+
+> 箭头函数
+
+ES6中定义函数的简写方式：
+
+一个参数时：
+
+```js
+var print = function (obj) {
+    console.log(obj);
+}
+// 简写为：
+var print2 = obj => console.log(obj);
+```
+
+多个参数：
+
+```js
+// 两个参数的情况：
+var sum = function (a , b) {
+    return a + b;
+}
+// 简写为：
+var sum2 = (a,b) => a+b;
+```
+
+代码不止一行，可以用`{}`括起来
+
+```js
+var sum3 = (a,b) => {
+    return a + b;
+}
+```
+
+
+
+> 对象的函数属性简写
+
+比如一个Person对象，里面有eat方法：
+
+```js
+let person = {
+    name: "jack",
+    // 以前：
+    eat: function (food) {
+        console.log(this.name + "在吃" + food);
+    },
+    // 箭头函数版：
+    eat2: food => console.log(person.name + "在吃" + food),// 这里拿不到this
+    // 简写版：
+    eat3(food){
+        console.log(this.name + "在吃" + food);
+    }
+}
+```
+
+
+
+> 箭头函数结合解构表达式
+
+比如有一个函数：
+
+```js
+const person = {
+    name:"jack",
+    age:21,
+    language: ['java','js','css']
+}
+
+function hello(person) {
+    console.log("hello," + person.name)
+}
+```
+
+如果用箭头函数和解构表达式
+
+```js
+var hi = ({name}) =>  console.log("hello," + name);
+```
+
+### 4.3.5.map和reduce
+
+数组中新增了map和reduce方法。
+
+> map
+
+
+
+`map()`：接收一个函数，将原数组中的所有元素用这个函数处理后放入新数组返回。
+
+举例：有一个字符串数组，我们希望转为int数组
+
+```js
+let arr = ['1','20','-5','3'];
+console.log(arr)
+
+arr = arr.map(s => parseInt(s));
+
+console.log(arr)
+```
+
+  ![1526110796839](/images/leyou/1526110796839.png)
+
+
+
+> reduce
+
+`reduce()`：接收一个函数（必须）和一个初始值（可选），该函数接收两个参数：
+
+- 第一个参数是上一次reduce处理的结果
+- 第二个参数是数组中要处理的下一个元素
+
+`reduce()`会从左到右依次把数组中的元素用reduce处理，并把处理的结果作为下次reduce的第一个参数。如果是第一次，会把前两个元素作为计算参数，或者把用户指定的初始值作为起始参数
+
+举例：
+
+```
+const arr = [1,20,-5,3]
+```
+
+没有初始值：
+
+ ![1526111537204](/images/leyou/1526111537204.png)
+
+指定初始值：
+
+ ![1526111580742](/images/leyou/1526111580742.png)
+
+### 4.3.6.promise
+
+所谓Promise，简单说就是一个容器，里面保存着某个未来才会结束的事件（通常是一个异步操作）的结果。从语法上说，Promise 是一个对象，从它可以获取异步操作的消息。Promise 提供统一的 API，各种异步操作都可以用同样的方法进行处理。
+
+感觉跟java的Future类很像啊，有木有！
+
+我们可以通过Promise的构造函数来创建Promise对象，并在内部封装一个异步执行的结果。
+
+语法：
+
+```js
+const promise = new Promise(function(resolve, reject) {
+  // ... 执行异步操作
+
+  if (/* 异步操作成功 */){
+    resolve(value);// 调用resolve，代表Promise将返回成功的结果
+  } else {
+    reject(error);// 调用reject，代表Promise会返回失败结果
+  }
+});
+```
+
+这样，在promise中就封装了一段异步执行的结果。
+
+
+
+如果我们想要等待异步执行完成，做一些事情，我们可以通过promise的then方法来实现,语法：
+
+```js
+promise.then(function(value){
+    // 异步执行成功后的回调
+});
+```
+
+如果想要处理promise异步执行失败的事件，还可以跟上catch：
+
+```js
+promise.then(function(value){
+    // 异步执行成功后的回调
+}).catch(function(error){
+    // 异步执行失败后的回调
+})
+```
+
+示例：
+
+```
+const p = new Promise(function (resolve, reject) {
+    // 这里我们用定时任务模拟异步
+    setTimeout(() => {
+        const num = Math.random();
+        // 随机返回成功或失败
+        if (num < 0.5) {
+            resolve("成功！num:" + num)
+        } else {
+            reject("出错了！num:" + num)
+        }
+    }, 300)
+})
+
+// 调用promise
+p.then(function (msg) {
+    console.log(msg);
+}).catch(function (msg) {
+    console.log(msg);
+})
+```
+
+结果：
+
+ ![1526113115887](/images/leyou/1526113115887.png)
+
+ ![1526113140074](/images/leyou/1526113140074.png)
+
+### 4.3.7.set和map（了解）
+
+ES6提供了Set和Map的数据结构。
+
+Set，本质与数组类似。不同在于Set中只能保存不同元素，如果元素相同会被忽略。跟java很像吧。
+
+构造函数：
+
+```js
+// Set构造函数可以接收一个数组或空
+let set = new Set();
+set.add(1);// [1]
+// 接收数组
+let set2 = new Set([2,3,4,5,5]);// 得到[2,3,4,5]
+```
+
+普通方法：
+
+```
+set.add(1);// 添加
+set.clear();// 清空
+set.delete(2);// 删除指定元素
+set.has(2); // 判断是否存在
+set.keys();// 返回所有key
+set.values();// 返回所有值
+set.entries();// 返回键值对集合
+// 因为set没有键值对，所有其keys、values、entries方法返回值一样的。
+set.size; // 元素个数。是属性，不是方法。
+```
+
+
+
+map，本质是与Object类似的结构。不同在于，Object强制规定key只能是字符串。而Map结构的key可以是任意对象。即：
+
+- object是 <string,object>集合
+- map是<object,object>集合
+
+构造函数：
+
+```js
+// map接收一个数组，数组中的元素是键值对数组
+const map = new Map([
+    ['key1','value1'],
+    ['key2','value2'],
+])
+// 或者接收一个set
+const set = new Set([
+    ['key1','value1'],
+    ['key2','value2'],
+])
+const map2 = new Map(set)
+// 或者其它map
+const map3 = new Map(map);
+```
+
+方法：
+
+ ![1526114799767](/images/leyou/1526114799767.png)
+
+### 4.3.8.模块化
+
+#### 4.3.8.1.什么是模块化
+
+模块化就是把代码进行拆分，方便重复利用。类似java中的导包：要使用一个包，必须先导包。
+
+而JS中没有包的概念，换来的是 模块。
+
+模块功能主要由两个命令构成：`export`和`import`。
+
+- `export`命令用于规定模块的对外接口，
+- `import`命令用于导入其他模块提供的功能。
+
+
+
+#### 4.3.8.2.export
+
+比如我定义一个js文件:hello.js，里面有一个对象：
+
+```js
+const util = {
+    sum(a,b){
+        return a + b;
+    }
+}
+```
+
+我可以使用export将这个对象导出：
+
+```js
+const util = {
+    sum(a,b){
+        return a + b;
+    }
+}
+export util;
+```
+
+当然，也可以简写为：
+
+```js
+export const util = {
+    sum(a,b){
+        return a + b;
+    }
+}
+```
+
+`export`不仅可以导出对象，一切JS变量都可以导出。比如：基本类型变量、函数、数组、对象。
+
+当要导出多个值时，还可以简写。比如我有一个文件：user.js：
+
+```js
+var name = "jack"
+var age = 21
+export {name,age}
+```
+
+
+
+> 省略名称
+
+上面的导出代码中，都明确指定了导出的变量名，这样其它人在导入使用时就必须准确写出变量名，否则就会出错。
+
+因此js提供了`default`关键字，可以对导出的变量名进行省略
+
+例如：
+
+```js
+// 无需声明对象的名字
+export default {
+	sum(a,b){
+        return a + b;
+    }
+}
+```
+
+这样，当使用者导入时，可以任意起名字
+
+
+
+#### 4.3.8.3.import
+
+使用`export`命令定义了模块的对外接口以后，其他 JS 文件就可以通过`import`命令加载这个模块。
+
+例如我要使用上面导出的util：
+
+```js
+// 导入util
+import util from 'hello.js'
+// 调用util中的属性
+util.sum(1,2)
+```
+
+
+
+要批量导入前面导出的name和age： 
+
+```js
+import {name, age} from 'user.js'
+
+console.log(name + " , 今年"+ age +"岁了")
+```
+
+
+
+但是上面的代码暂时无法测试，因为浏览器目前还不支持ES6 的导入和导出功能。除非借助于工具，把ES6 的语法进行编译降级到ES5，比如`Babel-cli`工具
+
+ 我们暂时不做测试，大家了解即可。
+
+
+
+### 4.3.9.对象扩展
+
+ES6给Object拓展了许多新的方法，如：
+
+- keys(obj)：获取对象的所有key形成的数组
+- values(obj)：获取对象的所有value形成的数组
+- entries(obj)：获取对象的所有key和value形成的二维数组。格式：`[[k1,v1],[k2,v2],...]`
+- assian(dest, ...src) ：将多个src对象的值 拷贝到 dest中（浅拷贝）。
+
+ ![1527210872966](/images/leyou/1527210872966.png)
+
+
+
+### 4.3.10.数组扩展
+
+ES6给数组新增了许多方法：
+
+- find(callback)：把数组中的元素逐个传递给函数callback执行，如果返回true，则返回该元素
+- findIndex(callback)：与find类似，不过返回的是品牌到的元素的索引
+- includes（callback）：与find类似，如果匹配到元素，则返回true，代表找到了。
+---
+layout: post
+title:  Vue快速入门
+categories: 乐优
+description: Vue快速入门
+keywords: 乐优
+---
+# 学习目标
+
+- 会创建Vue实例，知道Vue的常见属性
+- 会使用Vue的生命周期的钩子函数
+- 会使用vue常见指令
+- 会使用vue计算属性和watch监控
+- 会编写Vue组件
+- 掌握组件间通信
+
+
+
+# 0.前言
+
+前几天我们已经对后端的技术栈有了初步的了解、并且已经搭建了整个后端微服务的平台。接下来要做的事情就是功能开发了。但是没有前端页面，我们肯定无从下手，因此今天我们就要来了解一下前端的一些技术，完成前端页面搭建。
+
+先聊一下前端开发模式的发展。
+
+> 静态页面
+
+- 最初的网页以HTML为主，是纯静态的网页。网页是只读的，信息流只能从服务的到客户端单向流通。**开发人员也只关心页面的样式和内容**即可。
+
+> 异步刷新，操作DOM
+
+- 1995年，网景工程师Brendan Eich 花了10天时间设计了JavaScript语言.
+
+  随着JavaScript的诞生，我们可以操作页面的DOM元素及样式，页面有了一些动态的效果，但是依然是以静态为主。
+- ajax盛行：
+  - 2005年开始，ajax逐渐被前端开发人员所重视，因为不用刷新页面就可以更新页面的数据和渲染效果。
+  - 此时的**开发人员不仅仅要编写HTML样式，还要懂ajax与后端交互，然后通过JS操作Dom元素来实现页面动态效果**。比较流行的框架如Jquery就是典型代表。
+
+> MVVM，关注模型和视图
+
+- 2008年，google的Chrome发布，随后就以极快的速度占领市场，超过IE成为浏览器市场的主导者。
+
+- 2009年，Ryan Dahl在谷歌的Chrome V8引擎基础上，打造了基于事件循环的异步IO框架：Node.js。
+
+  - 基于时间循环的异步IO
+  - 单线程运行，避免多线程的变量同步问题
+  - JS可以编写后台diamante，前后台统一编程语言
+
+- node.js的伟大之处不在于让JS迈向了后端开发，而是构建了一个庞大的生态系统。
+
+- 2010年，NPM作为node.js的包管理系统首次发布，开发人员可以遵循Common.js规范来编写Node.js模块，然后发布到NPM上供其他开发人员使用。目前已经是世界最大的包模块管理系统。
+
+- 随后，在node的基础上，涌现出了一大批的前端框架：
+
+   ![1525825983230](/images/leyou/1525825983230.png)
+
+
+> MVVM模式
+
+- M：即Model，模型，包括数据和一些基本操作
+- V：即View，视图，页面渲染结果
+- VM：即View-Model，模型与视图间的双向操作（无需开发人员干涉）
+
+在MVVM之前，开发人员从后端获取需要的数据模型，然后要通过DOM操作Model渲染到View中。而后当用户操作视图，我们还需要通过DOM获取View中的数据，然后同步到Model中。
+
+而MVVM中的VM要做的事情就是把DOM操作完全封装起来，开发人员不用再关心Model和View之间是如何互相影响的：
+
+- 只要我们Model发生了改变，View上自然就会表现出来。
+- 当用户修改了View，Model中的数据也会跟着改变。
+
+把开发人员从繁琐的DOM操作中解放出来，把关注点放在如何操作Model上。
+
+ ![1525828854056](/images/leyou/1525828854056.png)
+
+
+
+而我们今天要学习的，就是一款MVVM模式的框架：Vue
+
+
+
+# 1.认识Vue
+
+Vue (读音 /vjuː/，类似于 **view**) 是一套用于构建用户界面的**渐进式框架**。与其它大型框架不同的是，Vue 被设计为可以自底向上逐层应用。Vue 的核心库只关注视图层，不仅易于上手，还便于与第三方库或既有项目整合。另一方面，当与[现代化的工具链](https://cn.vuejs.org/v2/guide/single-file-components.html)以及各种[支持类库](https://github.com/vuejs/awesome-vue#libraries--plugins)结合使用时，Vue 也完全能够为复杂的单页应用提供驱动。
+
+​	前端框架三巨头：Vue.js、React.js、AngularJS，vue.js以期轻量易用著称，vue.js和React.js发展速度最快，AngularJS还是老大。
+
+官网：https://cn.vuejs.org/
+
+参考：https://cn.vuejs.org/v2/guide/
+
+![1525829249048](/images/leyou/1525829249048.png)
+
+Git地址：https://github.com/vuejs
+
+![1525829030730](/images/leyou/1525829030730.png)
+
+**尤雨溪**，Vue.js 创作者，Vue Technology创始人，致力于Vue的研究开发。
+
+# 2.Node和NPM
+
+前面说过，NPM是Node提供的模块管理工具，可以非常方便的下载安装很多前端框架，包括Jquery、AngularJS、VueJs都有。为了后面学习方便，我们先安装node及NPM工具。
+
+## 2.1.下载Node.js
+
+下载地址：[https://nodejs.org/en/download/](https://nodejs.org/en/download/)
+
+![1525830686367](/images/leyou/1525830686367.png)
+
+推荐下载LTS版本。
+
+课程中采用的是8.9.0版本。目前最新的是8.11.1。大家自行下载。然后下一步安装即可。
+
+完成以后，在控制台输入：
+
+```powershell
+node -v
+```
+
+看到版本信息：
+
+ ![1525831616514](/images/leyou/1525831616514.png)
+
+## 2.2.NPM
+
+安装完成Node应该自带了NPM了，在控制台输入`npm -v`查看：
+
+ ![1525831670850](/images/leyou/1525831670850.png)
+
+
+
+npm默认的仓库地址是在国外网站，速度较慢，建议大家设置到淘宝镜像。但是切换镜像是比较麻烦的。推荐一款切换镜像的工具：nrm
+
+我们首先安装nrm，这里`-g`代表全局安装
+
+```
+npm install nrm -g
+```
+
+然后通过`nrm ls`命令查看npm的仓库列表,带*的就是当前选中的镜像仓库：
+
+ ![1525831918982](/images/leyou/1525831918982.png)
+
+通过`nrm use taobao`来指定要使用的镜像源：
+
+![1525831983603](/images/leyou/1525831983603.png)
+
+然后通过`nrm test npm `来测试速度：
+
+ ![1525832070968](/images/leyou/1525832070968.png)
+
+
+
+注意：
+
+- 有教程推荐大家使用cnpm命令，但是使用发现cnpm有时会有bug，不推荐。
+- 安装完成请一定要重启下电脑！！！
+- 安装完成请一定要重启下电脑！！！
+- 安装完成请一定要重启下电脑！！！
+
+
+
+
+
+# 3.快速入门
+
+接下来，我们快速领略下vue的魅力
+
+## 3.1.创建工程
+
+创建一个新的工程：
+
+ ![1525830180378](/images/leyou/1525830180378.png)
+
+选中一个空的：
+
+ ![1525832233385](/images/leyou/1525832233385.png)
+
+然后新建一个module：
+
+ ![1525832250071](/images/leyou/1525832250071.png)
+
+选中static web，静态web项目：
+
+ ![1525832275532](/images/leyou/1525832275532.png)
+
+位置信息：
+
+ ![1525832294322](/images/leyou/1525832294322.png)
+
+
+
+## 3.2.安装vue
+
+### 3.2.1.下载安装
+
+下载地址：https://github.com/vuejs/vue
+
+可以下载2.5.16版本https://github.com/vuejs/vue/archive/v2.5.16.zip
+
+下载解压，得到vue.js文件。
+
+### 3.2.2.使用CDN
+
+或者也可以直接使用公共的CDN服务：
+
+```html
+<!-- 开发环境版本，包含了用帮助的命令行警告 -->
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+```
+
+或者：
+
+```html
+<!-- 生产环境版本，优化了尺寸和速度 -->
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+```
+
+
+
+### 3.2.3.推荐npm安装
+
+在idea的左下角，有个Terminal按钮，点击打开控制台：
+
+ ![1525832726161](/images/leyou/1525832726161.png)
+
+进入hello-vue目录：
+
+ ![1525833019284](/images/leyou/1525833019284.png)
+
+
+
+先输入：`npm init -y` 进行初始化
+
+  ![1525833057884](/images/leyou/1525833057884.png)
+
+安装Vue，输入命令：`npm install vue --save`
+
+![1525833109155](/images/leyou/1525833109155.png)
+
+然后就会在hello-vue目录发现一个node_modules目录，并且在下面有一个vue目录。
+
+ ![1525833163686](/images/leyou/1525833163686.png)
+
+node_modules是通过npm安装的所有模块的默认位置。
+
+## 3.3.vue入门案例
+
+### 3.3.1.HTML模板
+
+ 在hello-vue目录新建一个HTML![1525833345526](/images/leyou/1525833345526.png)
+
+在hello.html中，我们编写一段简单的代码：
+
+![1525833809054](/images/leyou/1525833809054.png)
+
+h2中要输出一句话：xx 非常帅。前面的xx是要渲染的数据。
+
+### 3.3.2.vue渲染
+
+然后我们通过Vue进行渲染：
+
+```html
+<div id="app">
+    <h2>{{name}} 非常帅</h2>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    // 生成一个Vue实例
+    var app = new Vue({
+        el:"#app", // el,即element。要渲染的的页面元素
+        data:{ // 数据
+            name:"虎哥"
+        }
+    })
+</script>
+```
+
+- 首先通过 new Vue()来创建Vue实例
+- 然后构造函数接收一个对象，对象中有一些属性：
+  - el：是element的缩写，通过id选中要渲染的页面元素，本例中是一个div
+  - data：数据，数据是一个对象，里面有很多属性，都可以渲染到视图中
+    - name：这里我们指定了一个name属性
+- 页面中的`h2`元素中，我们通过{{name}}的方式，来渲染刚刚定义的name属性。
+
+打开页面查看效果：
+
+ ![1525834212902](/images/leyou/1525834212902.png)
+
+更神奇的在于，当你修改name属性时，页面会跟着变化：
+
+ ![](/images/leyou/ScreenGif-1525834621341.gif)
+
+
+
+### 3.3.3.双向绑定
+
+我们对刚才的案例进行简单修改：
+
+```html
+<div id="app">
+    <input type="text" v-model="num">
+    <h2>
+        {{name}} 非常帅,
+        有{{num}}位女神为他着迷。
+    </h2>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    // 生成一个Vue实例
+    var app = new Vue({
+        el:"#app", // el,即element。要渲染的的页面元素
+        data:{ // 数据
+            name:"虎哥",
+            num:1
+        }
+    })
+</script>
+```
+
+- 我们在data添加了新的属性：`num`
+- 在页面中有一个`input`元素，通过`v-model`与`num`进行绑定。
+- 同时通过`{{num}}`在页面输出
+
+效果：
+
+ ![](/images/leyou/2.gif)
+
+我们可以观察到，输入框的变化引起了data中的num的变化，同时页面输出也跟着变化。
+
+- input与num绑定，input的value值变化，影响到了data中的num值
+- 页面`{{num}}`与数据num绑定，因此num值变化，引起了页面效果变化。
+
+没有任何dom操作，这就是双向绑定的魅力。
+
+### 3.3.4.事件处理
+
+我们在页面添加一个按钮：
+
+```html
+<button v-on:click="num++">点我</button>
+```
+
+- 这里用`v-on`指令绑定点击事件，而不是普通的`onclick`，然后直接操作num
+- 普通click是无法直接操作num的。
+
+效果：
+
+ ![](/images/leyou/3.gif)
+
+
+
+
+
+
+
+# 4.Vue实例
+
+## 4.1.创建Vue实例
+
+每个 Vue 应用都是通过用 `Vue` 函数创建一个新的 **Vue 实例**开始的：
+
+```javascript
+var vm = new Vue({
+  // 选项
+})
+```
+
+在构造函数中传入一个对象，并且在对象中声明各种Vue需要的数据和方法，包括：
+
+- el
+- data
+- methods
+
+等等
+
+接下来我们一 一介绍。
+
+
+
+## 4.2.模板或元素
+
+每个Vue实例都需要关联一段Html模板，Vue会基于此模板进行视图渲染。
+
+我们可以通过el属性来指定。
+
+例如一段html模板：
+
+```html
+<div id="app">
+    
+</div>
+```
+
+然后创建Vue实例，关联这个div
+
+```js
+var vm = new Vue({
+	el:"#app"
+})
+```
+
+这样，Vue就可以基于id为`app`的div元素作为模板进行渲染了。在这个div范围以外的部分是无法使用vue特性的。
+
+## 4.3.数据
+
+当Vue实例被创建时，它会尝试获取在data中定义的所有属性，用于视图的渲染，并且监视data中的属性变化，当data发生改变，所有相关的视图都将重新渲染，这就是“响应式“系统。
+
+html：
+
+```html
+<div id="app">
+    <input type="text" v-model="name"/>
+</div>
+```
+
+js:
+
+```js
+var vm = new Vue({
+    el:"#app",
+    data:{
+        name:"刘德华"
+    }
+})
+```
+
+- name的变化会影响到`input`的值
+- input中输入的值，也会导致vm中的name发生改变
+
+
+
+## 4.4.方法
+
+Vue实例中除了可以定义data属性，也可以定义方法，并且在Vue的作用范围内使用。
+
+html:
+
+```html
+<div id="app">
+    {{num}}
+    <button v-on:click="add">加</button>
+</div>
+```
+
+js:
+
+```js
+var vm = new Vue({
+    el:"#app",
+    data:{
+        num: 0
+    },
+    methods:{
+        add:function(){
+            // this代表的当前vue实例
+            this.num++;
+        }
+    }
+})
+```
+
+## 4.5.生命周期钩子
+
+### 4.5.1.生命周期
+
+每个 Vue 实例在被创建时都要经过一系列的初始化过程 ：创建实例，装载模板，渲染模板等等。Vue为生命周期中的每个状态都设置了钩子函数（监听函数）。每当Vue实例处于不同的生命周期时，对应的函数就会被触发调用。
+
+生命周期：
+
+![Vue life cycle](/images/leyou/lifecycle.png)
+
+### 4.5.2.钩子函数
+
+例如：created代表在vue实例创建后；
+
+我们可以在Vue中定义一个created函数，代表这个时期的构造函数：
+
+
+
+html:
+
+```html
+<div id="app">
+    {{hello}}
+</div>
+```
+
+js:
+
+```js
+var vm = new Vue({
+    el:"#app",
+    data:{
+        hello: '' // hello初始化为空
+    },
+    created(){
+        this.hello = "hello, world！ 我出生了！";
+    }
+})
+```
+
+结果：
+
+ ![1525843098485](/images/leyou/1525843098485.png)
+
+
+
+### 4.5.3.this
+
+我们可以看下在vue内部的this变量是谁，我们在created的时候，打印this
+
+```js
+var vm = new Vue({
+    el:"#app",
+    data:{
+        hello: '' // hello初始化为空
+    },
+    created(){
+        this.hello = "hello, world！ 我出生了！";
+        console.log(this);
+    }
+})
+```
+
+ 控制台的输出：
+
+![1525843381094](/images/leyou/1525843381094.png)
+
+ 
+
+
+
+# 5.指令
+
+什么是指令？
+
+指令 (Directives) 是带有 `v-` 前缀的特殊特性。指令特性的预期值是：**单个 JavaScript 表达式**。指令的职责是，当表达式的值改变时，将其产生的连带影响，响应式地作用于 DOM。 
+
+例如我们在入门案例中的v-on，代表绑定事件。
+
+
+
+## 5.1.插值表达式
+
+### 5.1.1.花括号
+
+格式：
+
+```
+{{表达式}}
+```
+
+说明：
+
+- 该表达式支持JS语法，可以调用js内置函数（必须有返回值）
+- 表达式必须有返回结果。例如 1 + 1，没有结果的表达式不允许使用，如：var a = 1 + 1;
+- 可以直接获取Vue实例中定义的数据或函数
+
+示例：
+
+HTML：
+
+```html
+<div id="app">{{name}}</div>
+```
+
+JS:
+
+```js
+var app = new Vue({
+    el:"#app",
+    data:{
+        name:"Jack"
+    }
+})
+```
+
+
+
+### 5.1.2.插值闪烁
+
+使用{{}}方式在网速较慢时会出现问题。在数据未加载完成时，页面会显示出原始的`{{}}`，加载完毕后才显示正确数据，我们称为插值闪烁。
+
+我们将网速调慢一些，然后试试看刚才的案例：
+
+![1525843894502](/images/leyou/1525843894502.png)
+
+刷新页面：
+
+ ![](/images/leyou/4.gif)
+
+
+
+### 5.1.3.v-text和v-html
+
+使用v-text和v-html指令来替代`{{}}`
+
+说明：
+
+- v-text：将数据输出到元素内部，如果输出的数据有HTML代码，会作为普通文本输出
+- v-html：将数据输出到元素内部，如果输出的数据有HTML代码，会被渲染
+
+示例：
+
+HTML:
+
+```html
+<div id="app">
+    v-text:<span v-text="hello"></span> <br/>
+    v-html:<span v-html="hello"></span>
+</div>
+```
+
+JS:
+
+```js
+var vm = new Vue({
+    el:"#app",
+    data:{
+        hello: "<h1>大家好，我是虎哥</h1>"
+    }
+})
+```
+
+效果：
+
+ ![1525844448278](/images/leyou/1525844448278.png)
+
+
+
+并且不会出现插值闪烁，当没有数据时，会显示空白。
+
+
+
+## 5.2.v-model
+
+刚才的v-text和v-html可以看做是单向绑定，数据影响了视图渲染，但是反过来就不行。接下来学习的v-model是双向绑定，视图（View）和模型（Model）之间会互相影响。
+
+既然是双向绑定，一定是在视图中可以修改数据，这样就限定了视图的元素类型。目前v-model的可使用元素有：
+
+- input
+- select
+- textarea
+- checkbox
+- radio
+- components（Vue中的自定义组件）
+
+基本上除了最后一项，其它都是表单的输入项。
+
+举例：
+
+html：
+
+```html
+<div id="app">
+    <input type="checkbox" v-model="language" value="Java" />Java<br/>
+    <input type="checkbox" v-model="language" value="PHP" />PHP<br/>
+    <input type="checkbox" v-model="language" value="Swift" />Swift<br/>
+    <h1>
+        你选择了：{{language.join(',')}}
+    </h1>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            language: []
+        }
+    })
+</script>
+```
+
+- 多个`CheckBox`对应一个model时，model的类型是一个数组，单个checkbox值是boolean类型
+- radio对应的值是input的value值
+- `input` 和`textarea` 默认对应的model是字符串
+- `select`单选对应字符串，多选对应也是数组
+
+效果：
+
+ ![1525845481512](/images/leyou/1525845481512.png)
+
+
+
+## 5.3.v-on
+
+### 5.3.1.基本用法
+
+v-on指令用于给页面元素绑定事件。
+
+语法：
+
+```
+v-on:事件名="js片段或函数名"
+```
+
+示例：
+
+```html
+<div id="app">
+    <!--事件中直接写js片段-->
+    <button v-on:click="num++">增加</button><br/>
+    <!--事件指定一个回调函数，必须是Vue实例中定义的函数-->
+    <button v-on:click="decrement">减少</button><br/>
+    <h1>num: {{num}}</h1>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var app = new Vue({
+        el:"#app",
+        data:{
+            num:1
+        },
+        methods:{
+            decrement(){
+                this.num--;
+            }
+        }
+    })
+</script>
+```
+
+效果：
+
+ ![](/images/leyou/5.gif)
+
+另外，事件绑定可以简写，例如`v-on:click='add'`可以简写为`@click='add'`
+
+
+
+### 5.3.2.事件修饰符
+
+在事件处理程序中调用 `event.preventDefault()` 或 `event.stopPropagation()` 是非常常见的需求。尽管我们可以在方法中轻松实现这点，但更好的方式是：方法只有纯粹的数据逻辑，而不是去处理 DOM 事件细节。
+
+为了解决这个问题，Vue.js 为 `v-on` 提供了**事件修饰符**。之前提过，修饰符是由点开头的指令后缀来表示的。
+
+- `.stop` ：阻止事件冒泡
+- `.prevent`：阻止默认事件发生
+- `.capture`：使用事件捕获模式
+- `.self`：只有元素自身触发事件才执行。（冒泡或捕获的都不执行）
+- `.once`：只执行一次
+
+
+
+### 5.3.3.按键修饰符
+
+在监听键盘事件时，我们经常需要检查常见的键值。Vue 允许为 `v-on` 在监听键盘事件时添加按键修饰符： 
+
+```html
+<!-- 只有在 `keyCode` 是 13 时调用 `vm.submit()` -->
+<input v-on:keyup.13="submit">
+```
+
+
+
+记住所有的 `keyCode` 比较困难，所以 Vue 为最常用的按键提供了别名：
+
+```html
+<!-- 同上 -->
+<input v-on:keyup.enter="submit">
+
+<!-- 缩写语法 -->
+<input @keyup.enter="submit">
+```
+
+全部的按键别名：
+
+- `.enter`
+- `.tab`
+- `.delete` (捕获“删除”和“退格”键)
+- `.esc`
+- `.space`
+- `.up`
+- `.down`
+- `.left`
+- `.right`
+
+### 5.3.4.组合按钮
+
+可以用如下修饰符来实现仅在按下相应按键时才触发鼠标或键盘事件的监听器。
+
+- `.ctrl`
+- `.alt`
+- `.shift`
+
+例如：
+
+```html
+<!-- Alt + C -->
+<input @keyup.alt.67="clear">
+
+<!-- Ctrl + Click -->
+<div @click.ctrl="doSomething">Do something</div>
+```
+
+
+
+## 5.4.v-for
+
+遍历数据渲染页面是非常常用的需求，Vue中通过v-for指令来实现。
+
+### 5.4.1.遍历数组
+
+> 语法：
+
+```
+v-for="item in items"
+```
+
+- items：要遍历的数组，需要在vue的data中定义好。
+- item：迭代得到的数组元素的别名
+
+> 示例
+
+```html
+<div id="app">
+    <ul>
+        <li v-for="user in users">
+            {{user.name}} : {{user.gender}} : {{user.age}}
+        </li>
+    </ul>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            users:[
+                {name:'柳岩', gender:'女', age: 21},
+                {name:'虎哥', gender:'男', age: 30},
+                {name:'范冰冰', gender:'女', age: 24},
+                {name:'刘亦菲', gender:'女', age: 18},
+                {name:'古力娜扎', gender:'女', age: 25}
+            ]
+        }
+    })
+</script>
+```
+
+效果：
+
+ ![1525848812000](/images/leyou/1525848812000.png)
+
+
+
+### 5.4.2.数组角标
+
+在遍历的过程中，如果我们需要知道数组角标，可以指定第二个参数：
+
+> 语法
+
+```
+v-for="(item,index) in items"
+```
+
+- items：要迭代的数组
+- item：迭代得到的数组元素别名
+- index：迭代到的当前元素索引，从0开始。
+
+> 示例
+
+```html
+    <div id="app">
+        <ul>
+            <li v-for="(user,index) in users">
+                {{index}} - {{user.name}} : {{user.gender}} : {{user.age}}
+            </li>
+        </ul>
+    </div>
+```
+
+> 效果：
+
+ ![1525849039930](/images/leyou/1525849039930.png)
+
+### 5.4.3.遍历对象
+
+v-for除了可以迭代数组，也可以迭代对象。语法基本类似
+
+> 语法：
+
+```
+v-for="value in object"
+v-for="(value,key) in object"
+v-for="(value,key,index) in object"
+```
+
+- 1个参数时，得到的是对象的值
+- 2个参数时，第一个是值，第二个是键
+- 3个参数时，第三个是索引，从0开始
+
+> 示例：
+
+```html
+<div id="app">
+    <ul>
+        <li v-for="(value,key,index) in user">
+            {{index}} - {{key}} : {{value}}
+        </li>
+    </ul>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            user:{name:'柳岩', gender:'女', age: 21}
+        }
+    })
+</script>
+```
+
+> 效果：
+
+ ![1525849552865](/images/leyou/1525849552865.png)
+
+
+
+### 5.4.4.key
+
+当 Vue.js 用 `v-for` 正在更新已渲染过的元素列表时，它默认用“就地复用”策略。如果数据项的顺序被改变，Vue 将不会移动 DOM 元素来匹配数据项的顺序， 而是简单复用此处每个元素，并且确保它在特定索引下显示已被渲染过的每个元素。 
+
+这个功能可以有效的提高渲染的效率。
+
+但是要实现这个功能，你需要给Vue一些提示，以便它能跟踪每个节点的身份，从而重用和重新排序现有元素，你需要为每项提供一个唯一 `key` 属性。理想的 `key` 值是每项都有的且唯一的 id。 
+
+示例：
+
+```html
+<ul>
+    <li v-for="(item,index) in items" :key=index></li>
+</ul>
+```
+
+- 这里使用了一个特殊语法：`:key=""` 我们后面会讲到，它可以让你读取vue中的属性，并赋值给key属性
+- 这里我们绑定的key是数组的索引，应该是唯一的
+
+## 5.5.v-if和v-show
+
+### 5.5.1.基本使用
+
+v-if，顾名思义，条件判断。当得到结果为true时，所在的元素才会被渲染。
+
+> 语法：
+
+```
+v-if="布尔表达式"
+```
+
+> 示例：
+
+```html
+    <div id="app">
+        <!--事件中直接写js片段-->
+        <button v-on:click="show = !show">点击切换</button><br/>
+        <h1 v-if="show">
+            你好
+        </h1>
+    </div>
+    <script src="./node_modules/vue/dist/vue.js"></script>
+    <script type="text/javascript">
+        var app = new Vue({
+            el:"#app",
+            data:{
+                show:true
+            }
+        })
+    </script>
+```
+
+> 效果：
+
+ ![](/images/leyou/ScreenGif-1525850553649.gif)
+
+### 5.5.2.与v-for结合
+
+当v-if和v-for出现在一起时，v-for优先级更高。也就是说，会先遍历，再判断条件。
+
+示例：
+
+```html
+    <div id="app">
+        <ul>
+            <li v-for="(user,index) in users" v-if="user.gender === '女'">
+                {{index}} - {{user.name}} : {{user.gender}} : {{user.age}}
+            </li>
+        </ul>
+    </div>
+    <script src="./node_modules/vue/dist/vue.js"></script>
+    <script type="text/javascript">
+        var vm = new Vue({
+            el:"#app",
+            data:{
+                users:[
+                    {name:'柳岩', gender:'女', age: 21},
+                    {name:'虎哥', gender:'男', age: 30},
+                    {name:'范冰冰', gender:'女', age: 24},
+                    {name:'刘亦菲', gender:'女', age: 18},
+                    {name:'古力娜扎', gender:'女', age: 25}
+                ]
+            }
+        })
+    </script>
+```
+
+效果：
+
+ ![1525850816434](/images/leyou/1525850816434.png)
+
+### 5.5.3.v-else
+
+你可以使用 `v-else` 指令来表示 `v-if` 的“else 块”：
+
+```
+<div v-if="Math.random() > 0.5">
+  Now you see me
+</div>
+<div v-else>
+  Now you don't
+</div>
+```
+
+`v-else` 元素必须紧跟在带 `v-if` 或者 `v-else-if` 的元素的后面，否则它将不会被识别。
+
+
+
+`v-else-if`，顾名思义，充当 `v-if` 的“else-if 块”，可以连续使用：
+
+```
+<div v-if="type === 'A'">
+  A
+</div>
+<div v-else-if="type === 'B'">
+  B
+</div>
+<div v-else-if="type === 'C'">
+  C
+</div>
+<div v-else>
+  Not A/B/C
+</div>
+```
+
+类似于 `v-else`，`v-else-if` 也必须紧跟在带 `v-if` 或者 `v-else-if` 的元素之后。
+
+### 5.5.4.v-show
+
+另一个用于根据条件展示元素的选项是 `v-show` 指令。用法大致一样：
+
+```
+<h1 v-show="ok">Hello!</h1>
+```
+
+不同的是带有 `v-show` 的元素始终会被渲染并保留在 DOM 中。`v-show` 只是简单地切换元素的 CSS 属性 `display`。
+
+示例：
+
+```html
+    <div id="app">
+        <!--事件中直接写js片段-->
+        <button v-on:click="show = !show">点击切换</button><br/>
+        <h1 v-if="show">
+            你好
+        </h1>
+    </div>
+    <script src="./node_modules/vue/dist/vue.js"></script>
+    <script type="text/javascript">
+        var app = new Vue({
+            el:"#app",
+            data:{
+                show:true
+            }
+        })
+    </script>
+```
+
+
+
+代码：
+
+ ![](/images/leyou/1.gif)
+
+## 5.6.v-bind
+
+### 5.6.1.绑定class样式
+
+假如我们想动态的修改页面元素的属性，比如class属性，这样写是错误的：
+
+```html
+<div class="{{isAcctive}}"></div>
+```
+
+因为插值表达式不能用在属性的值中。
+
+Vue对class属性进行了特殊处理，可以接收数组或对象格式：
+
+> 数组语法
+
+我们可以借助于`v-bind`指令来实现：
+
+HTML：
+
+```html
+<div v-bind:class="isActive"></div>
+```
+
+你的data属性：
+
+```js
+data:{
+    isActive:['active','hasError']
+}
+```
+
+渲染后的效果：
+
+```
+<div class="active hasError"></div>
+```
+
+> 对象语法
+
+我们可以传给 `v-bind:class` 一个对象，以动态地切换 class：
+
+```html
+<div v-bind:class="{ active: isActive }"></div>
+```
+
+上面的语法表示 `active` 这个 class 存在与否将取决于数据属性 `isActive` 的 [truthiness](https://developer.mozilla.org/zh-CN/docs/Glossary/Truthy)。
+
+你可以在对象中传入更多属性来动态切换多个 class。此外，`v-bind:class` 指令也可以与普通的 class 属性共存。当有如下模板:
+
+```html
+<div class="static"
+     v-bind:class="{ active: isActive, 'text-danger': hasError }">
+</div>
+```
+
+和如下 data：
+
+```js
+data: {
+  isActive: true,
+  hasError: false
+}
+```
+
+结果渲染为：
+
+```html
+<div class="static active"></div>
+```
+
+当 `isActive` 或者 `hasError` 变化时，class 列表将相应地更新。例如，如果 `hasError`的值为 `true`，class 列表将变为 `"static active text-danger"`。
+
+### 5.6.2.简写
+
+`v-bind:class`可以简写为`:class`
+
+
+
+## 5.7.计算属性
+
+在插值表达式中使用js表达式是非常方便的，而且也经常被用到。
+
+但是如果表达式的内容很长，就会显得不够优雅，而且后期维护起来也不方便，例如下面的场景，我们有一个日期的数据，但是是毫秒值：
+
+```js
+data:{
+    birthday:1529032123201 // 毫秒值
+}
+```
+
+我们在页面渲染，希望得到yyyy-MM-dd的样式：
+
+```html
+<h1>您的生日是：{{
+    new Date(birthday).getFullYear() + '-'+ new Date(birthday).getMonth()+ '-' + new Date(birthday).getDay()
+    }}
+</h1>
+```
+
+虽然能得到结果，但是非常麻烦。
+
+Vue中提供了计算属性，来替代复杂的表达式：
+
+```js
+var vm = new Vue({
+    el:"#app",
+    data:{
+        birthday:1429032123201 // 毫秒值
+    },
+    computed:{
+        birth(){// 计算属性本质是一个方法，但是必须返回结果
+            const d = new Date(this.birthday);
+            return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDay();
+        }
+    }
+})
+```
+
+- 计算属性本质就是方法，但是一定要返回数据。然后页面渲染时，可以把这个方法当成一个变量来使用。
+
+页面使用：
+
+```html
+    <div id="app">
+       <h1>您的生日是：{{birth}} </h1>
+    </div>
+```
+
+效果：
+
+ ![1525861635758](/images/leyou/1525861635758.png)
+
+
+
+## 5.8.watch
+
+watch可以让我们监控一个值的变化。从而做出相应的反应。
+
+示例：
+
+```html
+<div id="app">
+    <input type="text" v-model="message">
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            message:""
+        },
+        watch:{
+            message(newVal, oldVal){
+                console.log(newVal, oldVal);
+            }
+        }
+    })
+</script>
+```
+
+效果：
+
+ ![1525865657611](/images/leyou/1525865657611.png)
+
+
+
+# 6.组件化
+
+在大型应用开发的时候，页面可以划分成很多部分。往往不同的页面，也会有相同的部分。例如可能会有相同的头部导航。
+
+但是如果每个页面都独自开发，这无疑增加了我们开发的成本。所以我们会把页面的不同部分拆分成独立的组件，然后在不同页面就可以共享这些组件，避免重复开发。
+
+
+
+## 6.1.定义全局组件
+
+我们通过Vue的component方法来定义一个全局组件。
+
+```html
+<div id="app">
+    <!--使用定义好的全局组件-->
+    <counter></counter>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    // 定义全局组件，两个参数：1，组件名称。2，组件参数
+    Vue.component("counter",{
+        template:'<button v-on:click="count++">你点了我 {{ count }} 次，我记住了.</button>',
+        data(){
+            return {
+                count:0
+            }
+        }
+    })
+    var app = new Vue({
+        el:"#app"
+    })
+</script>
+```
+
+- 组件其实也是一个Vue实例，因此它在定义时也会接收：data、methods、生命周期函数等
+- 不同的是组件不会与页面的元素绑定，否则就无法复用了，因此没有el属性。
+- 但是组件渲染需要html模板，所以增加了template属性，值就是HTML模板
+- 全局组件定义完毕，任何vue实例都可以直接在HTML中通过组件名称来使用组件了。
+- data的定义方式比较特殊，必须是一个函数。
+
+效果：
+
+ ![](/images/leyou/6.gif)
+
+
+
+## 6.2.组件的复用
+
+定义好的组件，可以任意复用多次：
+
+```html
+<div id="app">
+    <!--使用定义好的全局组件-->
+    <counter></counter>
+    <counter></counter>
+    <counter></counter>
+</div>
+```
+
+效果：
+
+ ![1525854127169](/images/leyou/1525854127169.png)
+
+你会发现每个组件互不干扰，都有自己的count值。怎么实现的？
+
+> **组件的data属性必须是函数**！
+
+当我们定义这个 `<counter>` 组件时，它的data 并不是像这样直接提供一个对象：
+
+```js
+data: {
+  count: 0
+}
+
+```
+
+取而代之的是，一个组件的 data 选项必须是一个函数，因此每个实例可以维护一份被返回对象的独立的拷贝：
+
+```js
+data: function () {
+  return {
+    count: 0
+  }
+}
+```
+
+如果 Vue 没有这条规则，点击一个按钮就会影响到其它所有实例！
+
+
+
+## 6.2.局部注册
+
+一旦全局注册，就意味着即便以后你不再使用这个组件，它依然会随着Vue的加载而加载。
+
+因此，对于一些并不频繁使用的组件，我们会采用局部注册。
+
+我们先在外部定义一个对象，结构与创建组件时传递的第二个参数一致：
+
+```js
+const counter = {
+    template:'<button v-on:click="count++">你点了我 {{ count }} 次，我记住了.</button>',
+    data(){
+        return {
+            count:0
+        }
+    }
+};
+```
+
+然后在Vue中使用它：
+
+```js
+var app = new Vue({
+    el:"#app",
+    components:{
+        counter:counter // 将定义的对象注册为组件
+    }
+})
+```
+
+- components就是当前vue对象子组件集合。
+  - 其key就是子组件名称
+  - 其值就是组件对象的属性
+- 效果与刚才的全局注册是类似的，不同的是，这个counter组件只能在当前的Vue实例中使用
+
+## 6.3.组件通信
+
+通常一个单页应用会以一棵嵌套的组件树的形式来组织：
+
+![1525855149491](/images/leyou/1525855149491.png)
+
+- 页面首先分成了顶部导航、左侧内容区、右侧边栏三部分
+- 左侧内容区又分为上下两个组件
+- 右侧边栏中又包含了3个子组件
+
+各个组件之间以嵌套的关系组合在一起，那么这个时候不可避免的会有组件间通信的需求。
+
+### 6.3.1.父向子传递props
+
+比如我们有一个子组件：
+
+```js
+Vue.component("introduce",{
+    // 直接使用props接收到的属性来渲染页面
+    template:'<h3>{{title}}</h3>',
+    props:[title] // 通过props来接收一个父组件传递的属性
+})
+```
+
+- 这个子组件中要使用title属性渲染页面，但是自己并没有title属性
+- 通过props来接收父组件属性，名为title
+
+父组件使用子组件，同时传递title属性：
+
+```html
+<div id="app">
+    <h1>打个招呼：</h1>
+    <!--使用子组件，同时传递title属性-->
+    <introduce title="大家好，我是虎哥"/>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    Vue.component("introduce",{
+        // 直接使用props接收到的属性来渲染页面
+        template:'<h1>{{title}}</h1>',
+        props:['title'] // 通过props来接收一个父组件传递的属性
+    })
+    var app = new Vue({
+        el:"#app"
+    })
+</script>
+```
+
+效果：
+
+  ![1525857338270](/images/leyou/1525857338270.png)
+
+
+
+
+
+### 6.3.2.传递复杂数据
+
+我们定义一个子组件：
+
+```js
+const myList = {
+    template:'\
+        <ul>\
+        	<li v-for="item in items" :key="item.id">{{item.id}} : {{item.name}}</li>\
+        </ul>\
+        ',
+    props:{ // 通过props来接收父组件传递来的属性
+        items:{// 这里定义items属性
+            type:Array,// 要求必须是Array类型
+            default:[] // 如果父组件没有传，那么给定默认值是[]
+        }
+	}
+}
+```
+
+- 这个子组件可以对 items 进行迭代，并输出到页面。
+- 但是组件中并未定义items属性。
+- 通过props来定义需要从父组件中接收的属性
+  - items：是要接收的属性名称
+    - type：限定父组件传递来的必须是数组，否则报错
+    - default：默认值
+
+我们在父组件中使用它：
+
+```html
+<div id="app">
+    <h2>传智播客已开设如下课程：</h2>
+    <!-- 使用子组件的同时，传递属性，这里使用了v-bind，指向了父组件自己的属性lessons -->
+    <my-list :items="lessons"/>
+</div>
+```
+
+```js
+var app = new Vue({
+    el:"#app",
+    components:{
+        myList // 当key和value一样时，可以只写一个
+    },
+    data:{
+        lessons:[
+            {id:1, name: 'java'},
+            {id:2, name: 'php'},
+            {id:3, name: 'ios'},
+        ]
+    }
+})
+```
+
+效果：
+
+  ![1525857477274](/images/leyou/1525857477274.png)
+
+### 6.3.3.子向父的通信
+
+来看这样的一个案例：
+
+```html
+<div id="app">
+    <h2>num: {{num}}</h2>
+    <!--使用子组件的时候，传递num到子组件中-->
+    <counter :num="num"></counter>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    Vue.component("counter", {// 子组件，定义了两个按钮，点击数字num会加或减
+        template:'\
+            <div>\
+                <button @click="num++">加</button>  \
+                <button @click="num--">减</button>  \
+            </div>',
+        props:['num']// count是从父组件获取的。
+    })
+    var app = new Vue({
+        el:"#app",
+        data:{
+            num:0
+        }
+    })
+</script>
+```
+
+- 子组件接收父组件的num属性
+- 子组件定义点击按钮，点击后对num进行加或减操作
+
+我们尝试运行：
+
+ ![1525859093172](/images/leyou/1525859093172.png)
+
+好像没问题，点击按钮试试：
+
+![1525859138607](/images/leyou/1525859138607.png)
+
+子组件接收到父组件属性后，默认是不允许修改的。怎么办？
+
+既然只有父组件能修改，那么加和减的操作一定是放在父组件：
+
+```js
+var app = new Vue({
+    el:"#app",
+    data:{
+        num:0
+    },
+    methods:{ // 父组件中定义操作num的方法
+        increment(){
+            this.num++;
+        },
+        decrement(){
+            this.num--;
+        }
+    }
+})
+```
+
+
+
+但是，点击按钮是在子组件中，那就是说需要子组件来调用父组件的函数，怎么做？
+
+我们可以**通过v-on指令将父组件的函数绑定到子组件**上：
+
+```html
+<div id="app">
+    <h2>num: {{num}}</h2>
+    <counter :count="num" @inc="increment" @dec="decrement"></counter>
+</div>
+```
+
+然后，当子组件中按钮被点击时，调用绑定的函数：
+
+```js
+        Vue.component("counter", {
+            template:'\
+                <div>\
+                    <button @click="plus">加</button>  \
+                    <button @click="reduce">减</button>  \
+                </div>',
+            props:['count'],
+            methods:{
+                plus(){
+                    this.$emit("inc");
+                },
+                reduce(){
+                    this.$emit("dec");
+                }
+            }
+        })
+```
+
+- vue提供了一个内置的this.$emit函数，用来调用父组件绑定的函数
+
+效果：
+
+ ![](/images/leyou/7.gif)
+ ---
+layout: post
+title:  vue入门
+categories: 乐优
+description: vue入门
+keywords: 乐优
+---
+# 学习目标
+
+- 会创建Vue实例，知道Vue的常见属性
+- 会使用Vue的生命周期的钩子函数
+- 会使用vue常见指令
+- 会使用vue计算属性和watch监控
+- 会编写Vue组件
+- 掌握组件间通信
+- 了解vue-router使用
+- 了解webpack使用
+- 会使用vue-cli搭建项目
+
+
+
+# 0.前言
+
+前几天我们已经对后端的技术栈有了初步的了解、并且已经搭建了整个后端微服务的平台。接下来要做的事情就是功能开发了。但是没有前端页面，我们肯定无从下手，因此今天我们就要来了解一下前端的一些技术，完成前端页面搭建。
+
+先聊一下前端开发模式的发展。
+
+> 静态页面
+
+最初的网页以HTML为主，是纯静态的网页。网页是只读的，信息流只能从服务端到客户端单向流通。**开发人员也只关心页面的样式和内容**即可。
+
+> 异步刷新，操作DOM
+
+1995年，网景工程师Brendan Eich 花了10天时间设计了JavaScript语言.
+
+随着JavaScript的诞生，我们可以操作页面的DOM元素及样式，页面有了一些动态的效果，但是依然是以静态为主。
+
+ajax盛行：
+
+- 2005年开始，ajax逐渐被前端开发人员所重视，因为不用刷新页面就可以更新页面的数据和渲染效果。
+- 此时的**开发人员不仅仅要编写HTML样式，还要懂ajax与后端交互，然后通过JS操作Dom元素来实现页面动态效果**。比较流行的框架如Jquery就是典型代表。
+
+> MVVM，关注模型和视图
+
+2008年，google的Chrome发布，随后就以极快的速度占领市场，超过IE成为浏览器市场的主导者。
+
+2009年，Ryan Dahl在谷歌的Chrome V8引擎基础上，打造了基于事件循环的异步IO框架：Node.js。
+
+- 基于事件循环的异步IO
+- 单线程运行，避免多线程的变量同步问题
+- JS可以编写后台代码，前后台统一编程语言
+
+node.js的伟大之处不在于让JS迈向了后端开发，而是构建了一个庞大的生态系统。
+
+2010年，NPM作为node.js的包管理系统首次发布，开发人员可以遵循Common.js规范来编写Node.js模块，然后发布到NPM上供其他开发人员使用。目前已经是世界最大的包模块管理系统。
+
+随后，在node的基础上，涌现出了一大批的前端框架：
+
+ ![1525825983230](/images/leyou/1525825983230.png)
+
+> MVVM模式
+
+- M：即Model，模型，包括数据和一些基本操作
+- V：即View，视图，页面渲染结果
+- VM：即View-Model，模型与视图间的双向操作（无需开发人员干涉）
+
+在MVVM之前，开发人员从后端获取需要的数据模型，然后要通过DOM操作Model渲染到View中。而后当用户操作视图，我们还需要通过DOM获取View中的数据，然后同步到Model中。
+
+而MVVM中的VM要做的事情就是把DOM操作完全封装起来，开发人员不用再关心Model和View之间是如何互相影响的：
+
+- 只要我们Model发生了改变，View上自然就会表现出来。
+- 当用户修改了View，Model中的数据也会跟着改变。
+
+把开发人员从繁琐的DOM操作中解放出来，把关注点放在如何操作Model上。
+
+ ![1525828854056](/images/leyou/1525828854056.png)
+
+
+
+而我们今天要学习的，就是一款MVVM模式的框架：Vue
+
+
+
+# 1.认识Vue
+
+Vue (读音 /vjuː/，类似于 **view**) 是一套用于构建用户界面的**渐进式框架**。与其它大型框架不同的是，Vue 被设计为可以自底向上逐层应用。Vue 的核心库只关注视图层，不仅易于上手，还便于与第三方库或既有项目整合。另一方面，当与[现代化的工具链](https://cn.vuejs.org/v2/guide/single-file-components.html)以及各种[支持类库](https://github.com/vuejs/awesome-vue#libraries--plugins)结合使用时，Vue 也完全能够为复杂的单页应用提供驱动。
+
+​	前端框架三巨头：Vue.js、React.js、AngularJS，vue.js以其轻量易用著称，vue.js和React.js发展速度最快，AngularJS还是老大。
+
+官网：https://cn.vuejs.org/
+
+参考：https://cn.vuejs.org/v2/guide/
+
+![1525829249048](/images/leyou/1525829249048.png)
+
+Git地址：https://github.com/vuejs
+
+![1525829030730](/images/leyou/1525829030730.png)
+
+**尤雨溪**，Vue.js 创作者，Vue Technology创始人，致力于Vue的研究开发。
+
+
+
+# 2.Node和NPM
+
+前面说过，NPM是Node提供的模块管理工具，可以非常方便的下载安装很多前端框架，包括Jquery、AngularJS、VueJs都有。为了后面学习方便，我们先安装node及NPM工具。
+
+
+
+## 2.1.下载Node.js
+
+下载地址：https://nodejs.org/en/
+
+![1529594451775](/images/leyou/1529594451775.png)
+
+推荐下载LTS版本。
+
+课程中采用的是8.11.3版本。也是目前最新的。大家自行下载或者使用课前资料中提供的安装包。然后下一步安装即可。
+
+完成以后，在控制台输入：
+
+```powershell
+node -v
+```
+
+看到版本信息：
+
+![1529595770482](/images/leyou/1529595770482.png)
+
+
+
+## 2.2.NPM
+
+Node自带了NPM了，在控制台输入`npm -v`查看：
+
+![1529595810923](/images/leyou/1529595810923.png)
+
+
+
+npm默认的仓库地址是在国外网站，速度较慢，建议大家设置到淘宝镜像。但是切换镜像是比较麻烦的。推荐一款切换镜像的工具：nrm
+
+我们首先安装nrm，这里`-g`代表全局安装。可能需要一点儿时间
+
+```
+npm install nrm -g
+```
+
+![1529596099952](/images/leyou/1529596099952.png)
+
+然后通过`nrm ls`命令查看npm的仓库列表,带*的就是当前选中的镜像仓库：
+
+![1529596219439](/images/leyou/1529596219439.png)
+
+通过`nrm use taobao`来指定要使用的镜像源：
+
+![1529596312671](/images/leyou/1529596312671.png)
+
+然后通过`nrm test npm `来测试速度：
+
+![1529596566134](/images/leyou/1529596566134.png)
+
+
+
+注意：
+
+- 有教程推荐大家使用cnpm命令，但是使用发现cnpm有时会有bug，不推荐。
+- 安装完成请一定要重启下电脑！！！
+- 安装完成请一定要重启下电脑！！！
+- 安装完成请一定要重启下电脑！！！
+
+
+
+# 3.快速入门
+
+接下来，我们快速领略下vue的魅力
+
+## 3.1.创建工程
+
+创建一个新的空工程：
+
+![1529596874127](/images/leyou/1529596874127.png)
+
+![1529597228506](/images/leyou/1529597228506.png)
+
+然后新建一个module：
+
+![1529597325121](/images/leyou/1529597325121.png)
+
+选中static web，静态web项目：
+
+![1529597573453](/images/leyou/1529597573453.png)
+
+位置信息：
+
+![1529597672429](/images/leyou/1529597672429.png)
+
+
+
+## 3.2.安装vue
+
+### 3.2.1.下载安装
+
+下载地址：https://github.com/vuejs/vue
+
+可以下载2.5.16版本https://github.com/vuejs/vue/archive/v2.5.16.zip
+
+下载解压，得到vue.js文件。
+
+### 3.2.2.使用CDN
+
+或者也可以直接使用公共的CDN服务：
+
+```html
+<!-- 开发环境版本，包含了用帮助的命令行警告 -->
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+```
+
+或者：
+
+```html
+<!-- 生产环境版本，优化了尺寸和速度 -->
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+```
+
+
+
+### 3.2.3.推荐npm安装
+
+在idea的左下角，有个Terminal按钮，点击打开控制台：
+
+![1529598030268](/images/leyou/1529598030268.png)
+
+进入hello-vue目录，先输入：`npm init -y` 进行初始化
+
+![1529598244471](/images/leyou/1529598244471.png)
+
+安装Vue，输入命令：`npm install vue --save`
+
+![1529598444504](/images/leyou/1529598444504.png)
+
+然后就会在hello-vue目录发现一个node_modules目录，并且在下面有一个vue目录。
+
+ ![1529602488684](/images/leyou/1529602488684.png)
+
+node_modules是通过npm安装的所有模块的默认位置。
+
+
+
+## 3.3.vue入门案例
+
+### 3.3.1.HTML模板
+
+ 在hello-vue目录新建一个HTML
+
+![1529719572523](/images/leyou/1529719572523.png)
+
+在hello.html中，我们编写一段简单的代码：
+
+![1529719673944](/images/leyou/1529719673944.png)
+
+h2中要输出一句话：xx 非常帅。前面的xx是要渲染的数据。
+
+### 3.3.2.vue声明式渲染
+
+然后我们通过Vue进行渲染：
+
+```html
+<body>
+    <div id="app">
+        <h2>{{name}}，非常帅！！！</h2>
+    </div>
+</body>
+<script src="node_modules/vue/dist/vue.js" ></script>
+<script>
+    // 创建vue实例
+    var app = new Vue({
+        el:"#app", // el即element，该vue实例要渲染的页面元素
+        data:{ // 渲染页面需要的数据
+            name: "峰哥"
+        }
+    });
+
+</script>
+```
+
+- 首先通过 new Vue()来创建Vue实例
+- 然后构造函数接收一个对象，对象中有一些属性：
+  - el：是element的缩写，通过id选中要渲染的页面元素，本例中是一个div
+  - data：数据，数据是一个对象，里面有很多属性，都可以渲染到视图中
+    - name：这里我们指定了一个name属性
+- 页面中的`h2`元素中，我们通过{{name}}的方式，来渲染刚刚定义的name属性。
+
+打开页面查看效果：
+
+![1529722898366](/images/leyou/1529722898366.png)
+
+更神奇的在于，当你修改name属性时，页面会跟着变化：
+
+![1529723206508](/images/leyou/1529723206508.png)
+
+
+
+### 3.3.3.双向绑定
+
+我们对刚才的案例进行简单修改：
+
+```html
+<body>
+    <div id="app">
+        <input type="text" v-model="num">
+        <h2>
+            {{name}}，非常帅！！！有{{num}}位女神为他着迷。
+        </h2>
+    </div>
+</body>
+<script src="node_modules/vue/dist/vue.js" ></script>
+<script>
+    // 创建vue实例
+    var app = new Vue({
+        el: "#app", // el即element，该vue实例要渲染的页面元素
+        data: { // 渲染页面需要的数据
+            name: "峰哥",
+            num: 5
+        }
+    });
+
+</script>
+```
+
+- 我们在data添加了新的属性：`num`
+- 在页面中有一个`input`元素，通过`v-model`与`num`进行绑定。
+- 同时通过`{{num}}`在页面输出
+
+效果：
+
+![1529723206508](/images/leyou/52.gif)
+
+我们可以观察到，输入框的变化引起了data中的num的变化，同时页面输出也跟着变化。
+
+- input与num绑定，input的value值变化，影响到了data中的num值
+- 页面`{{num}}`与数据num绑定，因此num值变化，引起了页面效果变化。
+
+没有任何dom操作，这就是双向绑定的魅力。
+
+
+
+### 3.3.4.事件处理
+
+我们在页面添加一个按钮：
+
+```html
+<button v-on:click="num++">点我</button>
+```
+
+- 这里用`v-on`指令绑定点击事件，而不是普通的`onclick`，然后直接操作num
+- 普通click是无法直接操作num的。
+
+效果：
+
+![](/images/leyou/53.gif)
+
+
+
+# 4.Vue实例
+
+## 4.1.创建Vue实例
+
+每个 Vue 应用都是通过用 `Vue` 函数创建一个新的 **Vue 实例**开始的：
+
+```javascript
+var vm = new Vue({
+  // 选项
+})
+```
+
+在构造函数中传入一个对象，并且在对象中声明各种Vue需要的数据和方法，包括：
+
+- el
+- data
+- methods
+
+等等
+
+接下来我们一 一介绍。
+
+
+
+## 4.2.模板或元素
+
+每个Vue实例都需要关联一段Html模板，Vue会基于此模板进行视图渲染。
+
+我们可以通过el属性来指定。
+
+例如一段html模板：
+
+```html
+<div id="app">
+    
+</div>
+```
+
+然后创建Vue实例，关联这个div
+
+```js
+var vm = new Vue({
+	el:"#app"
+})
+```
+
+这样，Vue就可以基于id为`app`的div元素作为模板进行渲染了。在这个div范围以外的部分是无法使用vue特性的。
+
+## 4.3.数据
+
+当Vue实例被创建时，它会尝试获取在data中定义的所有属性，用于视图的渲染，并且监视data中的属性变化，当data发生改变，所有相关的视图都将重新渲染，这就是“响应式“系统。
+
+html：
+
+```html
+<div id="app">
+    <input type="text" v-model="name"/>
+</div>
+```
+
+js:
+
+```js
+var vm = new Vue({
+    el:"#app",
+    data:{
+        name:"刘德华"
+    }
+})
+```
+
+- name的变化会影响到`input`的值
+- input中输入的值，也会导致vm中的name发生改变
+
+
+
+## 4.4.方法
+
+Vue实例中除了可以定义data属性，也可以定义方法，并且在Vue实例的作用范围内使用。
+
+html:
+
+```html
+<div id="app">
+    {{num}}
+    <button v-on:click="add">加</button>
+</div>
+```
+
+js:
+
+```js
+var vm = new Vue({
+    el:"#app",
+    data:{
+        num: 0
+    },
+    methods:{
+        add:function(){
+            // this代表的当前vue实例
+            this.num++;
+        }
+    }
+})
+```
+
+
+
+## 4.5.生命周期钩子
+
+### 4.5.1.生命周期
+
+每个 Vue 实例在被创建时都要经过一系列的初始化过程 ：创建实例，装载模板，渲染模板等等。Vue为生命周期中的每个状态都设置了钩子函数（监听函数）。每当Vue实例处于不同的生命周期时，对应的函数就会被触发调用。
+
+生命周期：
+
+![Vue life cycle](/images/leyou/lifecycle.png)
+
+### 4.5.2.钩子函数
+
+beforeCreated：我们在用Vue时都要进行实例化，因此，该函数就是在Vue实例化是调用，也可以将他理解为初始化函数比较方便一点，在Vue1.0时，这个函数的名字就是init。 
+
+created：在创建实例之后进行调用。 
+
+beforeMount：页面加载完成，没有渲染。如：此时页面还是{{name}}
+
+mounted：我们可以将他理解为原生js中的window.onload=function({.,.}),或许大家也在用jquery，所以也可以理解为jquery中的$(document).ready(function(){….})，他的功能就是：在dom文档渲染完毕之后将要执行的函数，该函数在Vue1.0版本中名字为compiled。 此时页面中的{{name}}已被渲染成峰哥
+
+beforeDestroy：该函数将在销毁实例前进行调用 。
+
+destroyed：改函数将在销毁实例时进行调用。
+
+beforeUpdate：组件更新之前。
+
+updated：组件更新之后。
+
+
+
+例如：created代表在vue实例创建后；
+
+我们可以在Vue中定义一个created函数，代表这个时期的钩子函数：
+
+```js
+    // 创建vue实例
+    var app = new Vue({
+        el: "#app", // el即element，该vue实例要渲染的页面元素
+        data: { // 渲染页面需要的数据
+            name: "峰哥",
+            num: 5
+        },
+        methods: {
+            add: function(){
+                this.num--;
+            }
+        },
+        created: function () {
+            this.num = 100;
+        }
+    });
+```
+
+结果：
+
+![1529835200236](/images/leyou/1529835200236.png)
+
+
+
+### 4.5.3.this
+
+我们可以看下在vue内部的this变量是谁，我们在created的时候，打印this
+
+```js
+        methods: {
+            add: function(){
+                this.num--;
+                console.log(this);
+            }
+        },
+```
+
+ 控制台的输出：
+
+![1529835379275](/images/leyou/1529835379275.png)
+
+ 
+
+# 5.指令
+
+什么是指令？
+
+指令 (Directives) 是带有 `v-` 前缀的特殊特性。指令特性的预期值是：**单个 JavaScript 表达式**。指令的职责是，当表达式的值改变时，将其产生的连带影响，响应式地作用于 DOM。 
+
+例如我们在入门案例中的v-on，代表绑定事件。
+
+
+
+## 5.1.插值表达式
+
+### 5.1.1.花括号
+
+格式：
+
+```
+{{表达式}}
+```
+
+说明：
+
+- 该表达式支持JS语法，可以调用js内置函数（必须有返回值）
+- 表达式必须有返回结果。例如 1 + 1，没有结果的表达式不允许使用，如：var a = 1 + 1;
+- 可以直接获取Vue实例中定义的数据或函数
+
+示例：
+
+HTML：
+
+```html
+<div id="app">{{name}}</div>
+```
+
+JS:
+
+```js
+var app = new Vue({
+    el:"#app",
+    data:{
+        name:"Jack"
+    }
+})
+```
+
+
+
+### 5.1.2.插值闪烁
+
+使用{{}}方式在网速较慢时会出现问题。在数据未加载完成时，页面会显示出原始的`{{}}`，加载完毕后才显示正确数据，我们称为插值闪烁。
+
+我们将网速调慢一些，然后试试看刚才的案例：
+
+![1529836021593](/images/leyou/1529836021593.png)
+
+刷新页面：
+
+![](/images/leyou/54.gif)
+
+
+
+### 5.1.3.v-text和v-html
+
+使用v-text和v-html指令来替代`{{}}`
+
+说明：
+
+- v-text：将数据输出到元素内部，如果输出的数据有HTML代码，会作为普通文本输出
+- v-html：将数据输出到元素内部，如果输出的数据有HTML代码，会被渲染
+
+示例：
+
+HTML:
+
+```html
+<div id="app">
+    v-text:<span v-text="hello"></span> <br/>
+    v-html:<span v-html="hello"></span>
+</div>
+```
+
+JS:
+
+```js
+var vm = new Vue({
+    el:"#app",
+    data:{
+        hello: "<h1>大家好，我是峰哥</h1>"
+    }
+})
+```
+
+效果：
+
+![1529836688083](/images/leyou/1529836688083.png)
+
+并且不会出现插值闪烁，当没有数据时，会显示空白。
+
+
+
+## 5.2.v-model
+
+刚才的v-text和v-html可以看做是单向绑定，数据影响了视图渲染，但是反过来就不行。接下来学习的v-model是双向绑定，视图（View）和模型（Model）之间会互相影响。
+
+既然是双向绑定，一定是在视图中可以修改数据，这样就限定了视图的元素类型。目前v-model的可使用元素有：
+
+- input
+- select
+- textarea
+- checkbox
+- radio
+- components（Vue中的自定义组件）
+
+基本上除了最后一项，其它都是表单的输入项。
+
+举例：
+
+html：
+
+```html
+<div id="app">
+    <input type="checkbox" v-model="language" value="Java" />Java<br/>
+    <input type="checkbox" v-model="language" value="PHP" />PHP<br/>
+    <input type="checkbox" v-model="language" value="Swift" />Swift<br/>
+    <h1>
+        你选择了：{{language.join(',')}}
+    </h1>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            language: []
+        }
+    })
+</script>
+```
+
+- 多个`CheckBox`对应一个model时，model的类型是一个数组，单个checkbox值默认是boolean类型
+- radio对应的值是input的value值
+- `input` 和`textarea` 默认对应的model是字符串
+- `select`单选对应字符串，多选对应也是数组
+
+效果：
+
+![1529837541201](/images/leyou/1529837541201.png)
+
+
+
+## 5.3.v-on
+
+### 5.3.1.基本用法
+
+v-on指令用于给页面元素绑定事件。
+
+语法：
+
+```
+v-on:事件名="js片段或函数名"
+```
+
+示例：
+
+```html
+<div id="app">
+    <!--事件中直接写js片段-->
+    <button v-on:click="num++">增加一个</button><br/>
+    <!--事件指定一个回调函数，必须是Vue实例中定义的函数-->
+    <button v-on:click="decrement">减少一个</button><br/>
+    <h1>有{{num}}个女神迷恋峰哥</h1>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var app = new Vue({
+        el:"#app",
+        data:{
+            num:100
+        },
+        methods:{
+            decrement(){
+                this.num--;
+            }
+        }
+    })
+</script>
+```
+
+效果：
+
+![](/images/leyou/55.gif)
+
+另外，事件绑定可以简写，例如`v-on:click='add'`可以简写为`@click='add'`
+
+
+
+### 5.3.2.事件修饰符
+
+在事件处理程序中调用 `event.preventDefault()` 或 `event.stopPropagation()` 是非常常见的需求。尽管我们可以在方法中轻松实现这点，但更好的方式是：方法只有纯粹的数据逻辑，而不是去处理 DOM 事件细节。
+
+为了解决这个问题，Vue.js 为 `v-on` 提供了**事件修饰符**。修饰符是由点开头的指令后缀来表示的。
+
+- `.stop` ：阻止事件冒泡到父元素
+- `.prevent`：阻止默认事件发生
+- `.capture`：使用事件捕获模式
+- `.self`：只有元素自身触发事件才执行。（冒泡或捕获的都不执行）
+- `.once`：只执行一次
+
+阻止默认事件
+
+```html
+<div id="app">
+    <!--右击事件，并阻止默认事件发生-->
+    <button v-on:contextmenu.prevent="num++">增加一个</button>
+    <br/>
+    <!--右击事件，不阻止默认事件发生-->
+    <button v-on:contextmenu="decrement($event)">减少一个</button>
+    <br/>
+    <h1>有{{num}}个女神迷恋峰哥</h1>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var app = new Vue({
+        el: "#app",
+        data: {
+            num: 100
+        },
+        methods: {
+            decrement(ev) {
+                // ev.preventDefault();
+                this.num--;
+            }
+        }
+    })
+</script>
+```
+
+效果：（右键“增加一个”，不会触发默认的浏览器右击事件；右键“减少一个”，会触发默认的浏览器右击事件）
+
+![](/images/leyou/56.gif)
+
+
+
+### 5.3.3.按键修饰符
+
+在监听键盘事件时，我们经常需要检查常见的键值。Vue 允许为 `v-on` 在监听键盘事件时添加按键修饰符： 
+
+```html
+<!-- 只有在 `keyCode` 是 13 时调用 `vm.submit()` -->
+<input v-on:keyup.13="submit">
+```
+
+
+
+记住所有的 `keyCode` 比较困难，所以 Vue 为最常用的按键提供了别名：
+
+```html
+<!-- 同上 -->
+<input v-on:keyup.enter="submit">
+
+<!-- 缩写语法 -->
+<input @keyup.enter="submit">
+```
+
+全部的按键别名：
+
+- `.enter`
+- `.tab`
+- `.delete` (捕获“删除”和“退格”键)
+- `.esc`
+- `.space`
+- `.up`
+- `.down`
+- `.left`
+- `.right`
+
+
+
+### 5.3.4.组合按钮
+
+可以用如下修饰符来实现仅在按下相应按键时才触发鼠标或键盘事件的监听器。
+
+- `.ctrl`
+- `.alt`
+- `.shift`
+
+例如：
+
+```html
+<!-- Alt + C -->
+<input @keyup.alt.67="clear">
+
+<!-- Ctrl + Click -->
+<div @click.ctrl="doSomething">Do something</div>
+```
+
+
+
+## 5.4.v-for
+
+遍历数据渲染页面是非常常用的需求，Vue中通过v-for指令来实现。
+
+### 5.4.1.遍历数组
+
+> 语法：
+
+```
+v-for="item in items"
+```
+
+- items：要遍历的数组，需要在vue的data中定义好。
+- item：迭代得到的数组元素的别名
+
+> 示例
+
+```html
+<div id="app">
+    <ul>
+        <li v-for="user in users">
+            {{user.name}} - {{user.gender}} - {{user.age}}
+        </li>
+    </ul>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var app = new Vue({
+        el: "#app",
+        data: {
+            users:[
+                {name:'柳岩', gender:'女', age: 21},
+                {name:'峰哥', gender:'男', age: 18},
+                {name:'范冰冰', gender:'女', age: 24},
+                {name:'刘亦菲', gender:'女', age: 18},
+                {name:'古力娜扎', gender:'女', age: 25}
+            ]
+        },
+    })
+</script>
+```
+
+效果：
+
+![1530006198953](/images/leyou/1530006198953.png)
+
+
+
+### 5.4.2.数组角标
+
+在遍历的过程中，如果我们需要知道数组角标，可以指定第二个参数：
+
+> 语法
+
+```
+v-for="(item,index) in items"
+```
+
+- items：要迭代的数组
+- item：迭代得到的数组元素别名
+- index：迭代到的当前元素索引，从0开始。
+
+> 示例
+
+```html
+    <ul>
+        <li v-for="(user, index) in users">
+            {{index + 1}}. {{user.name}} - {{user.gender}} - {{user.age}}
+        </li>
+    </ul>
+```
+
+> 效果：
+
+![1530006094601](/images/leyou/1530006094601.png)
+
+
+
+### 5.4.3.遍历对象
+
+v-for除了可以迭代数组，也可以迭代对象。语法基本类似
+
+> 语法：
+
+```javascript
+v-for="value in object"
+v-for="(value,key) in object"
+v-for="(value,key,index) in object"
+```
+
+- 1个参数时，得到的是对象的属性
+- 2个参数时，第一个是属性，第二个是键
+- 3个参数时，第三个是索引，从0开始
+
+> 示例：
+
+```html
+<div id="app">
+    <ul>
+        <li v-for="(value, key, index) in user">
+            {{index + 1}}. {{key}} - {{value}}
+        </li>
+    </ul>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            user:{name:'峰哥', gender:'男', age: 18}
+        }
+    })
+</script>
+```
+
+> 效果：
+
+![1530006251975](/images/leyou/1530006251975.png)
+
+
+
+### 5.4.4.key
+
+当 Vue.js 用 `v-for` 正在更新已渲染过的元素列表时，它默认用“就地复用”策略。如果数据项的顺序被改变，Vue 将不会移动 DOM 元素来匹配数据项的顺序， 而是简单复用此处每个元素，并且确保它在特定索引下显示已被渲染过的每个元素。 
+
+这个功能可以有效的提高渲染的效率。
+
+但是要实现这个功能，你需要给Vue一些提示，以便它能跟踪每个节点的身份，从而重用和重新排序现有元素，你需要为每项提供一个唯一 `key` 属性。理想的 `key` 值是每项都有的且唯一的 id。 
+
+示例：
+
+```html
+<ul>
+    <li v-for="(item,index) in items" :key=index></li>
+</ul>
+```
+
+- 这里使用了一个特殊语法：`:key=""` 我们后面会讲到，它可以让你读取vue中的属性，并赋值给key属性
+- 这里我们绑定的key是数组的索引，应该是唯一的
+
+
+
+## 5.5.v-if和v-show
+
+### 5.5.1.基本使用
+
+v-if，顾名思义，条件判断。当得到结果为true时，所在的元素才会被渲染。
+
+> 语法：
+
+```
+v-if="布尔表达式"
+```
+
+> 示例：
+
+```html
+<div id="app">
+    <button v-on:click="show = !show">点我呀</button>
+    <br>
+    <h1 v-if="show">
+        看到我啦？！
+    </h1>
+    <h1 v-show="show">
+        看到我啦？！show
+    </h1>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var app = new Vue({
+        el: "#app",
+        data: {
+            show: true
+        }
+    })
+</script>
+```
+
+> 效果：
+
+![](/images/leyou/57.gif)
+
+
+
+### 5.5.2.与v-for结合
+
+当v-if和v-for出现在一起时，v-for优先级更高。也就是说，会先遍历，再判断条件。
+
+修改v-for中的案例，添加v-if：
+
+```html
+    <ul>
+        <li v-for="(user, index) in users" v-if="user.gender == '女'">
+            {{index + 1}}. {{user.name}} - {{user.gender}} - {{user.age}}
+        </li>
+    </ul>
+```
+
+效果：
+
+![1530013415911](/images/leyou/1530013415911.png)
+
+只显示女性用户信息
+
+
+
+### 5.5.3.v-else
+
+你可以使用 `v-else` 指令来表示 `v-if` 的“else 块”：
+
+```html
+<div id="app">
+    <h1 v-if="Math.random() > 0.5">
+        看到我啦？！if
+    </h1>
+    <h1 v-else>
+        看到我啦？！else
+    </h1>
+</div>
+```
+
+`v-else` 元素必须紧跟在带 `v-if` 或者 `v-else-if` 的元素的后面，否则它将不会被识别。
+
+
+
+`v-else-if`，顾名思义，充当 `v-if` 的“else-if 块”，可以连续使用：
+
+```html
+<div id="app">
+    <button v-on:click="random=Math.random()">点我呀</button><span>{{random}}</span>
+    <h1 v-if="random >= 0.75">
+        看到我啦？！if
+    </h1>
+    <h1 v-else-if="random > 0.5">
+        看到我啦？！if 0.5
+    </h1>
+    <h1 v-else-if="random > 0.25">
+        看到我啦？！if 0.25
+    </h1>
+    <h1 v-else>
+        看到我啦？！else
+    </h1>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var app = new Vue({
+        el: "#app",
+        data: {
+            random: 1
+        }
+    })
+</script>
+```
+
+类似于 `v-else`，`v-else-if` 也必须紧跟在带 `v-if` 或者 `v-else-if` 的元素之后。
+
+演示：
+
+![1530013415911](/images/leyou/58.gif)
+
+
+
+### 5.5.4.v-show
+
+另一个用于根据条件展示元素的选项是 `v-show` 指令。用法大致一样：
+
+```
+<h1 v-show="ok">Hello!</h1>
+```
+
+不同的是带有 `v-show` 的元素始终会被渲染并保留在 DOM 中。`v-show` 只是简单地切换元素的 CSS 属性 `display`。
+
+示例：
+
+```html
+    <div id="app">
+        <!--事件中直接写js片段-->
+        <button v-on:click="show = !show">点击切换</button><br/>
+        <h1 v-if="show">
+            你好
+        </h1>
+    </div>
+    <script src="./node_modules/vue/dist/vue.js"></script>
+    <script type="text/javascript">
+        var app = new Vue({
+            el:"#app",
+            data:{
+                show:true
+            }
+        })
+    </script>
+```
+
+
+
+代码：
+
+![](/images/leyou/59.gif)
+
+
+
+## 5.6.v-bind
+
+html属性不能使用双大括号形式绑定，只能使用v-bind指令。
+
+在将 `v-bind` 用于 `class` 和 `style` 时，Vue.js 做了专门的增强。表达式结果的类型除了字符串之外，还可以是对象或数组。 
+
+```html
+<div id="app">
+    <!--可以是数据模型，可以是具有返回值的js代码块或者函数-->
+    <div v-bind:title="title" style="border: 1px solid red; width: 50px; height: 50px;"></div>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var app = new Vue({
+        el: "#app",
+        data: {
+            title: "title",
+        }
+    })
+</script>
+```
+
+效果：
+
+![1530025378843](/images/leyou/1530025378843.png)
+
+在将 `v-bind` 用于 `class` 和 `style` 时，Vue.js 做了专门的增强。表达式结果的类型除了字符串之外，还可以是对象或数组。 
+
+
+
+### 5.6.1.绑定class样式
+
+> 数组语法
+
+我们可以借助于`v-bind`指令来实现：
+
+HTML：
+
+```html
+<div id="app">
+    <div v-bind:class="activeClass"></div>
+    <div v-bind:class="errorClass"></div>
+    <div v-bind:class="[activeClass, errorClass]"></div>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var app = new Vue({
+        el: "#app",
+        data: {
+            activeClass: 'active',
+            errorClass: ['text-danger', 'text-error']
+        }
+    })
+</script>
+```
+
+渲染后的效果：（具有active和hasError的样式）
+
+![1530026818515](/images/leyou/1530026818515.png)
+
+> 对象语法
+
+我们可以传给 `v-bind:class` 一个对象，以动态地切换 class：
+
+```html
+<div v-bind:class="{ active: isActive }"></div>
+```
+
+上面的语法表示 `active` 这个 **class 存在与否将取决于数据属性 `isActive`** 的 [truthiness](https://developer.mozilla.org/zh-CN/docs/Glossary/Truthy)（所有的值都是真实的，除了false,0,“”,null,undefined和NaN）。
+
+你可以在对象中传入更多属性来动态切换多个 class。此外，`v-bind:class` 指令也可以与普通的 class 属性共存。如下模板:
+
+```html
+<div class="static"
+     v-bind:class="{ active: isActive, 'text-danger': hasError }">
+</div>
+```
+
+和如下 data：
+
+```js
+data: {
+  isActive: true,
+  hasError: false
+}
+```
+
+结果渲染为：
+
+```html
+<div class="static active"></div>
+```
+
+active样式和text-danger样式的存在与否，取决于isActive和hasError的值。本例中isActive为true，hasError为false，所以active样式存在，text-danger不存在。
+
+**通常情况下，绑定的数据对象不必内联定义在模板里**： 
+
+```html
+<div class="static" v-bind:class="classObject"></div>
+```
+
+数据：
+
+```javascript
+data: {
+  classObject: {
+    active: true,
+    'text-danger': false
+  }
+}
+```
+
+效果和之前一样：
+
+```html
+<div class="static active"></div>
+```
+
+
+
+### 5.6.2.绑定style样式
+
+> 数组语法
+
+数组语法可以将多个样式对象应用到同一个元素上： 
+
+```html
+<div v-bind:style="[baseStyles, overridingStyles]"></div>
+```
+
+数据：
+
+```javascript
+data: {
+    baseStyles: {'background-color': 'red'},
+    overridingStyles: {border: '1px solid black'}
+}
+```
+
+渲染后的结果：
+
+```html
+<div style="background-color: red; border: 1px solid black;"></div>
+```
+
+> 对象语法
+
+`v-bind:style` 的对象语法十分直观——看着非常像 CSS，但其实是一个 JavaScript 对象。CSS 属性名可以用驼峰式 (camelCase) 或短横线分隔 (kebab-case，记得用单引号括起来) 来命名： 
+
+```html
+<div v-bind:style="{ color: activeColor, fontSize: fontSize + 'px' }"></div>
+```
+
+数据：
+
+```JavaScript
+data: {
+  activeColor: 'red',
+  fontSize: 30
+}
+```
+
+效果：
+
+```html
+<div style="color: red; font-size: 30px;"></div>
+```
+
+
+
+**直接绑定到一个样式对象通常更好，这会让模板更清晰**： 
+
+```html
+<div v-bind:style="styleObject"></div>
+```
+
+```javascript
+data: {
+  styleObject: {
+    color: 'red',
+    fontSize: '13px'
+  }
+}
+```
+
+效果同上。
+
+
+
+### 5.6.3.简写
+
+`v-bind:class`可以简写为`:class`
+
+
+
+## 5.7.计算属性
+
+在插值表达式中使用js表达式是非常方便的，而且也经常被用到。
+
+但是如果表达式的内容很长，就会显得不够优雅，而且后期维护起来也不方便，例如下面的场景，我们有一个日期的数据，但是是毫秒值：
+
+```js
+data:{
+    birthday:1529032123201 // 毫秒值
+}
+```
+
+我们在页面渲染，希望得到yyyy-MM-dd的样式：
+
+```html
+<h1>您的生日是：{{
+    new Date(birthday).getFullYear() + '-'+ new Date(birthday).getMonth()+ '-' + new Date(birthday).getDay()
+    }}
+</h1>
+```
+
+虽然能得到结果，但是非常麻烦。
+
+Vue中提供了计算属性，来替代复杂的表达式：
+
+```js
+var vm = new Vue({
+    el:"#app",
+    data:{
+        birthday:1429032123201 // 毫秒值
+    },
+    computed:{
+        birth(){// 计算属性本质是一个方法，但是必须返回结果
+            const d = new Date(this.birthday);
+            return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDay();
+        }
+    }
+})
+```
+
+- 计算属性本质就是方法，但是一定要返回数据。然后页面渲染时，可以把这个方法当成一个变量来使用。
+
+页面使用：
+
+```html
+    <div id="app">
+       <h1>您的生日是：{{birth}} </h1>
+    </div>
+```
+
+效果：
+
+![1530029950644](/images/leyou/1530029950644.png)
+
+
+
+我们可以将同一函数定义为一个方法而不是一个计算属性。两种方式的最终结果确实是完全相同的。然而，不同的是**计算属性是基于它们的依赖进行缓存的**。计算属性只有在它的相关依赖发生改变时才会重新求值。这就意味着只要`birthday`还没有发生改变，多次访问 `birthday` 计算属性会立即返回之前的计算结果，而不必再次执行函数。 
+
+
+
+## 5.8.watch
+
+watch可以让我们监控一个值的变化。从而做出相应的反应。
+
+示例：
+
+```html
+<div id="app">
+    <input type="text" v-model="message">
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            message:""
+        },
+        watch:{
+            message(newVal, oldVal){
+                console.log(newVal, oldVal);
+            }
+        }
+    })
+</script>
+```
+
+效果：
+
+![1530030506879](/images/leyou/1530030506879.png)
+
+
+
+# 6.组件化
+
+在大型应用开发的时候，页面可以划分成很多部分。往往不同的页面，也会有相同的部分。例如可能会有相同的头部导航。
+
+但是如果每个页面都独自开发，这无疑增加了我们开发的成本。所以我们会把页面的不同部分拆分成独立的组件，然后在不同页面就可以共享这些组件，避免重复开发。
+
+
+
+## 6.1.全局组件
+
+我们通过Vue的component方法来定义一个全局组件。
+
+```html
+<div id="app">
+    <!--使用定义好的全局组件-->
+    <counter></counter>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    // 定义全局组件，两个参数：1，组件名称。2，组件参数
+    Vue.component("counter",{
+        template:'<button v-on:click="count++">你点了我 {{ count }} 次，我记住了.</button>',
+        data(){
+            return {
+                count:0
+            }
+        }
+    })
+    var app = new Vue({
+        el:"#app"
+    })
+</script>
+```
+
+- 组件其实也是一个Vue实例，因此它在定义时也会接收：data、methods、生命周期函数等
+- 不同的是组件不会与页面的元素绑定，否则就无法复用了，因此没有el属性。
+- 但是组件渲染需要html模板，所以增加了template属性，值就是HTML模板
+- 全局组件定义完毕，任何vue实例都可以直接在HTML中通过组件名称来使用组件了。
+- data必须是一个函数，不再是一个对象。
+
+效果：
+
+![](/images/leyou/60.gif)
+
+
+
+## 6.2.组件的复用
+
+定义好的组件，可以任意复用多次：
+
+```html
+<div id="app">
+    <!--使用定义好的全局组件-->
+    <counter></counter>
+    <counter></counter>
+    <counter></counter>
+</div>
+```
+
+效果：
+
+![1530084943778](/images/leyou/1530084943778.png)
+
+你会发现每个组件互不干扰，都有自己的count值。怎么实现的？
+
+
+
+> **组件的data属性必须是函数**！
+
+当我们定义这个 `<counter>` 组件时，它的data 并不是像这样直接提供一个对象：
+
+```js
+data: {
+  count: 0
+}
+
+```
+
+取而代之的是，一个组件的 data 选项必须是一个函数，因此每个实例可以维护一份被返回对象的独立的拷贝：
+
+```js
+data: function () {
+  return {
+    count: 0
+  }
+}
+```
+
+如果 Vue 没有这条规则，点击一个按钮就会影响到其它所有实例！
+
+
+
+## 6.3.局部注册
+
+一旦全局注册，就意味着即便以后你不再使用这个组件，它依然会随着Vue的加载而加载。
+
+因此，对于一些并不频繁使用的组件，我们会采用局部注册。
+
+我们先在外部定义一个对象，结构与创建组件时传递的第二个参数一致：
+
+```js
+const counter = {
+    template:'<button v-on:click="count++">你点了我 {{ count }} 次，我记住了.</button>',
+    data(){
+        return {
+            count:0
+        }
+    }
+};
+```
+
+然后在Vue中使用它：
+
+```js
+var app = new Vue({
+    el:"#app",
+    components:{
+        counter:counter // 将定义的对象注册为组件
+    }
+})
+```
+
+- components就是当前vue对象子组件集合。
+  - 其key就是子组件名称
+  - 其值就是组件对象的属性
+- 效果与刚才的全局注册是类似的，不同的是，这个counter组件只能在当前的Vue实例中使用
+
+
+
+## 6.4.组件通信
+
+通常一个单页应用会以一棵嵌套的组件树的形式来组织：
+
+![1525855149491](/images/leyou/1525855149491.png)
+
+- 页面首先分成了顶部导航、左侧内容区、右侧边栏三部分
+- 左侧内容区又分为上下两个组件
+- 右侧边栏中又包含了3个子组件
+
+各个组件之间以嵌套的关系组合在一起，那么这个时候不可避免的会有组件间通信的需求。
+
+
+
+### 6.4.1.props（父向子传递）
+
+1. 父组件使用子组件时，自定义属性（属性名任意，属性值为要传递的数据）
+2. 子组件通过props接收父组件属性
+
+父组件使用子组件，并自定义了title属性：
+
+```html
+<div id="app">
+    <h1>打个招呼：</h1>
+    <!--使用子组件，同时传递title属性-->
+    <introduce title="大家好，我是锋哥"/>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    Vue.component("introduce",{
+        // 直接使用props接收到的属性来渲染页面
+        template:'<h1>{{title}}</h1>',
+        props:['title'] // 通过props来接收一个父组件传递的属性
+    })
+    var app = new Vue({
+        el:"#app"
+    })
+</script>
+```
+
+效果：
+
+![1530093525973](/images/leyou/1530093525973.png)
+
+
+
+### 6.4.2.props验证
+
+我们定义一个子组件，并接受复杂数据：
+
+```js
+    const myList = {
+        template: '\
+        <ul>\
+        	<li v-for="item in items" :key="item.id">{{item.id}} : {{item.name}}</li>\
+        </ul>\
+        ',
+        props: {
+            items: {
+                type: Array,
+                default: [],
+                required: true
+            }
+        }
+    };
+```
+
+- 这个子组件可以对 items 进行迭代，并输出到页面。
+- props：定义需要从父组件中接收的属性
+  - items：是要接收的属性名称
+    - type：限定父组件传递来的必须是数组
+    - default：默认值
+    - required：是否必须
+
+**当 prop 验证失败的时候，(开发环境构建版本的) Vue 将会产生一个控制台的警告。** 
+
+我们在父组件中使用它：
+
+```html
+<div id="app">
+    <h2>传智播客已开设如下课程：</h2>
+    <!-- 使用子组件的同时，传递属性，这里使用了v-bind，指向了父组件自己的属性lessons -->
+    <my-list :items="lessons"/>
+</div>
+```
+
+```js
+var app = new Vue({
+    el:"#app",
+    components:{
+        myList // 当key和value一样时，可以只写一个
+    },
+    data:{
+        lessons:[
+            {id:1, name: 'java'},
+            {id:2, name: 'php'},
+            {id:3, name: 'ios'},
+        ]
+    }
+})
+```
+
+效果：
+
+![1530107338625](/images/leyou/1530107338625.png)
+
+
+
+type类型，可以有：
+
+![1530108427358](/images/leyou/1530108427358.png)
+
+
+
+### 6.4.3.动态静态传递
+
+给 prop 传入一个静态的值： 
+
+```html
+<introduce title="大家好，我是锋哥"/>
+```
+
+给 prop 传入一个动态的值： （通过v-bind从数据模型中，获取title的值）
+
+```html
+<introduce :title="title"/>
+```
+
+静态传递时，我们传入的值都是字符串类型的，但实际上**任何类型**的值都可以传给一个 props。 
+
+```html
+<!-- 即便 `42` 是静态的，我们仍然需要 `v-bind` 来告诉 Vue -->
+<!-- 这是一个JavaScript表达式而不是一个字符串。-->
+<blog-post v-bind:likes="42"></blog-post>
+
+<!-- 用一个变量进行动态赋值。-->
+<blog-post v-bind:likes="post.likes"></blog-post>
+```
+
+
+
+### 6.4.4.子向父的通信
+
+来看这样的一个案例：
+
+```html
+<div id="app">
+    <h2>num: {{num}}</h2>
+    <!--使用子组件的时候，传递num到子组件中-->
+    <counter :num="num"></counter>
+</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    Vue.component("counter", {// 子组件，定义了两个按钮，点击数字num会加或减
+        template:'\
+            <div>\
+                <button @click="num++">加</button>  \
+                <button @click="num--">减</button>  \
+            </div>',
+        props:['num']// count是从父组件获取的。
+    })
+    var app = new Vue({
+        el:"#app",
+        data:{
+            num:0
+        }
+    })
+</script>
+```
+
+- 子组件接收父组件的num属性
+- 子组件定义点击按钮，点击后对num进行加或减操作
+
+我们尝试运行，好像没问题，点击按钮试试：
+
+![1525859093172](/images/leyou/1530115066496.png)
+
+子组件接收到父组件属性后，默认是不允许修改的。怎么办？
+
+既然只有父组件能修改，那么加和减的操作一定是放在父组件：
+
+```js
+var app = new Vue({
+    el:"#app",
+    data:{
+        num:0
+    },
+    methods:{ // 父组件中定义操作num的方法
+        increment(){
+            this.num++;
+        },
+        decrement(){
+            this.num--;
+        }
+    }
+})
+```
+
+但是，点击按钮是在子组件中，那就是说需要子组件来调用父组件的函数，怎么做？
+
+我们可以**通过v-on指令将父组件的函数绑定到子组件**上：
+
+```html
+<div id="app">
+    <h2>num: {{num}}</h2>
+    <counter :count="num" @inc="increment" @dec="decrement"></counter>
+</div>
+```
+
+在子组件中定义函数，函数的具体实现调用父组件的实现，并在子组件中调用这些函数。当子组件中按钮被点击时，调用绑定的函数：
+
+```js
+        Vue.component("counter", {
+            template:'\
+                <div>\
+                    <button @click="plus">加</button>  \
+                    <button @click="reduce">减</button>  \
+                </div>',
+            props:['count'],
+            methods:{
+                plus(){
+                    this.$emit("inc");
+                },
+                reduce(){
+                    this.$emit("dec");
+                }
+            }
+        })
+```
+
+- vue提供了一个内置的this.$emit()函数，用来调用父组件绑定的函数
+
+效果：
+
+![](/images/leyou/61.gif)
+
+
+
+# 7.路由vue-router
+
+## 7.1.场景模拟
+
+现在我们来实现这样一个功能：
+
+一个页面，包含登录和注册，点击不同按钮，实现登录和注册页切换：
+
+ ![](H:/%E4%B9%90%E4%BC%98/day05-Vue//images/leyou/8.gif)
+
+
+
+### 7.1.1.编写父组件
+
+为了让接下来的功能比较清晰，我们先新建一个文件夹：src
+
+然后新建一个HTML文件，作为入口：index.html
+
+ ![1530148321175](/images/leyou/1530148321175.png)
+
+然后编写页面的基本结构：
+
+```html
+<div id="app">
+    <span>登录</span>
+    <span>注册</span>
+    <hr/>
+    <div>
+        登录页/注册页
+    </div>
+</div>
+<script src="../node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el:"#app"
+    })
+</script>
+```
+
+样式：
+
+![1530149363817](/images/leyou/1530149363817.png)
+
+
+
+### 7.1.2.编写登录及注册组件
+
+接下来我们来实现登录组件，以前我们都是写在一个文件中，但是为了复用性，开发中都会把组件放入独立的JS文件中，我们新建一个user目录以及login.js及register.js：
+
+ ![1530156389366](/images/leyou/1530156389366.png)
+
+编写组件，这里我们只写模板，不写功能。
+
+login.js内容如下：
+
+```js
+const loginForm = {
+    template:'\
+    <div>\
+    <h2>登录页</h2> \
+    用户名：<input type="text"><br/>\
+    密码：<input type="password"><br/>\
+    </div>\
+    '
+}
+```
+
+register.js内容：
+
+```js
+const registerForm = {
+    template:'\
+    <div>\
+    <h2>注册页</h2> \
+    用&ensp;户&ensp;名：<input type="text"><br/>\
+    密&emsp;&emsp;码：<input type="password"><br/>\
+    确认密码：<input type="password"><br/>\
+    </div>\
+    '
+}
+```
+
+
+
+### 7.1.3.在父组件中引用
+
+```html
+<div id="app">
+    <span>登录</span>
+    <span>注册</span>
+    <hr/>
+    <div>
+        <!--<loginForm></loginForm>-->
+        <!--
+            疑问：为什么不采用上面的写法？
+            由于html是大小写不敏感的，如果采用上面的写法，则被认为是<loginform></loginform>
+            所以，如果是驼峰形式的组件，需要把驼峰转化为“-”的形式
+         -->
+        <login-form></login-form>
+        <register-form></register-form>
+    </div>
+</div>
+<script src="../node_modules/vue/dist/vue.js"></script>
+<script src="user/login.js"></script>
+<script src="user/register.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el: "#app",
+        components: {
+            loginForm,
+            registerForm
+        }
+    })
+</script>
+```
+
+效果：
+
+![1530157389501](/images/leyou/1530157389501.png)
+
+
+
+### 7.1.5.问题
+
+我们期待的是，当点击登录或注册按钮，分别显示登录页或注册页，而不是一起显示。
+
+但是，如何才能动态加载组件，实现组件切换呢？
+
+虽然使用原生的Html5和JS也能实现，但是官方推荐我们使用vue-router模块。
+
+
+
+## 7.2.vue-router简介和安装
+
+使用vue-router和vue可以非常方便的实现 复杂单页应用的动态路由功能。
+
+官网：https://router.vuejs.org/zh-cn/
+
+使用npm安装：`npm install vue-router --save` 
+
+![1530161293338](/images/leyou/1530161293338.png)
+
+在index.html中引入依赖：
+
+```html
+<script src="../node_modules/vue-router/dist/vue-router.js"></script>
+```
+
+
+
+## 7.3.快速入门
+
+新建vue-router对象，并且指定路由规则：
+
+```js
+// 创建VueRouter对象
+const router = new VueRouter({
+    routes:[ // 编写路由规则
+        {
+            path:"/login", // 请求路径
+            component:loginForm // 组件名称
+        },
+        {path:"/register",component:registerForm},
+    ]
+})
+```
+
+- 创建VueRouter对象，并指定路由参数
+- routes：路由规则的数组，可以指定多个对象，每个对象是一条路由规则，包含以下属性：
+  - path：路由的路径
+  - component：组件名称
+
+在父组件中引入router对象：
+
+```js
+var vm = new Vue({
+    el:"#app",
+    components:{// 引用登录和注册组件
+        loginForm,
+        registerForm
+    },
+    router // 引用上面定义的router对象
+})
+```
+
+
+
+页面跳转控制：
+
+```html
+<div id="app">
+    <!--router-link来指定跳转的路径-->
+    <span><router-link to="/login">登录</router-link></span>
+    <span><router-link to="/register">注册</router-link></span>
+    <hr/>
+    <div>
+        <!--vue-router的锚点-->
+        <router-view></router-view>
+    </div>
+</div>
+```
+
+- 通过`<router-view>`来指定一个锚点，当路由的路径匹配时，vue-router会自动把对应组件放到锚点位置进行渲染
+- 通过`<router-link>`指定一个跳转链接，当点击时，会触发vue-router的路由功能，路径中的hash值会随之改变
+
+效果：
+
+![](/images/leyou/62.gif)
+
+**注意**：单页应用中，页面的切换并不是页面的跳转。仅仅是地址最后的hash值变化。
+
+事实上，我们总共就一个HTML：index.html
+
+
+
+# 8.webpack
+
+Webpack 是一个前端资源的打包工具，它可以将js、image、css等资源当成一个模块进行打包。
+
+中文官方网站：https://www.webpackjs.com/
+
+![1530168661348](/images/leyou/1530168661348.png)
+
+官网给出的解释：
+
+> 本质上，*webpack* 是一个现代 JavaScript 应用程序的*静态模块打包器(module bundler)*。当 webpack 处理应用程序时，它会递归地构建一个*依赖关系图(dependency graph)*，其中包含应用程序需要的每个模块，然后将所有这些模块打包成一个或多个 *bundle*。 
+
+为什么需要打包？
+
+- 将许多碎小文件打包成一个整体，减少单页面内的衍生请求次数，提高网站效率。
+- 将ES6的高级语法进行转换编译，以兼容老版本的浏览器。
+- 将代码打包的同时进行混淆，提高代码的安全性。
+
+
+
+## 8.1.安装
+
+webpack支持全局安装和本地安装，官方推荐是本地安装，我们按照官方的来。
+
+安装最新版本webpack，输入命令：`npm install --save-dev webpack`
+
+ webpack 4+ 版本，你还需要安装 CLI ，输入命令：`npm install webpack webpack-cli --save-dev`
+
+![1530187524815](/images/leyou/1530187524815.png)
+
+此时，我们注意下项目中文件夹下，会有一个package.json文件。（其实早就有了）
+
+ ![1530187744149](/images/leyou/1530187744149.png)
+
+打开文件，可以看到我们之前用npm安装过的文件都会出现在这里：
+
+ ![1525873343908](/images/leyou/1525873343908.png)
+
+
+
+## 8.2.核心概念
+
+学习Webpack，你需要先理解四个**核心概念**：
+
+- 入口(entry)
+
+  webpack打包的起点，可以有一个或多个，一般是js文件。webpack会从启点文件开始，寻找启点直接或间接依赖的其它所有的依赖，包括JS、CSS、图片资源等，作为将来打包的原始数据
+
+- 输出(output)
+
+  出口一般包含两个属性：path和filename。用来告诉webpack打包的目标文件夹，以及文件的名称。目的地也可以有多个。
+
+- 加载器（loader）
+
+  webpack本身只识别Js文件，如果要加载非JS文件，必须指定一些额外的加载器（loader），例如css-loader。然后将这些文件转为webpack能处理的有效模块，最后利用webpack的打包能力去处理。
+
+- 插件(plugins)
+
+  插件可以扩展webpack的功能，让webpack不仅仅是完成打包，甚至各种更复杂的功能，或者是对打包功能进行优化、压缩，提高效率。
+
+
+
+## 8.3.编写webpack配置
+
+接下来，我们编写一个webpack的配置，来指定一些打包的配置项。配置文件的名称，默认就是webpack.config.js，我们放到hello-vue的根目录：
+
+ ![1530199761226](/images/leyou/1530199761226.png)
+
+配置文件中就是要指定上面说的四个核心概念，入口、出口、加载器、插件。
+
+不过，加载器和插件是可选的。我们先编写入口和出口
+
+
+
+### 8.3.1.入口entry
+
+webpack打包的启点，可以有一个或多个，一般是js文件。现在思考一下我们有没有一个入口？貌似没有，我们所有的东西都集中在index.html，不是一个js，那怎么办？
+
+我们新建一个js，把index.html中的部分内容进行集中，然后在index.html中引用这个js不就OK了！
+
+ ![1530200787599](/images/leyou/1530200787599.png)
+
+然后把原来index.html中的js代码全部移动到index.js中
+
+```js
+// 使用es6的语法导入js模块
+import Vue from '../node_modules/vue/dist/vue';
+import VueRouter from '../node_modules/vue-router/dist/vue-router';
+import loginForm from './user/login';
+import registerForm from './user/register';
+
+Vue.use(VueRouter);
+
+// 创建vue对象
+const router = new VueRouter({
+    routes: [ // 编写路由规则
+        // path: 路由请求路径；component：组件名称
+        {path: "/login", component: loginForm},
+        {path: "/register", component: registerForm}
+    ]
+});
+var vm = new Vue({
+    el: "#app",
+    components: {
+        loginForm,
+        registerForm
+    },
+    router
+});
+```
+
+- 原来的index.html中引入了很多其它js，在这里我们使用es6的import语法进行导入。
+
+- ​
+
+  注意，要使用import，就需要在login.js和register.js中添加export导出语句：
+
+  ```js
+  const loginForm={
+      template: '\
+         <div>\
+              <h2>登陆页</h2>\
+              用户名：<input type="text"><br>\
+              密&emsp;码：<input type="password">\
+         </div>',
+  }
+  export default loginForm;
+  ```
+
+  register.js:
+
+  ```js
+  const registerForm = {
+      template:'\
+      <div>\
+      <h2>注册页</h2> \
+      用&ensp;户&ensp;名：<input type="text"><br/>\
+      密&emsp;&emsp;码：<input type="password"><br/>\
+      确认密码：<input type="password"><br/>\
+      </div>\
+      '
+  }
+  export default registerForm;
+  ```
+
+
+- vue-router使用模块化加载后，必须增加一句：Vue.use(VueRouter)
+
+这样，index.js就成了我们整个配置的入口了。
+
+我们在webpack.config.js中添加以下内容：
+
+```js
+module.exports={
+    entry:'./src/index.js',  //指定打包的入口文件
+}
+```
+
+
+
+### 8.3.2.出口output
+
+出口，就是输出的目的地。一般我们会用一个dist目录，作为打包输出的文件夹：
+
+ ![1530201612391](/images/leyou/1530201612391.png)
+
+然后，编写webpack.config.js，添加出口配置：
+
+```js
+module.exports={
+    entry:'./src/main.js',  //指定打包的入口文件
+    output:{
+        // path: 输出的目录，__dirname是相对于webpack.config.js配置文件的绝对路径
+        path : __dirname+'/dist',  
+        filename:'build.js'	 //输出的js文件名
+    }
+}
+```
+
+
+
+## 8.4.执行打包
+
+在控制台输入以下命令：
+
+```
+npx webpack --config webpack.config.js
+```
+
+![1530203361613](/images/leyou/1530203361613.png)
+
+随后，查看dist目录：
+
+ ![1530203406462](/images/leyou/1530203406462.png)
+
+尝试打开build.js，你根本看不懂：
+
+![1530203465737](/images/leyou/1530203465737.png)
+
+所有的js合并为1个，并且对变量名进行了随机打乱，这样就起到了 压缩、混淆的作用。
+
+
+
+## 8.5.测试运行
+
+在index.html中引入刚刚生成的build.js文件，
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div id="app">
+        <!--router-link来指定跳转的路径-->
+        <span><router-link to="/login">登录</router-link></span>
+        <span><router-link to="/register">注册</router-link></span>
+        <hr/>
+        <div>
+            <!--vue-router的锚点-->
+            <router-view></router-view>
+        </div>
+    </div>
+    <script src="../dist/build.js"></script>
+</body>
+</html>
+```
+
+
+
+然后运行：
+
+![1530203553915](/images/leyou/1530203553915.png)
+
+
+
+## 8.6.打包CSS
+
+我们来编写一段CSS代码，对index的样式做一些美化：
+
+ ![1530203880056](/images/leyou/1530203880056.png)
+
+内容：
+
+```css
+#app a{
+    display: inline-block;
+    width: 150px;
+    line-height: 30px;
+    background-color: dodgerblue;
+    color: white;
+    font-size: 16px;
+    text-decoration: none;
+}
+#app a:hover{
+    background-color: whitesmoke;
+    color: dodgerblue;
+}
+#app div{
+    width: 300px;
+    height: 150px;
+}
+#app{
+    width: 305px;
+    border: 1px solid dodgerblue;
+}
+```
+
+
+
+### 8.6.1.安装加载器
+
+前面说过，webpack默认只支持js加载。要加载CSS文件，必须安装加载器：
+
+命令：`npm install style-loader css-loader --save-dev`
+
+![1530204068192](/images/leyou/1530204068192.png)
+
+此时，在package.json中能看到新安装的：
+
+![1530204160848](/images/leyou/1530204160848.png)
+
+
+
+### 8.6.3.index.js引入css文件
+
+因为入口在index.js，因此css文件也要在这里引入。依然使用ES6 的模块语法：
+
+```js
+import './css/main.css'
+```
+
+### 8.6.4.配置加载器
+
+在webpack.config.js配置文件中配置css的加载器
+
+```js
+module.exports = {
+    entry: './src/main.js',  //指定打包的入口文件
+    output: {
+        path: __dirname + '/dist', // 注意：__dirname表示webpack.config.js所在目录的绝对路径
+        filename: 'build.js'  //输出文件
+    },
+    module: {
+        rules: [
+            {
+                test: /\.css$/, // 通过正则表达式匹配所有以.css后缀的文件
+                use: [ // 要使用的加载器，这两个顺序一定不要乱
+                    'style-loader',
+                    'css-loader'
+                ]
+            }
+        ]
+    }
+}
+```
+
+### 8.6.5.重新打包
+
+再次输入打包指令：`npx webpack --config webpack.config.js`
+
+![1530204780240](/images/leyou/1530204780240.png)
+
+效果：
+
+![1530204813013](/images/leyou/1530204813013.png)
+
+
+
+## 8.7.script脚本
+
+我们每次使用npm安装，都会在package.json中留下痕迹，事实上，package.json中不仅可以记录安装的内容，还可编写脚本，让我们运行命令更加快捷。
+
+我们可以把webpack的命令编入其中：
+
+![1530205423730](/images/leyou/1530205423730.png)
+
+以后，如果要打包，就可以直接输入：`npm run build`即可。
+
+`npm run` ：执行npm脚本，后面跟的是配置脚本的名称`build`
+
+![1530205504104](/images/leyou/1530205504104.png)
+
+
+
+## 8.8.打包HTML
+
+之前的打包过程中，除了HTML文件外的其它文件都被打包了，当在线上部署时，我们还得自己复制HTML到dist，然后手动添加生成的js到HTML中，这非常不友好。
+
+webpack中的一个插件：html-webpack-plugin，可以解决这个问题。
+
+1）安装插件：`npm install --save-dev html-webpack-plugin`
+
+需要在webpack.config.js中添加插件：
+
+```js
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+module.exports = {
+    entry: './src/main.js',  //指定打包的入口文件
+    output: {
+        path: __dirname + '/dist',  // 注意：__dirname表示webpack.config.js所在目录的绝对路径
+        filename: 'build.js'		   //输出文件
+    },
+    module: {
+        rules: [
+            {
+                test: /\.css$/, // 通过正则表达式匹配所有以.css后缀的文件
+                use: [ // 要使用的加载器，这两个顺序一定不要乱
+                    'style-loader',
+                    'css-loader'
+                ]
+            }
+        ]
+    },
+    plugins:[
+        new HtmlWebpackPlugin({
+            title: '首页',  //生成的页面标题<head><title>首页</title></head>
+            filename: 'index.html', // dist目录下生成的文件名
+            template: './src/index.html' // 我们原来的index.html，作为模板
+        })
+    ]
+}
+```
+
+
+
+2）将原来HTML中的引入js代码删除：
+
+![1530207035782](/images/leyou/1530207035782.png)
+
+3）再次打包：`npm run build`
+
+![1530206990349](/images/leyou/1530206990349.png)
+
+4）查看dist目录：
+
+ ![1530207132261](/images/leyou/1530207132261.png)
+
+打开index.html，发现已经自动添加了当前目录下的build.js
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div id="app">
+        <!--router-link来指定跳转的路径-->
+        <span><router-link to="/login">登录</router-link></span>
+        <span><router-link to="/register">注册</router-link></span>
+        <div>
+            <!--vue-router的锚点-->
+            <router-view></router-view>
+        </div>
+    </div>
+<script type="text/javascript" src="build.js"></script></body>
+</html>
+```
+
+
+
+## 8.9.热更新的web服务
+
+刚才的案例中，每次修改任何js或css内容，都必须重新打包，非常麻烦。
+
+
+
+webpack给我们提供了一个插件，可以帮我们运行一个web服务，加载页面内容，并且修改js后不需要重新加载就能看到最新结果：
+
+1）安装插件：`npm install webpack-dev-server --save-dev`
+
+
+
+2）添加启动脚本
+
+在package.json中配置script
+
+```js
+  "scripts": {
+    "dev": "webpack-dev-server --inline --hot --open --port 8080 --host 127.0.0.1"
+  },
+```
+
+--inline：自动刷新
+
+--hot：热加载
+
+--port：指定端口
+
+--open：自动在默认浏览器打开
+
+--host：可以指定服务器的 ip，不指定则为127.0.0.1
+
+
+
+3）运行脚本：`npm run dev`
+
+![1530207667660](/images/leyou/1530207667660.png)
+
+4）效果：
+
+![1530207505226](/images/leyou/1530207505226.png)
+
+
+
+# 9.vue-cli
+
+## 9.1.介绍和安装
+
+在开发中，需要打包的东西不止是js、css、html。还有更多的东西要处理，这些插件和加载器如果我们一一去添加就会比较麻烦。
+
+幸好，vue官方提供了一个快速搭建vue项目的脚手架：vue-cli
+
+使用它能快速的构建一个web工程模板。
+
+官网：https://github.com/vuejs/vue-cli
+
+安装命令：`npm install -g vue-cli`
+
+
+
+## 9.2.快速上手
+
+我们新建一个module：
+
+ ![1530208068828](/images/leyou/1530208068828.png)
+
+切换到该目录：
+
+![1530208139922](/images/leyou/1530208139922.png)
+
+用vue-cli命令，快速搭建一个webpack的项目：`vue init webpack`
+
+![1530208556831](/images/leyou/1530208650256.png)
+
+![1530208708000](/images/leyou/1530208708000.png)
+
+前面几项都走默认或yes
+
+下面这些我们选no
+
+![1530208850418](/images/leyou/1530208850418.png)
+
+最后，再选yes，使用 npm安装
+
+![1530208897063](/images/leyou/1530208897063.png)
+
+开始初始化项目，并安装依赖，可能需要
+
+![1530208932814](/images/leyou/1530208932814.png)
+
+安装成功！
+
+![1530209062090](/images/leyou/1530209062090.png)
+
+可以使用`npm run dev`命令启动。
+
+
+
+## 9.3.项目结构
+
+安装好的项目结构：
+
+ ![1530209146349](/images/leyou/1530209146349.png)
+
+
+
+入口文件：main.js
+
+![1525913687860](/images/leyou/1530209503007.png)
+
+
+
+## 9.4.单文件组件
+
+需要注意的是，我们看到有一类后缀名为.vue的文件，我们称为单文件组件
+
+![1530209769323](/images/leyou/1530209769323.png)
+
+每一个.vue文件，就是一个独立的vue组件。类似于我们刚才写的login.js和register.js
+
+只不过，我们在js中编写 html模板和样式非常的不友好，而且没有语法提示和高亮。
+
+
+
+而单文件组件中包含三部分内容：
+
+- template：模板，支持html语法高亮和提示
+- script：js脚本，这里编写的就是vue的组件对象，还可以有data(){}等
+- style：样式，支持CSS语法高亮和提示
+
+每个组件都有自己独立的html、JS、CSS，互不干扰，真正做到可独立复用。
+
+
+
+## 9.5.运行
+
+看看生成的package.json：
+
+![1530210016103](/images/leyou/1530210016103.png)
+
+- 可以看到这引入了非常多的依赖，绝大多数都是开发期依赖，比如大量的加载器。
+- 运行时依赖只有vue和vue-router
+- 脚本有三个：
+  - dev：使用了webpack-dev-server命令，开发时热部署使用
+  - start：使用了npm run dev命令，与上面的dev效果完全一样，当脚本名为“start”时，可以省略“run”。 
+  - build：等同于webpack的打包功能，会打包到dist目录下。
+
+我们执行`npm run dev` 或者 `npm start` 都可以启动项目：
+
+![1530210411076](/images/leyou/1530210411076.png)
+
+
+
+页面：
+
+![1530210349704](/images/leyou/1530210349704.png)
+---
+layout: post
+title:  webpack
+categories: 乐优
+description: webpack
+keywords: 乐优
+---
+# 0.学习目标
+
+- 使用资料搭建后台系统
+- 会使用nginx进行反向代理
+- 实现商品分类查询功能
+- 掌握cors解决跨域
+- 实现品牌查询功能
+
+
+
+# 1.搭建后台管理前端
+
+## 1.1.导入已有资源
+
+后台项目相对复杂，为了有利于教学，我们不再从0搭建项目，而是直接使用课前资料中给大家准备好的源码：
+
+![1530555871804](/images/leyou/1530555871804.png)
+
+我们解压缩，放到工作目录中：
+
+![1530367369490](/images/leyou/1530367369490.png)
+
+
+
+然后在Intellij idea中导入新的工程：
+
+![1530367589197](/images/leyou/1530367589197.png)
+
+选中我们的工程：
+
+ ![1530367781173](/images/leyou/1530367781173.png)
+
+
+
+这正是一个用vue-cli构建的webpack工程，是不是与昨天的一样：
+
+ ![1530368191250](/images/leyou/1530368191250.png)
+
+
+
+## 1.2.安装依赖
+
+你应该注意到，这里并没有node_modules文件夹，方便给大家下发，已经把依赖都删除了。不过package.json中依然定义了我们所需的一切依赖：
+
+![1530368695265](/images/leyou/1530368695265.png)
+
+我们只需要打开终端，进入项目目录，输入：`npm install`命令，即可安装这些依赖。
+
+![1530374769782](/images/leyou/1530374769782.png)
+
+大概需要几分钟。
+
+**如果安装过程出现以下问题**：
+
+![1530374827792](/images/leyou/1530374827792.png)
+
+建议删除node_modules目录，重新安装。
+
+
+
+## 1.3.运行一下看看
+
+输入命令：`npm run dev`
+
+![1530374954209](/images/leyou/1530374954209.png)
+
+发现默认的端口是9001。访问：http://localhost:9001
+
+会自动进行跳转：
+
+![1525958950616](/images/leyou/1530375152204.png)
+
+
+
+# 2.Vuetify框架
+
+## 2.1.为什么要学习UI框架
+
+Vue虽然会帮我们进行视图的渲染，但样式还是由我们自己来完成。这显然不是我们的强项，因此后端开发人员一般都喜欢使用一些现成的UI组件，拿来即用，常见的例如：
+
+- BootStrap
+- LayUI
+- EasyUI
+- ZUI
+
+然而这些UI组件的基因天生与Vue不合，因为他们更多的是利用DOM操作，借助于jQuery实现，而不是MVVM的思想。
+
+而目前与Vue吻合的UI框架也非常的多，国内比较知名的如：
+
+- element-ui：饿了么出品
+- i-view：某公司出品
+
+然而我们都不用，我们今天推荐的是一款国外的框架：Vuetify
+
+官方网站：https://vuetifyjs.com/zh-Hans/
+
+![1525960652724](/images/leyou/1525960652724.png)
+
+
+
+
+
+## 2.2.为什么是Vuetify
+
+有中国的为什么还要用外国的？原因如下：
+
+- Vuetify几乎不需要任何CSS代码，而element-ui许多布局样式需要我们来编写
+- Vuetify从底层构建起来的语义化组件。简单易学，容易记住。
+- Vuetify基于Material Design（谷歌推出的多平台设计规范），更加美观，动画效果酷炫，且风格统一
+
+这是官网的说明：
+
+![1530555978248](/images/leyou/1530555978248.png)
+
+缺陷：
+
+- 目前官网虽然有中文文档，但因为翻译问题，几乎不太能看。
+
+
+
+## 2.3.怎么用？
+
+基于官方网站的文档进行学习：
+
+![1525960312939](/images/leyou/1525960312939.png)
+
+
+
+我们重点关注`UI components`即可，里面有大量的UI组件，我们要用的时候再查看，不用现在学习，先看下有什么：
+
+ ![1525961862771](/images/leyou/1525961862771.png)
+
+ ![1525961875288](/images/leyou/1525961875288.png)
+
+以后用到什么组件，就来查询即可。
+
+
+
+# 3.项目结构
+
+开始编码前，我们先了解下项目的结构。
+
+## 3.1.目录结构
+
+首先是目录结构图：![1525962755237](/images/leyou/1525962755237.png)
+
+
+
+## 3.2.调用关系
+
+我们最主要理清index.html、main.js、App.vue之间的关系：
+
+![1525964023585](H:/%E4%B9%90%E4%BC%98/day06-%E5%90%8E%E5%8F%B0%E7%AE%A1%E7%90%86%E9%A1%B5%E9%9D%A2//images/leyou/1525964023585.png)
+
+
+
+理一下：
+
+- index.html：html模板文件。定义了空的`div`，其id为`app`。
+- main.js：**实例化vue对象**，并且绑定通过id选择器，绑定到index.html的div中，因此**main.js的内容都将在index.html的div中显示**。main.js中使用了App组件，即App.vue，也就是说index.html中最终展现的是App.vue中的内容。index.html引用它之后，就拥有了vue的内容（包括组件、样式等），所以，main.js也是**webpack打包的入口**。
+- index.js：定义请求路径和组件的映射关系。相当于之前的`<vue-router>`
+- App.vue中也没有内容，而是定义了vue-router的锚点：`<router-view>`,我们之前讲过，vue-router路由后的组件将会在锚点展示。
+- 最终结论：**一切路由后的内容都将通过App.vue在index.html中显示。**
+- 访问流程：用户在浏览器输入路径，例如：http://localhost:9001/#/item/brand --> index.js(/item/brand路径对应pages/item/Brand.vue组件) --> 该组件显示在App.vue的锚点位置 --> main.js使用了App.vue组件，并把该组件渲染在index.html文件中（id为“app”的div中）
+
+
+
+## 3.3.页面布局
+
+接下来我们一起看下页面布局。
+
+Layout组件是我们的整个页面的布局组件：
+
+![1530380040278](/images/leyou/1530380040278.png)
+
+一个典型的三块布局。包含左，上，中三部分：
+
+ ![1525965779366](/images/leyou/1525965779366.png)
+
+
+
+里面使用了Vuetify中的2个组件和一个布局元素：
+
+- `v-navigation-drawer` ：导航抽屉，主要用于容纳应用程序中的页面的导航链接。 
+
+      ![1530380237867](/images/leyou/1530380237867.png)
+
+- `v-toolbar `：工具栏通常是网站导航的主要途径。可以与导航抽屉一起很好地工作，动态选择是否打开导航抽屉，实现可伸缩的侧边栏。
+
+  ![1530380292558](/images/leyou/1530380292558.png)
+
+- `v-content`：并不是一个组件，而是标记页面布局的元素。可以根据您指定的**app**组件的结构动态调整大小，使得您可以创建高度可定制的组件。
+
+那么问题来了：`v-content`中的内容来自哪里？
+
+![1525966180568](/images/leyou/1525966180568.png)
+
+- Layout映射的路径是`/`
+- 除了Login以为的所有组件，都是定义在Layout的children属性，并且路径都是`/`的下面
+- 因此当路由到子组件时，会在Layout中定义的锚点中显示。
+- 并且Layout中的其它部分不会变化，这就实现了布局的共享。
+
+
+
+# 4.使用域名访问本地项目
+
+## 4.1.统一环境
+
+我们现在访问页面使用的是：http://localhost:9001
+
+有没有什么问题？
+
+实际开发中，会有不同的环境：
+
+- 开发环境：自己的电脑
+- 测试环境：提供给测试人员使用的环境
+- 预发布环境：数据是和生成环境的数据一致，运行最新的项目代码进去测试
+- 生产环境：项目最终发布上线的环境
+
+如果不同环境使用不同的ip去访问，可能会出现一些问题。为了保证所有环境的一致，我们会在各种环境下都使用域名来访问。
+
+我们将使用以下域名：
+
+- 主域名是：www.leyou.com，
+- 管理系统域名：manage.leyou.com
+- 网关域名：api.leyou.com
+- ...
+
+但是最终，我们希望这些域名指向的还是我们本机的某个端口。
+
+那么，当我们在浏览器输入一个域名时，浏览器是如何找到对应服务的ip和端口的呢？
+
+
+
+## 4.2.域名解析
+
+一个域名一定会被解析为一个或多个ip。这一般会包含两步：
+
+- 本地域名解析
+
+  浏览器会首先在本机的hosts文件中查找域名映射的IP地址，如果查找到就返回IP ，没找到则进行域名服务器解析，一般本地解析都会失败，因为默认这个文件是空的。
+
+  - Windows下的hosts文件地址：C:/Windows/System32/drivers/etc/hosts
+  - Linux下的hosts文件所在路径： /etc/hosts 
+
+  样式：
+
+  ```
+  # My hosts
+  127.0.0.1 localhost
+  0.0.0.0 account.jetbrains.com
+  127.0.0.1 www.xmind.net
+  ```
+
+- 域名服务器解析
+
+  本地解析失败，才会进行域名服务器解析，域名服务器就是网络中的一台计算机，里面记录了所有注册备案的域名和ip映射关系，一般只要域名是正确的，并且备案通过，一定能找到。
+
+
+
+## 4.3.解决域名解析问题
+
+我们不可能去购买一个域名，因此我们可以伪造本地的hosts文件，实现对域名的解析。修改本地的host为：
+
+```
+127.0.0.1 api.leyou.com
+127.0.0.1 manage.leyou.com
+```
+
+这样就实现了域名的关系映射了。
+
+每次在C盘寻找hosts文件并修改是非常麻烦的，给大家推荐一个快捷修改host的工具，在课前资料中可以找到：
+
+![1530556073565](/images/leyou/1530556073565.png)
+
+解压，运行exe文件，效果：
+
+![1530382550630](/images/leyou/1530382550630.png)
+
+我们添加了两个映射关系（中间用空格隔开）：
+
+- 127.0.0.1 api.leyou.com ：我们的网关Zuul
+- 127.0.0.1 manage.leyou.com：我们的后台系统地址
+
+现在，ping一下域名试试是否畅通：
+
+![1530382601757](/images/leyou/1530382601757.png)
+
+OK！
+
+通过域名访问：
+
+![1530383586463](/images/leyou/1530383586463.png)
+
+原因：我们配置了项目访问的路径，虽然manage.leyou.com映射的ip也是127.0.0.1，但是webpack会验证host是否符合配置。
+
+![1530383612716](/images/leyou/1530383612716.png)
+
+在webpack.dev.conf.js中取消host验证：
+
+![1530383927461](/images/leyou/1530383927461.png)
+
+重新执行`npm run dev`，刷新浏览器：
+
+![1530384150852](/images/leyou/1530384150852.png)
+
+OK！
+
+
+
+## 4.4.nginx解决端口问题
+
+域名问题解决了，但是现在要访问后台页面，还得自己加上端口：`http://manage.taotao.com:9001`。
+
+这就不够优雅了。我们希望的是直接域名访问：`http://manage.taotao.com`。这种情况下端口默认是80，如何才能把请求转移到9001端口呢？
+
+这里就要用到反向代理工具：Nginx
+
+### 4.4.1.什么是Nginx
+
+ ![1526187409033](/images/leyou/1526187409033.png)
+
+nginx可以作为web服务器，但更多的时候，我们把它作为网关，因为它具备网关必备的功能：
+
+- 反向代理
+- 负载均衡
+- 动态路由
+- 请求过滤
+
+
+
+### 4.4.2.nginx作为web服务器
+
+Web服务器分2类：
+
+- web应用服务器，如：
+  - tomcat
+  - resin
+  - jetty
+- web服务器，如：
+  - Apache 服务器
+  - Nginx
+  - IIS
+
+区分：web服务器不能解析jsp等页面，只能处理js、css、html等静态资源。
+并发：web服务器的并发能力远高于web应用服务器。
+
+
+
+### 4.4.3.nginx作为反向代理
+
+什么是反向代理？
+
+- 代理：通过客户机的配置，实现让一台服务器(代理服务器)代理客户机，客户的所有请求都交给代理服务器处理。
+- 反向代理：用一台服务器，代理真实服务器，用户访问时，不再是访问真实服务器，而是代理服务器。
+
+nginx可以当做反向代理服务器来使用：
+
+- 我们需要提前在nginx中配置好反向代理的规则，不同的请求，交给不同的真实服务器处理
+- 当请求到达nginx，nginx会根据已经定义的规则进行请求的转发，从而实现路由功能
+
+
+
+利用反向代理，就可以解决我们前面所说的端口问题，如图
+
+![1526016663674](/images/leyou/1526016663674.png)
+
+### 4.4.4.安装和使用
+
+> ### 安装
+
+安装非常简单，把课前资料提供的nginx直接解压即可，绿色免安装，舒服！
+
+![img](/images/leyou/0C36B84E.gif) 
+
+我们在本地安装一台nginx：
+
+![1530556268445](/images/leyou/1530556268445.png)
+
+解压后，目录结构：
+
+![1530384792790](/images/leyou/1530384792790.png)
+
+1. conf：配置目录
+2. contrib：第三方依赖
+3. html：默认的静态资源目录，类似于tomcat的webapps
+4. logs：日志目录
+5. nginx.exe：启动程序。可双击运行，但不建议这么做。
+
+
+
+> ### 反向代理配置
+
+示例：
+
+ ![1526188831504](/images/leyou/1526188831504.png)
+
+nginx中的每个server就是一个反向代理配置，可以有多个server
+
+
+
+完整配置：
+
+```nginx
+#user  nobody;
+worker_processes  1;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+   
+    keepalive_timeout  65;
+
+    gzip  on;
+	server {
+        listen       80;
+        server_name  manage.leyou.com;
+
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        location / {
+			proxy_pass http://127.0.0.1:9001;
+			proxy_connect_timeout 600;
+			proxy_read_timeout 600;
+        }
+    }
+	server {
+        listen       80;
+        server_name  api.leyou.com;
+
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        location / {
+			proxy_pass http://127.0.0.1:10010;
+			proxy_connect_timeout 600;
+			proxy_read_timeout 600;
+        }
+    }
+}
+```
+
+
+
+> ### 使用
+
+nginx可以通过命令行来启动，操作命令：
+
+- 启动：`start nginx.exe`
+- 停止：`nginx.exe -s stop`
+- 重新加载：`nginx.exe -s reload`
+
+启动过程会闪烁一下，启动成功后，任务管理器中会有两个nginx进程：
+
+![1530385404783](/images/leyou/1530385404783.png)
+
+
+
+## 4.5.测试
+
+启动nginx，然后用域名访问后台管理系统：
+
+![1530385593052](/images/leyou/1530385593052.png)
+
+现在实现了域名访问网站了，中间的流程是怎样的呢？
+
+![1526189945180](/images/leyou/1526189945180.png)
+
+1. 浏览器准备发起请求，访问http://mamage.leyou.com，但需要进行域名解析
+
+2. 优先进行本地域名解析，因为我们修改了hosts，所以解析成功，得到地址：127.0.0.1
+
+3. 请求被发往解析得到的ip，并且默认使用80端口：http://127.0.0.1:80
+
+   本机的nginx一直监听80端口，因此捕获这个请求
+
+4. nginx中配置了反向代理规则，将manage.leyou.com代理到127.0.0.1:9001，因此请求被转发
+
+5. 后台系统的webpack server监听的端口是9001，得到请求并处理，完成后将响应返回到nginx
+
+6. nginx将得到的结果返回到浏览器
+
+
+
+# 5.实现商品分类查询
+
+商城的核心自然是商品，而商品多了以后，肯定要进行分类，并且不同的商品会有不同的品牌信息，其关系如图所示：
+
+![1525999005260](/images/leyou/1525999005260.png)
+
+- 一个商品分类下有很多商品
+- 一个商品分类下有很多品牌
+- 而一个品牌，可能属于不同的分类
+- 一个品牌下也会有很多商品
+
+因此，我们需要依次去完成：商品分类、品牌、商品的开发。
+
+
+
+## 5.1.导入数据
+
+首先导入课前资料提供的sql：
+
+![1530556389224](/images/leyou/1530556389224.png)
+
+我们先看商品分类表：
+
+ ![1525999774439](/images/leyou/1525999774439.png)
+
+```mysql
+CREATE TABLE `tb_category` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '类目id',
+  `name` varchar(20) NOT NULL COMMENT '类目名称',
+  `parent_id` bigint(20) NOT NULL COMMENT '父类目id,顶级类目填0',
+  `is_parent` tinyint(1) NOT NULL COMMENT '是否为父节点，0为否，1为是',
+  `sort` int(4) NOT NULL COMMENT '排序指数，越小越靠前',
+  PRIMARY KEY (`id`),
+  KEY `key_parent_id` (`parent_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1424 DEFAULT CHARSET=utf8 COMMENT='商品类目表，类目和商品(spu)是一对多关系，类目与品牌是多对多关系';
+```
+
+因为商品分类会有层级关系，因此这里我们加入了`parent_id`字段，对本表中的其它分类进行自关联。
+
+
+
+## 5.2.页面实现
+
+### 5.2.1.页面分析
+
+首先我们看下要实现的效果：
+
+![1530413709515](/images/leyou/1530413709515.png)
+
+商品分类之间是会有层级关系的，采用树结构去展示是最直观的方式。
+
+一起来看页面，对应的是/pages/item/Category.vue：
+
+ ![1530386186299](/images/leyou/1530386186299.png)
+
+页面模板：
+
+```html
+<template>
+  <v-card>
+      <v-flex xs12 sm10>
+        <v-tree url="/item/category/list"
+                :treeData="treeData"
+                :isEdit="isEdit"
+                @handleAdd="handleAdd"
+                @handleEdit="handleEdit"
+                @handleDelete="handleDelete"
+                @handleClick="handleClick"
+        />
+      </v-flex>
+  </v-card>
+</template>
+```
+
+- `v-card`：卡片，是vuetify中提供的组件，提供一个悬浮效果的面板，一般用来展示一组数据。
+
+  ![1526000692741](/images/leyou/1526000692741.png)
+
+- `v-flex`：布局容器，用来控制响应式布局。与BootStrap的栅格系统类似，整个屏幕被分为12格。我们可以控制所占的格数来控制宽度：
+
+   ![1526001573140](/images/leyou/1526001573140.png)
+
+  本例中，我们用`sm10`控制在小屏幕及以上时，显示宽度为10格
+
+- `v-tree`：树组件。Vuetify并没有提供树组件，这个是我们自己编写的自定义组件：
+
+    ![1526001762446](/images/leyou/1526001762446.png)
+
+  里面涉及一些vue的高级用法，大家暂时不要关注其源码，会用即可。
+
+
+
+### 5.2.2.树组件的用法
+
+也可参考课前资料中的：《自定义Vue组件的用法.md》
+
+
+
+这里我贴出树组件的用法指南。
+
+> 属性列表：
+
+| 属性名称     | 说明               | 数据类型    | 默认值   |
+| :------- | :--------------- | :------ | :---- |
+| url      | 用来加载数据的地址，即延迟加载  | String  | -     |
+| isEdit   | 是否开启树的编辑功能       | boolean | false |
+| treeData | 整颗树数据，这样就不用远程加载了 | Array   | -     |
+
+这里推荐使用url进行延迟加载，**每当点击父节点时，就会发起请求，根据父节点id查询子节点信息**。
+
+当有treeData属性时，就不会触发url加载
+
+远程请求返回的结果格式：
+
+```json
+[
+    { 
+        "id": 74,
+        "name": "手机",
+        "parentId": 0,
+        "isParent": true,
+        "sort": 2
+	},
+     { 
+        "id": 75,
+        "name": "家用电器",
+        "parentId": 0,
+        "isParent": true,
+        "sort": 3
+	}
+]
+```
+
+
+
+> 事件：
+
+| 事件名称         | 说明                         | 回调参数                               |
+| :----------- | :------------------------- | :--------------------------------- |
+| handleAdd    | 新增节点时触发，isEdit为true时有效     | 新增节点node对象，包含属性：name、parentId和sort |
+| handleEdit   | 当某个节点被编辑后触发，isEdit为true时有效 | 被编辑节点的id和name                      |
+| handleDelete | 当删除节点时触发，isEdit为true时有效    | 被删除节点的id                           |
+| handleClick  | 点击某节点时触发                   | 被点击节点的node对象,包含完整的node信息           |
+
+> 完整node的信息
+
+回调函数中返回完整的node节点会包含以下数据：
+
+```json
+{
+    "id": 76, // 节点id
+    "name": "手机", // 节点名称
+    "parentId": 75, // 父节点id
+    "isParent": false, // 是否是父节点
+    "sort": 1, // 顺序
+    "path": ["手机", "手机通讯", "手机"] // 所有父节点的名称数组
+}
+```
+
+
+
+## 5.3.实现功能
+
+### 5.3.1.url异步请求
+
+给大家的页面中，treeData是假数据，我们删除数据treeData属性，只保留url看看会发生什么：
+
+```html
+<v-tree url="/item/category/list"
+        :isEdit="isEdit"
+        @handleAdd="handleAdd"
+        @handleEdit="handleEdit"
+        @handleDelete="handleDelete"
+        @handleClick="handleClick"
+        />
+```
+
+刷新页面，可以看到：
+
+![1530427294644](/images/leyou/1530427294644.png)
+
+页面中的树没有了，并且发起了一条请求：http://localhost/api/item/category/list?pid=0 
+
+
+
+大家可能会觉得很奇怪，我们明明是使用的相对路径，讲道理发起的请求地址应该是：
+
+http://manage.leyou.com/item/category/list
+
+但实际却是：
+
+http://localhost/api/item/category/list?pid=0 
+
+这是因为，我们有一个全局的配置文件，对所有的请求路径进行了约定：
+
+![1530427514123](/images/leyou/1530427514123.png)
+
+路径是localhost，并且默认加上了/api的前缀，这恰好与我们的网关设置匹配，我们只需要把地址改成网关的地址即可,因为我们使用了nginx反向代理，这里可以写域名。
+
+接下来，我们要做的事情就是编写后台接口，返回对应的数据即可。
+
+
+
+### 5.3.2.实体类
+
+在`ly-item-interface`中添加category实体类：
+
+ ![1530444682670](/images/leyou/1530444682670.png)
+
+内容：
+
+```java
+@Table(name="tb_category")
+public class Category {
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private Long id;
+	private String name;
+	private Long parentId;
+	private Boolean isParent; // 注意isParent生成的getter和setter方法需要手动加上Is
+	private Integer sort;
+	// getter和setter略
+}
+```
+
+需要注意的是，这里要用到jpa的注解，因此我们在`ly-item-iterface`中添加jpa依赖
+
+```xml
+<dependency>
+    <groupId>javax.persistence</groupId>
+    <artifactId>persistence-api</artifactId>
+    <version>1.0</version>
+</dependency>
+```
+
+
+
+### 5.3.3.controller
+
+编写一个controller一般需要知道四个内容：
+
+- 请求方式：决定我们用GetMapping还是PostMapping
+- 请求路径：决定映射路径
+- 请求参数：决定方法的参数
+- 返回值结果：决定方法的返回值
+
+在刚才页面发起的请求中，我们就能得到绝大多数信息：
+
+![1530445885707](/images/leyou/1530445885707.png)
+
+- 请求方式：Get
+
+- 请求路径：/api/item/category/list。其中/api是网关前缀，/item是网关的路由映射，真实的路径应该是/category/list
+
+- 请求参数：pid=0，根据tree组件的说明，应该是父节点的id，第一次查询为0，那就是查询一级类目
+
+- 返回结果：？？
+
+  根据前面tree组件的用法我们知道，返回的应该是json数组：
+
+  ```json
+  [
+      { 
+          "id": 74,
+          "name": "手机",
+          "parentId": 0,
+          "isParent": true,
+          "sort": 2
+  	},
+       { 
+          "id": 75,
+          "name": "家用电器",
+          "parentId": 0,
+          "isParent": true,
+          "sort": 3
+  	}
+  ]
+  ```
+
+  对应的java类型可以是List集合，里面的元素就是类目对象了。也就是`List<Category>`
+
+添加Controller：
+
+ ![1530450599897](/images/leyou/1530450599897.png)
+
+controller代码：
+
+```java
+@Controller
+@RequestMapping("category")
+public class CategoryController {
+
+    @Autowired
+    private CategoryService categoryService;
+
+    /**
+     * 根据parentId查询类目
+     * @param pid
+     * @return
+     */
+    @RequestMapping("list")
+    public ResponseEntity<List<Category>> queryCategoryListByParentId(@RequestParam(value = "pid", defaultValue = "0") Long pid) {
+        try {
+            if (pid == null || pid.longValue() < 0){
+                // pid为null或者小于等于0，响应400
+                return ResponseEntity.badRequest().build();
+            }
+            // 执行查询操作
+            List<Category> categoryList = this.categoryService.queryCategoryListByParentId(pid);
+            if (CollectionUtils.isEmpty(categoryList)){
+                // 返回结果集为空，响应404
+                return ResponseEntity.notFound().build();
+            }
+            // 响应200
+            return ResponseEntity.ok(categoryList);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // 响应500
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+}
+```
+
+
+
+### 5.3.4.service
+
+一般service层我们会定义接口和实现类，不过这里我们就偷懒一下，直接写实现类了：
+
+ ![1530450744567](/images/leyou/1530450744567.png)
+
+```java
+@Service
+public class CategoryService {
+
+    @Autowired
+    private CategoryMapper categoryMapper;
+
+    /**
+     * 根据parentId查询子类目
+     * @param pid
+     * @return
+     */
+    public List<Category> queryCategoryListByParentId(Long pid) {
+        Category record = new Category();
+        record.setParentId(pid);
+        return this.categoryMapper.select(record);
+    }
+}
+```
+
+
+
+### 5.3.5.mapper
+
+我们使用通用mapper来简化开发：
+
+```java
+public interface CategoryMapper extends Mapper<Category> {
+}
+```
+
+要注意，我们并没有在mapper接口上声明@Mapper注解，那么mybatis如何才能找到接口呢？
+
+我们在启动类上添加一个扫描包功能：
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+@MapperScan("com.leyou.item.mapper") // mapper接口的包扫描
+public class LeyouItemServiceApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(LeyouItemServiceApplication.class, args);
+    }
+}
+```
+
+
+
+### 5.3.6.启动并测试
+
+我们不经过网关，直接访问：http://localhost:8081/category/list
+
+![1530455133230](/images/leyou/1530455133230.png)
+
+然后试试网关是否畅通：http://api.leyou.com/api/item/category/list
+
+![1530455291468](/images/leyou/1530455291468.png)
+
+一切OK！
+
+然后刷新后台管理页面查看：
+
+![1530455437899](/images/leyou/1530455437899.png)
+
+发现报错了！
+
+浏览器直接访问没事，但是这里却报错，什么原因？
+
+
+
+# 6.跨域问题
+
+跨域：浏览器对于javascript的同源策略的限制 。
+
+以下情况都属于跨域：
+
+| 跨域原因说明    | 示例                                    |
+| --------- | ------------------------------------- |
+| 域名不同      | `www.jd.com` 与 `www.taobao.com`       |
+| 域名相同，端口不同 | `www.jd.com:8080` 与 `www.jd.com:8081` |
+| 二级域名不同    | `item.jd.com` 与 `miaosha.jd.com`      |
+
+如果**域名和端口都相同，但是请求路径不同**，不属于跨域，如：
+
+`www.jd.com/item` 
+
+`www.jd.com/goods`
+
+
+
+而我们刚才是从`manage.leyou.com`去访问`api.leyou.com`，这属于二级域名不同，跨域了。
+
+
+
+## 6.1.为什么有跨域问题？
+
+跨域不一定会有跨域问题。
+
+因为跨域问题是浏览器对于ajax请求的一种安全限制：**一个页面发起的ajax请求，只能是与当前页域名相同的路径**，这能有效的阻止跨站攻击。
+
+因此：**跨域问题 是针对ajax的一种限制**。
+
+但是这却给我们的开发带来了不便，而且在实际生产环境中，肯定会有很多台服务器之间交互，地址和端口都可能不同，怎么办？
+
+
+
+## 6.2.解决跨域问题的方案
+
+目前比较常用的跨域解决方案有3种：
+
+- Jsonp
+
+  最早的解决方案，利用script标签可以跨域的原理实现。
+
+  限制：
+
+  - 需要服务的支持
+  - 只能发起GET请求
+
+- nginx反向代理
+
+  思路是：利用nginx把跨域反向代理为不跨域，支持各种请求方式
+
+  缺点：需要在nginx进行额外配置，语义不清晰
+
+- CORS
+
+  规范化的跨域请求解决方案，安全可靠。
+
+  优势：
+
+  - 在服务端进行控制是否允许跨域，可自定义规则
+  - 支持各种请求方式
+
+  缺点：
+
+  - 会产生额外的请求
+
+我们这里会采用**cors的跨域方案**。
+
+
+
+## 6.3.cors解决跨域
+
+### 6.3.1.什么是cors
+
+CORS是一个W3C标准，全称是"跨域资源共享"（Cross-origin resource sharing）。
+
+它允许浏览器向跨源服务器，发出[`XMLHttpRequest`](http://www.ruanyifeng.com/blog/2012/09/xmlhttprequest_level_2.html)请求，从而克服了AJAX只能[同源](http://www.ruanyifeng.com/blog/2016/04/same-origin-policy.html)使用的限制。
+
+CORS需要浏览器和服务器同时支持。目前，所有浏览器都支持该功能，IE浏览器不能低于IE10。
+
+- 浏览器端：
+
+  目前，所有浏览器都支持该功能（IE10以下不行）。整个CORS通信过程，都是浏览器自动完成，不需要用户参与。
+
+- 服务端：
+
+  CORS通信与AJAX没有任何差别，因此你不需要改变以前的业务逻辑。只不过，浏览器会在请求中携带一些头信息，我们需要以此判断是否允许其跨域，然后在响应头中加入一些信息即可。这一般通过过滤器完成即可。
+
+### 6.3.2.原理有点复杂
+
+浏览器会将ajax请求分为两类，其处理方案略有差异：简单请求、特殊请求。
+
+#### 6.3.2.1.简单请求
+
+只要同时满足以下两大条件，就属于简单请求。：
+
+（1) 请求方法是以下三种方法之一：
+
+- HEAD
+- GET
+- POST
+
+（2）HTTP的头信息不超出以下几种字段：
+
+- Accept
+- Accept-Language
+- Content-Language
+- Last-Event-ID
+- Content-Type：只限于三个值`application/x-www-form-urlencoded`、`multipart/form-data`、`text/plain`
+
+
+
+当浏览器发现发起的ajax请求是简单请求时，会在请求头中携带一个字段：`Origin`.
+
+![1530460311064](/images/leyou/1530460311064.png)
+
+Origin中会指出当前请求属于哪个域（协议+域名+端口）。服务会根据这个值决定是否允许其跨域。
+
+如果服务器允许跨域，需要在返回的响应头中携带下面信息：
+
+```http
+Access-Control-Allow-Origin: http://manage.leyou.com
+Access-Control-Allow-Credentials: true
+Content-Type: text/html; charset=utf-8
+```
+
+- Access-Control-Allow-Origin：可接受的域，是一个具体域名或者*（代表任意域名）
+- Access-Control-Allow-Credentials：是否允许携带cookie，默认情况下，cors不会携带cookie，除非这个值是true
+
+> 有关cookie：
+
+要想操作cookie，需要满足3个条件：
+
+- 服务的响应头中需要携带Access-Control-Allow-Credentials并且为true。
+- 浏览器发起ajax需要指定withCredentials 为true
+- 响应头中的Access-Control-Allow-Origin一定不能为*，必须是指定的域名
+
+
+
+#### 6.3.2.2.特殊请求
+
+不符合简单请求的条件，会被浏览器判定为特殊请求,，例如请求方式为PUT。
+
+> 预检请求
+
+特殊请求会在正式通信之前，增加一次HTTP查询请求，称为"预检"请求（preflight）。
+
+浏览器先询问服务器，当前网页所在的域名是否在服务器的许可名单之中，以及可以使用哪些HTTP动词和头信息字段。只有得到肯定答复，浏览器才会发出正式的`XMLHttpRequest`请求，否则就报错。
+
+一个“预检”请求的样板：
+
+```http
+OPTIONS /cors HTTP/1.1
+Origin: http://manage.leyou.com
+Access-Control-Request-Method: PUT
+Access-Control-Request-Headers: X-Custom-Header
+Host: api.leyou.com
+Accept-Language: en-US
+Connection: keep-alive
+User-Agent: Mozilla/5.0...
+```
+
+与简单请求相比，除了Origin以外，多了两个头：
+
+- Access-Control-Request-Method：接下来会用到的请求方式，比如PUT
+- Access-Control-Request-Headers：会额外用到的头信息
+
+> 预检请求的响应
+
+服务的收到预检请求，如果许可跨域，会发出响应：
+
+```http
+HTTP/1.1 200 OK
+Date: Mon, 01 Dec 2008 01:15:39 GMT
+Server: Apache/2.0.61 (Unix)
+Access-Control-Allow-Origin: http://manage.leyou.com
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Methods: GET, POST, PUT
+Access-Control-Allow-Headers: X-Custom-Header
+Access-Control-Max-Age: 1728000
+Content-Type: text/html; charset=utf-8
+Content-Encoding: gzip
+Content-Length: 0
+Keep-Alive: timeout=2, max=100
+Connection: Keep-Alive
+Content-Type: text/plain
+```
+
+除了`Access-Control-Allow-Origin`和`Access-Control-Allow-Credentials`以外，这里又额外多出3个头：
+
+- Access-Control-Allow-Methods：允许访问的方式
+- Access-Control-Allow-Headers：允许携带的头
+- Access-Control-Max-Age：本次许可的有效时长，单位是秒，**过期之前的ajax请求就无需再次进行预检了**
+
+
+
+如果浏览器得到上述响应，则认定为可以跨域，后续就跟简单请求的处理是一样的了。
+
+### 6.3.3.实现非常简单
+
+虽然原理比较复杂，但是前面说过：
+
+- 浏览器端都有浏览器自动完成，我们无需操心
+- 服务端可以通过拦截器统一实现，不必每次都去进行跨域判定的编写。
+
+事实上，SpringMVC已经帮我们写好了CORS的跨域过滤器：CorsFilter ,内部已经实现了刚才所讲的判定逻辑，我们直接用就好了。
+
+在`leyou-gateway`中编写一个配置类，并且注册CorsFilter：
+
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+@Configuration
+public class GlobalCorsConfig {
+    @Bean
+    public CorsFilter corsFilter() {
+        //1.添加CORS配置信息
+        CorsConfiguration config = new CorsConfiguration();
+        //1) 允许的域,不要写*，否则cookie就无法使用了
+        config.addAllowedOrigin("http://manage.leyou.com");
+        //2) 是否发送Cookie信息
+        config.setAllowCredentials(true);
+        //3) 允许的请求方式
+        config.addAllowedMethod("OPTIONS");
+        config.addAllowedMethod("HEAD");
+        config.addAllowedMethod("GET");
+        config.addAllowedMethod("PUT");
+        config.addAllowedMethod("POST");
+        config.addAllowedMethod("DELETE");
+        config.addAllowedMethod("PATCH");
+        // 4）允许的头信息
+        config.addAllowedHeader("*");
+
+        //2.添加映射路径，我们拦截一切请求
+        UrlBasedCorsConfigurationSource configSource = new UrlBasedCorsConfigurationSource();
+        configSource.registerCorsConfiguration("/**", config);
+
+        //3.返回新的CorsFilter.
+        return new CorsFilter(configSource);
+    }
+}
+```
+
+结构：
+
+ ![1530462650711](/images/leyou/1530462650711.png)
+
+
+
+重启测试，访问正常：
+
+![1530463010927](/images/leyou/1530463010927.png)
+
+分类的增删改功能暂时就不做了，页面已经预留好了事件接口，有兴趣的同学可以完成一下。
+
+
+
+# 7.从0开始品牌的查询
+
+商品分类完成以后，自然轮到了品牌功能了。
+
+先看看我们要实现的效果：
+
+![1526021968036](/images/leyou/1526021968036.png)
+
+接下来，我们从0开始，实现下从前端到后端的完整开发。
+
+
+
+## 7.1.设计前端页面
+
+为了方便看到效果，我们新建一个MyBrand.vue（注意先停掉服务器），从0开始搭建。
+
+ ![1530464178834](/images/leyou/1530464178834.png)
+
+内容初始化一下：
+
+```vue
+<template>
+  <span>
+    hello
+  </span>
+</template>
+
+<script>
+  export default {
+    name: "myBrand"
+  }
+</script>
+
+<!-- scoped:当前样式只作用于当前组件的节点 -->
+<style scoped>
+
+</style>
+```
+
+改变router新的index.js，将路由地址指向MyBrand.vue
+
+![1530464255544](/images/leyou/1530464255544.png)
+
+打开服务器，再次查看页面：
+
+![1530464304721](/images/leyou/1530464304721.png)
+
+干干净净了。只剩hello
+
+
+
+### 7.1.1.查询表格
+
+大家看到这个原型页面肯定能看出，其主体就是一个table。我们去Vuetify查看有关table的文档：
+
+![1526023540226](/images/leyou/1526023540226.png)
+
+仔细阅读，发现`v-data-table`中有以下核心属性：
+
+- dark：是否使用黑暗色彩主题，默认是false
+
+- expand：表格的行是否可以展开，默认是false
+
+- headers：定义表头的数组，数组的每个元素就是一个表头信息对象，结构：
+
+  ```js
+  {
+    text: string, // 表头的显示文本
+    value: string, // 表头对应的每行数据的key
+    align: 'left' | 'center' | 'right', // 位置
+    sortable: boolean, // 是否可排序
+    class: string[] | string,// 样式
+    width: string,// 宽度
+  }
+  ```
+
+- items：表格的数据的数组，数组的每个元素是一行数据的对象，对象的key要与表头的value一致
+
+- loading：是否显示加载数据的进度条，默认是false
+
+- no-data-text：当没有查询到数据时显示的提示信息，string类型，无默认值
+
+- pagination.sync：包含分页和排序信息的对象，将其与vue实例中的属性关联，表格的分页或排序按钮被触发时，会自动将最新的分页和排序信息更新。对象结构：
+
+  ```js
+  {
+      page: 1, // 当前页
+      rowsPerPage: 5, // 每页大小
+      sortBy: '', // 排序字段
+      descending:false, // 是否降序
+  }
+  ```
+
+- total-items：分页的总条数信息，number类型，无默认值
+
+- select-all ：是否显示每一行的复选框，Boolean类型，无默认值
+
+- value：当表格可选的时候，返回选中的行
+
+
+
+我们向下翻，找找有没有看起来牛逼的案例。
+
+找到这样一条：
+
+![1526023837773](/images/leyou/1526023837773.png)
+
+其它的案例都是由Vuetify帮我们对查询到的当前页数据进行排序和分页，这显然不是我们想要的。我们希望能在服务端完成对整体品牌数据的排序和分页，而这个案例恰好合适。
+
+点击按钮，我们直接查看源码，然后直接复制到MyBrand.vue中
+
+模板：
+
+```vue
+<template>
+  <div>
+    <v-data-table
+      :headers="headers"
+      :items="desserts"
+      :pagination.sync="pagination"
+      :total-items="totalDesserts"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td>{{ props.item.name }}</td>
+        <td class="text-xs-right">{{ props.item.calories }}</td>
+        <td class="text-xs-right">{{ props.item.fat }}</td>
+        <td class="text-xs-right">{{ props.item.carbs }}</td>
+        <td class="text-xs-right">{{ props.item.protein }}</td>
+        <td class="text-xs-right">{{ props.item.iron }}</td>
+      </template>
+    </v-data-table>
+  </div>
+</template>
+```
+
+
+
+### 7.1.2.表格分析
+
+接下来，就分析一下案例中每一部分是什么意思，搞清楚了，我们也可以自己玩了。
+
+先看模板中table上的一些属性：
+
+```vue
+<v-data-table
+              :headers="headers"
+              :items="desserts"
+              :pagination.sync="pagination"
+              :total-items="totalDesserts"
+              :loading="loading"
+              class="elevation-1"
+              >
+</v-data-table>
+```
+
+- headers：表头信息，是一个数组
+
+- items：要在表格中展示的数据，数组结构，每一个元素是一行。在这里应该是品牌集合
+
+- pagination.sync：分页信息，包含了当前页，每页大小，排序字段，排序方式等。加上.sync代表服务端排序，当用户点击分页条时，该对象的值会跟着变化。监控这个值，并在这个值变化时去服务端查询，即可实现页面数据动态加载了。
+
+- total-items：总条数，在这里是品牌的总记录数
+
+- loading：boolean类型，true：代表数据正在加载，会有进度条。false：数据加载完毕。
+
+  ![1526029254159](/images/leyou/1526029254159.png)
+
+
+
+另外，在`v-data-tables`中，我们还看到另一段代码：
+
+```vue
+<template slot="items" slot-scope="props">
+        <td>{{ props.item.name }}</td>
+        <td class="text-xs-right">{{ props.item.calories }}</td>
+        <td class="text-xs-right">{{ props.item.fat }}</td>
+        <td class="text-xs-right">{{ props.item.carbs }}</td>
+        <td class="text-xs-right">{{ props.item.protein }}</td>
+        <td class="text-xs-right">{{ props.item.iron }}</td>
+</template>
+```
+
+这段就是在渲染每一行的数据。Vue会自动遍历上面传递的`items`属性，并把得到的对象传递给这段`template`中的`props.item`属性。我们从中得到数据，渲染在页面即可。
+
+
+
+我们需要做的事情，主要有两件：
+
+- 给items和totalItems赋值
+- 当pagination变化时，重新获取数据，再次给items和totalItems赋值
+
+
+
+### 7.1.3.动手实现
+
+表格中具体有哪些列呢？参照品牌表：
+
+![1530518876942](/images/leyou/1530518876942.png)
+
+品牌中有id,name,image,letter字段。
+
+
+
+#### 7.1.3.1.修改模板
+
+```vue
+<template>
+  <div>
+    <v-data-table
+      :headers="headers"
+      :items="brands"
+      :pagination.sync="pagination"
+      :total-items="totalBrands"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td class="text-xs-center">{{ props.item.id }}</td>
+        <td class="text-xs-center">{{ props.item.name }}</td>
+        <td class="text-xs-center"><img v-if="props.item.image" :src="props.item.image" width="130" height="40"/></td>
+        <td class="text-xs-center">{{ props.item.letter }}</td>
+      </template>
+    </v-data-table>
+  </div>
+</template>
+```
+
+我们修改了以下部分：
+
+- items：指向一个brands变量，等下在js代码中定义
+- total-items：指向了totalBrands变量，等下在js代码中定义
+- template模板中，渲染了四个字段：
+  - id：
+  - name
+  - image，注意，我们不是以文本渲染，而是赋值到一个`img`标签的src属性中，并且做了非空判断
+  - letter
+
+#### 7.1.3.2.编写数据模型
+
+接下来编写要用到的数据：
+
+```js
+    data () {
+      return {
+        totalBrands: 0, // 总条数
+        brands: [], // 当前页品牌数据
+        loading: true, // 是否在加载中
+        pagination: {}, // 分页信息
+        headers: [ // 头信息
+          {text: 'id', align: 'center', value: 'id'},
+          {text: '名称', align: 'center', value: 'name', sortable: false},
+          {text: 'LOGO', align: 'center', value: 'image', sortable: false},
+          {text: '首字母', align: 'center', value: 'letter'},
+        ]
+      }
+    }
+```
+
+
+
+#### 7.1.3.3.数据初始化
+
+接下来就是对brands和totalBrands完成赋值动作了。
+
+我们编写一个函数来完成赋值，提高复用性：
+
+```js
+    methods: {
+      getDataFromServer(){ // 从服务端加载数据的函数
+        // 伪造演示数据
+        const brands = [
+          {
+            "id": 2032,
+            "name": "OPPO",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t2119/133/2264148064/4303/b8ab3755/56b2f385N8e4eb051.jpg",
+            "letter": "O",
+            "categories": null
+          },
+          {
+            "id": 2033,
+            "name": "飞利浦（PHILIPS）",
+            "image": "http://img12.360buyimg.com/popshop/jfs/t18361/122/1318410299/1870/36fe70c9/5ac43a4dNa44a0ce0.jpg",
+            "letter": "F",
+            "categories": null
+          },
+          {
+            "id": 2034,
+            "name": "华为（HUAWEI）",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t5662/36/8888655583/7806/1c629c01/598033b4Nd6055897.jpg",
+            "letter": "H",
+            "categories": null
+          },
+          {
+            "id": 2036,
+            "name": "酷派（Coolpad）",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t2521/347/883897149/3732/91c917ec/5670cf96Ncffa2ae6.jpg",
+            "letter": "K",
+            "categories": null
+          },
+          {
+            "id": 2037,
+            "name": "魅族（MEIZU）",
+            "image": "http://img13.360buyimg.com/popshop/jfs/t3511/131/31887105/4943/48f83fa9/57fdf4b8N6e95624d.jpg",
+            "letter": "M",
+            "categories": null
+          }
+        ];
+        // 延迟一段时间，模拟数据请求时间
+        setTimeout(()=>{
+          this.brands = brands; // 赋值给品牌数组
+          this.totalBrands = brands.length; // 赋值数据总条数
+          this.loading = false; // 数据加载完成
+        }, 1000);
+      }
+    }
+```
+
+然后使用钩子函数，在Vue实例初始化完毕后调用这个方法，这里使用mounted（渲染后）函数：
+
+```js
+    // 渲染后执行
+    mounted(){
+      this.getDataFromServer() // 调用数据初始化函数
+    }
+```
+
+
+
+#### 6.2.3.4.完整代码
+
+```vue
+<template>
+  <div>
+    <v-data-table
+      :headers="headers"
+      :items="brands"
+      :pagination.sync="pagination"
+      :total-items="totalBrands"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td class="text-xs-center">{{ props.item.id }}</td>
+        <td class="text-xs-center">{{ props.item.name }}</td>
+        <td class="text-xs-center"><img v-if="props.item.image" :src="props.item.image" width="130" height="40"/></td>
+        <td class="text-xs-center">{{ props.item.letter }}</td>
+      </template>
+    </v-data-table>
+  </div>
+</template>
+
+<script>
+  export default {
+    name: "myBrand",
+    data () {
+      return {
+        totalBrands: 0, // 总条数
+        brands: [], // 当前页品牌数据
+        loading: true, // 是否在加载中
+        pagination: {}, // 分页信息
+        headers: [ // 头信息
+          {text: 'id', align: 'center', value: 'id'},
+          {text: '名称', align: 'center', value: 'name', sortable: false},
+          {text: 'LOGO', align: 'center', value: 'image', sortable: false},
+          {text: '首字母', align: 'center', value: 'letter'},
+        ]
+      }
+    },
+    methods: {
+      getDataFromServer(){ // 从服务端加载数据的函数
+        // 伪造演示数据
+        const brands = [
+          {
+            "id": 2032,
+            "name": "OPPO",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t2119/133/2264148064/4303/b8ab3755/56b2f385N8e4eb051.jpg",
+            "letter": "O",
+            "categories": null
+          },
+          {
+            "id": 2033,
+            "name": "飞利浦（PHILIPS）",
+            "image": "http://img12.360buyimg.com/popshop/jfs/t18361/122/1318410299/1870/36fe70c9/5ac43a4dNa44a0ce0.jpg",
+            "letter": "F",
+            "categories": null
+          },
+          {
+            "id": 2034,
+            "name": "华为（HUAWEI）",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t5662/36/8888655583/7806/1c629c01/598033b4Nd6055897.jpg",
+            "letter": "H",
+            "categories": null
+          },
+          {
+            "id": 2036,
+            "name": "酷派（Coolpad）",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t2521/347/883897149/3732/91c917ec/5670cf96Ncffa2ae6.jpg",
+            "letter": "K",
+            "categories": null
+          },
+          {
+            "id": 2037,
+            "name": "魅族（MEIZU）",
+            "image": "http://img13.360buyimg.com/popshop/jfs/t3511/131/31887105/4943/48f83fa9/57fdf4b8N6e95624d.jpg",
+            "letter": "M",
+            "categories": null
+          }
+        ];
+        // 延迟一段时间，模拟数据请求时间
+        setTimeout(()=>{
+          this.brands = brands; // 赋值给品牌数组
+          this.totalBrands = brands.length; // 赋值数据总条数
+          this.loading = false; // 数据加载完成
+        }, 1000);
+      }
+    },
+    // 渲染后执行
+    mounted(){
+      this.getDataFromServer() // 调用数据初始化函数
+    }
+  }
+</script>
+
+<!-- scoped:当前样式只作用于当前组件的节点 -->
+<style scoped>
+
+</style>
+```
+
+
+
+刷新页面查看：
+
+![1526029445561](H:/%E4%B9%90%E4%BC%98/day06-%E5%90%8E%E5%8F%B0%E7%AE%A1%E7%90%86%E9%A1%B5%E9%9D%A2//images/leyou/1526029445561.png)
+
+
+
+### 7.1.4.优化页面
+
+#### 7.1.4.1.编辑和删除按钮
+
+我们将来要对品牌进行增删改，需要给每一行数据添加 修改删除的按钮，一般放到改行的最后一列。
+
+其实就是多了一列，只是这一列没有数据，而是两个按钮而已。可以在官方文档中找一个带有操作按钮的表格，作为参考。
+
+![1530523252532](/images/leyou/1530523252532.png)
+
+我们先在头（headers）中添加一列：
+
+```js
+headers: [ // 头信息
+    {text: 'id', align: 'center', value: 'id'},
+    {text: '名称', align: 'center', value: 'name', sortable: false},
+    {text: 'LOGO', align: 'center', value: 'image', sortable: false},
+    {text: '首字母', align: 'center', value: 'letter'},
+    {text: '操作', align: 'center', value: 'id', sortable: false }
+]
+```
+
+然后在模板中添加按钮：
+
+```vue
+<template slot="items" slot-scope="props">
+	<td class="text-xs-center">{{ props.item.id }}</td>
+	<td class="text-xs-center">{{ props.item.name }}</td>
+	<td class="text-xs-center"><img v-if="props.item.image" :src="props.item.image" width="130" height="40"/></td>
+	<td class="text-xs-center">{{ props.item.letter }}</td>
+	<td class="text-xs-center">
+        <v-icon small class="mr-2" @click="editItem(props.item)">
+            edit
+        </v-icon>
+        <v-icon small @click="deleteItem(props.item)">
+            delete
+        </v-icon>
+    </td>
+</template>
+```
+
+效果：
+
+![1530523838357](/images/leyou/1530523838357.png)
+
+
+
+#### 7.1.4.2.新增按钮
+
+在官方文档中找到按钮的用法：
+
+![1530524238344](/images/leyou/1530524238344.png)
+
+因为新增跟某个品牌无关，是独立的，因此我们可以放到表格的外面。
+
+![1530527129881](/images/leyou/1530527129881.png)
+
+效果：
+
+![1530527160208](/images/leyou/1530527160208.png)
+
+
+
+#### 7.1.4.3.卡片（card）
+
+为了不让按钮显得过于孤立，我们可以将按`新增按钮`和`表格`放到一张卡片（card）中。
+
+我们去官网查看卡片的用法：
+
+![1526031159242](/images/leyou/1526031159242.png)
+
+卡片`v-card`包含四个基本组件：
+
+- v-card-media：一般放图片或视频
+- v-card-title：卡片的标题，一般位于卡片顶部
+- v-card-text：卡片的文本（主体内容），一般位于卡片正中
+- v-card-action：卡片的按钮，一般位于卡片底部
+
+我们可以把`新增的按钮`放到`v-card-title`位置，把`table`放到下面，这样就成一个上下关系。
+
+```vue
+<template>
+  <v-card>
+    <v-card-title flat color="white">
+      <v-btn color="primary">新增</v-btn>
+    </v-card-title>
+
+    <v-data-table
+      :headers="headers"
+      :items="brands"
+      :pagination.sync="pagination"
+      :total-items="totalBrands"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td class="text-xs-center">{{ props.item.id }}</td>
+        <td class="text-xs-center">{{ props.item.name }}</td>
+        <td class="text-xs-center"><img v-if="props.item.image" :src="props.item.image" width="130" height="40"/></td>
+        <td class="text-xs-center">{{ props.item.letter }}</td>
+        <td class="text-xs-center">
+          <v-icon small class="mr-2" @click="editItem(props.item)">
+            edit
+          </v-icon>
+          <v-icon small @click="deleteItem(props.item)">
+            delete
+          </v-icon>
+        </td>
+      </template>
+    </v-data-table>
+  </v-card>
+</template>
+```
+
+效果：
+
+![1530532504861](/images/leyou/1530532504861.png)
+
+
+
+#### 7.1.4.4.添加搜索框
+
+我们还可以在卡片头部添加一个搜索框，其实就是一个文本输入框。
+
+查看官网中，文本框的用法：
+
+![1526031897445](/images/leyou/1526031897445.png)
+
+- name：字段名，表单中会用到
+- label/placeholder：提示文字
+- value：值。可以用v-model代替，实现双向绑定
+
+
+
+修改模板，添加输入框：
+
+```html
+<v-card-title>
+    <v-btn color="primary">新增品牌</v-btn>
+    <!--搜索框，与search属性关联-->
+    <v-text-field label="输入关键字搜索" v-model="search"/>
+</v-card-title>
+```
+
+注意：要在数据模型中，添加search字段：
+
+```js
+data() {
+  return {
+    totalBrands: 0, // 总条数
+    brands: [], // 当前页品牌数据
+    search: "", // 查询关键字
+    loading: true, // 是否在加载中
+    pagination: {}, // 分页信息
+    headers: [ // 头信息
+      {text: 'id', align: 'center', value: 'id'},
+      {text: '名称', align: 'center', value: 'name', sortable: false},
+      {text: 'LOGO', align: 'center', value: 'image', sortable: false},
+      {text: '首字母', align: 'center', value: 'letter'},
+      {text: '操作', align: 'center', value: 'id', sortable: false}
+    ]
+  }
+}
+```
+
+效果：
+
+![1530533261856](/images/leyou/1530533261856.png)
+
+发现输入框超级长！！！
+
+这个时候，我们可以使用Vuetify提供的一个空间隔离工具：
+
+![1530533442878](/images/leyou/1530533442878.png)
+
+修改代码：
+
+```html
+    <v-card-title>
+      <v-btn color="primary">新增品牌</v-btn>
+      <!--空间隔离组件-->
+      <v-spacer />
+      <!--搜索框，与search属性关联-->
+      <v-text-field label="输入关键字搜索" v-model="search"/>
+    </v-card-title>
+```
+
+
+
+![1530534269196](/images/leyou/1530534269196.png)
+
+
+
+#### 7.1.4.5.添加搜索图标
+
+查看textfiled的文档，发现：
+
+ ![1526033007616](/images/leyou/1526033007616.png)
+
+通过append-icon属性可以为 输入框添加后置图标，所有可用图标名称可以到 [material-icons官网](https://material.io/tools/icons/)去查看。
+
+修改我们的代码：
+
+```html
+<v-text-field label="输入关键字搜索" v-model="search" append-icon="search"/>
+```
+
+![1530534311458](/images/leyou/1530534311458.png)
+
+
+
+#### 7.1.4.6.把文本框变紧凑
+
+搜索框看起来高度比较高，页面不够紧凑。这其实是因为默认在文本框下面预留有错误提示空间。通过下面的属性可以取消提示：
+
+![1526033439890](/images/leyou/1526033439890.png)
+
+修改代码：
+
+```html
+<v-text-field label="输入关键字搜索" v-model="search" append-icon="search" hide-details/>
+```
+
+效果：
+
+![1530534423194](/images/leyou/1530534423194.png)
+
+几乎已经达到了原来一样的效果了吧！
+
+
+
+## 7.2.后台提供查询接口
+
+前台页面已经准备好，接下来就是后台提供数据接口了。
+
+### 7.2.1.数据库表
+
+```mysql
+CREATE TABLE `tb_brand` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '品牌id',
+  `name` varchar(50) NOT NULL COMMENT '品牌名称',
+  `image` varchar(200) DEFAULT '' COMMENT '品牌图片地址',
+  `letter` char(1) DEFAULT '' COMMENT '品牌的首字母',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=325400 DEFAULT CHARSET=utf8 COMMENT='品牌表，一个品牌下有多个商品（spu），一对多关系';
+```
+
+简单的四个字段，不多解释。
+
+这里需要注意的是，品牌和商品分类之间是多对多关系。因此我们有一张中间表，来维护两者间关系：
+
+```mysql
+CREATE TABLE `tb_category_brand` (
+  `category_id` bigint(20) NOT NULL COMMENT '商品类目id',
+  `brand_id` bigint(20) NOT NULL COMMENT '品牌id',
+  PRIMARY KEY (`category_id`,`brand_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商品分类和品牌的中间表，两者是多对多关系';
+
+```
+
+但是，你可能会发现，这张表中并**没有设置外键约束**，似乎与数据库的设计范式不符。为什么这么做？
+
+- 外键会严重影响数据库读写的效率
+- 数据删除时会比较麻烦
+
+在电商行业，性能是非常重要的。我们宁可在代码中通过逻辑来维护表关系，也不设置外键。
+
+
+
+### 7.2.2.实体类
+
+ ![1530541070271](/images/leyou/1530541070271.png)
+
+```java
+@Table(name = "tb_brand")
+public class Brand {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;// 品牌名称
+    private String image;// 品牌图片
+    private Character letter;
+    // getter setter 略
+}
+```
+
+
+
+### 7.2.3.mapper
+
+ ![1530541222679](/images/leyou/1530541222679.png)
+
+通用mapper来简化开发：
+
+```java
+public interface BrandMapper extends Mapper<Brand> {
+}
+```
+
+### 7.2.4.controller
+
+编写controller先思考四个问题，这次没有前端代码，需要我们自己来设定
+
+- 请求方式：查询，肯定是Get
+- 请求路径：分页查询，/brand/page
+- 请求参数：根据我们刚才编写的页面，有分页功能，有排序功能，有搜索过滤功能，因此至少要有5个参数：
+  - page：当前页，int
+  - rows：每页大小，int
+  - sortBy：排序字段，String
+  - desc：是否为降序，boolean
+  - key：搜索关键词，String
+- 响应结果：分页结果一般至少需要两个数据
+  - total：总条数
+  - items：当前页数据
+  - totalPage：有些还需要总页数
+
+这里我们封装一个类，来表示分页结果：
+
+```java
+public class PageResult<T> {
+    private Long total;// 总条数
+    private Long totalPage;// 总页数
+    private List<T> items;// 当前页数据
+
+    public PageResult() {
+    }
+
+    public PageResult(Long total, List<T> items) {
+        this.total = total;
+        this.items = items;
+    }
+
+    public PageResult(Long total, Long totalPage, List<T> items) {
+        this.total = total;
+        this.totalPage = totalPage;
+        this.items = items;
+    }
+
+    public Long getTotal() {
+        return total;
+    }
+
+    public void setTotal(Long total) {
+        this.total = total;
+    }
+
+    public List<T> getItems() {
+        return items;
+    }
+
+    public void setItems(List<T> items) {
+        this.items = items;
+    }
+
+    public Long getTotalPage() {
+        return totalPage;
+    }
+
+    public void setTotalPage(Long totalPage) {
+        this.totalPage = totalPage;
+    }
+}
+```
+
+另外，这个PageResult以后可能在其它项目中也有需求，因此我们将其抽取到`leyou-common`中，提高复用性：
+
+ ![1530543778541](/images/leyou/1530543778541.png)
+
+**不要忘记在leyou-item-service工程的pom.xml中引入leyou-common的依赖**：
+
+```xml
+        <dependency>
+            <groupId>com.leyou.common</groupId>
+            <artifactId>leyou-common</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+```
+
+
+
+接下来，我们编写Controller
+
+ ![1530549253999](/images/leyou/1530549253999.png)
+
+```java
+@RestController
+@RequestMapping("brand")
+public class BrandController {
+
+    @Autowired
+    private BrandService brandService;
+
+    @GetMapping("page")
+    public ResponseEntity<PageResult<Brand>> queryBrandByPage(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "rows", defaultValue = "5") Integer rows,
+            @RequestParam(value = "sortBy", required = false) String sortBy,
+            @RequestParam(value = "desc", defaultValue = "false") Boolean desc,
+            @RequestParam(value = "key", required = false) String key) {
+        PageResult<Brand> result = this.brandService.queryBrandByPageAndSort(page,rows,sortBy,desc, key);
+        if (result == null || result.getItems().size() == 0) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(result);
+    }
+}
+```
+
+
+
+### 7.2.5.Service
+
+ ![1530549286718](/images/leyou/1530549286718.png)
+
+```java
+@Service
+public class BrandService {
+
+    @Autowired
+    private BrandMapper brandMapper;
+
+    public PageResult<Brand> queryBrandByPageAndSort(
+            Integer page, Integer rows, String sortBy, Boolean desc, String key) {
+        // 开始分页
+        PageHelper.startPage(page, rows);
+        // 过滤
+        Example example = new Example(Brand.class);
+        if (StringUtils.isNotBlank(key)) {
+            example.createCriteria().andLike("name", "%" + key + "%")
+                    .orEqualTo("letter", key);
+        }
+        if (StringUtils.isNotBlank(sortBy)) {
+            // 排序
+            String orderByClause = sortBy + (desc ? " DESC" : " ASC");
+            example.setOrderByClause(orderByClause);
+        }
+        // 查询
+        Page<Brand> pageInfo = (Page<Brand>) brandMapper.selectByExample(example);
+        // 返回结果
+        return new PageResult<>(pageInfo.getTotal(), pageInfo);
+    }
+}
+```
+
+
+
+### 7.2.6.测试
+
+通过浏览器访问试试：http://api.leyou.com/api/item/brand/page
+
+![1530549095150](/images/leyou/1530549095150.png)
+
+接下来，去页面请求数据并渲染
+
+
+
+## 7.3.异步查询工具axios
+
+异步查询数据，自然是通过ajax查询，大家首先想起的肯定是jQuery。但jQuery与MVVM的思想不吻合，而且ajax只是jQuery的一小部分。因此不可能为了发起ajax请求而去引用这么大的一个库。
+
+### 7.3.1.axios入门
+
+Vue官方推荐的ajax请求框架叫做：axios，看下demo：
+
+ ![1526033988251](/images/leyou/1526033988251.png)
+
+axios的Get请求语法：
+
+```js
+axios.get("/item/category/list?pid=0") // 请求路径和请求参数拼接
+    .then(function(resp){
+    	// 成功回调函数
+	})
+    .catch(function(){
+    	// 失败回调函数
+	})
+// 参数较多时，可以通过params来传递参数
+axios.get("/item/category/list", {
+        params:{
+            pid:0
+        }
+	})
+    .then(function(resp){})// 成功时的回调
+    .catch(function(error){})// 失败时的回调
+```
+
+axios的POST请求语法：
+
+比如新增一个用户
+
+```js
+axios.post("/user",{
+    	name:"Jack",
+    	age:21
+	})
+    .then(function(resp){})
+    .catch(function(error){})
+```
+
+- 注意，POST请求传参，不需要像GET请求那样定义一个对象，在对象的params参数中传参。post()方法的第二个参数对象，就是将来要传递的参数
+
+PUT和DELETE请求与POST请求类似
+
+### 7.3.2.axios的全局配置
+
+而在我们的项目中，已经引入了axios，并且进行了简单的封装，在src下的http.js中：
+
+ ![1526034150067](/images/leyou/1526034150067.png)
+
+http.js中对axios进行了一些默认配置：
+
+```js
+import Vue from 'vue'
+import axios from 'axios'
+import config from './config'
+// config中定义的基础路径是：http://api.leyou.com/api
+axios.defaults.baseURL = config.api; // 设置axios的基础请求路径
+axios.defaults.timeout = 2000; // 设置axios的请求时间
+
+Vue.prototype.$http = axios;// 将axios赋值给Vue原型的$http属性，这样所有vue实例都可使用该对象
+```
+
+- http.js中导入了config的配置，还记得吗？
+
+   ![1526041205846](/images/leyou/1526041205846.png)
+
+- http.js对axios进行了全局配置：`baseURL=config.api`，即`http://api.leyou.com/api`。因此以后所有用axios发起的请求，都会以这个地址作为前缀。
+
+- 通过`Vue.property.$http = axios`，将`axios`赋值给了 Vue原型中的`$http`。这样以后所有的Vue实例都可以访问到$http，也就是访问到了axios了。
+
+### 7.3.3.小试一下
+
+我们在组件`MyBrand.vue`的getDataFromServer方法，通过$http发起get请求，测试查询品牌的接口，看是否能获取到数据：
+
+ ![1526048221750](/images/leyou/1526048079191.png)
+
+网络监视：
+
+ ![1526048143014](/images/leyou/1526048143014.png)
+
+resp到底都有那些数据，查看控制台结果：
+
+![1526048275064](/images/leyou/1526048275064.png)
+
+可以看到，在请求成功的返回结果response中，有一个data属性，里面就是真正的响应数据。
+
+响应结果中与我们设计的一致，包含3个内容：
+
+- total：总条数，目前是165
+- items：当前页数据
+- totalPage：总页数，我们没有返回
+
+
+
+## 7.4.异步加载品牌数据
+
+虽然已经通过ajax请求获取了品牌数据，但是刚才的请求没有携带任何参数，这样显然不对。我们后端接口需要5个参数：
+
+- page：当前页，int
+- rows：每页大小，int
+- sortBy：排序字段，String
+- desc：是否为降序，boolean
+- key：搜索关键词，String
+
+而页面中分页信息应该是在pagination对象中，我们通过浏览器工具，查看pagination中有哪些属性：
+
+![1530553414937](/images/leyou/1530553414937.png)
+
+分别是：
+
+- descending：是否是降序，对应请求参数的desc
+- page：当前页，对应参数的page
+- rowsPerpage：每页大小，对应参数中的rows
+- sortBy：排序字段，对应参数的sortBy
+
+缺少一个搜索关键词，这个应该是通过v-model与输入框绑定的属性：search。这样，所有参数就都有了。
+
+
+
+另外，不要忘了把查询的结果赋值给brands和totalBrands属性，Vuetify会帮我们渲染页面。
+
+
+
+接下来，我们完善请求参数：
+
+```js
+    methods: {
+      getDataFromServer() { // 从服务端加载数据的函数
+        this.loading = true; // 加载数据
+        // 通过axios获取数据
+        this.$http.get("/item/brand/page", {
+          params: {
+            page: this.pagination.page, // 当前页
+            rows: this.pagination.rowsPerPage, // 每页条数
+            sortBy: this.pagination.sortBy, // 排序字段
+            desc: this.pagination.descending, // 是否降序
+            key: this.search // 查询字段
+          }
+        }).then(resp => { // 获取响应结果对象
+          this.totalBrands = resp.data.total; // 总条数
+          this.brands = resp.data.items; // 品牌数据
+          this.loading = false; // 加载完成
+        });
+      }
+    }
+```
+
+查看网络请求：
+
+![1530554422695](/images/leyou/1530554422695.png)
+
+效果：
+
+![1530554460215](/images/leyou/1530554460215.png)
+
+
+
+## 7.5.完成分页和过滤
+
+### 6.6.1.分页
+
+现在我们实现了页面加载时的第一次查询，你会发现你点击分页或搜索不会发起新的请求，怎么办？
+
+
+
+虽然点击分页，不会发起请求，但是通过浏览器工具查看，会发现pagination对象的属性一直在变化：
+
+ ![](/images/leyou/9.gif)
+
+我们可以利用Vue的监视功能：watch，当pagination发生改变时，会调用我们的回调函数，我们在回调函数中进行数据的查询即可！
+
+具体实现：
+
+![1526049643506](/images/leyou/1526049643506.png)
+
+成功实现分页功能：
+
+![1526049720200](/images/leyou/22.gif)
+
+
+
+### 6.6.2.过滤
+
+分页实现了，过滤也很好实现了。过滤字段对应的是search属性，我们只要监视这个属性即可:
+
+ ![1526049939985](/images/leyou/1526049939985.png)
+
+查看网络请求：
+
+ ![1526050032436](H:/%E4%B9%90%E4%BC%98/day06-%E5%90%8E%E5%8F%B0%E7%AE%A1%E7%90%86%E9%A1%B5%E9%9D%A2//images/leyou/1526050032436.png)
+
+页面结果：
+
+![1530555740595](/images/leyou/1530555740595.png)
+
+
+
+## 6.7.完整代码
+
+```vue
+<template>
+  <v-card>
+    <v-card-title flat color="white">
+      <v-btn color="primary">新增</v-btn>
+      <!--空间隔离组件-->
+      <v-spacer />
+      <!--搜索框，与search属性关联-->
+      <v-text-field label="输入关键字搜索" append-icon="search" v-model="search" hide-details/>
+    </v-card-title>
+
+    <v-data-table
+      :headers="headers"
+      :items="brands"
+      :pagination.sync="pagination"
+      :total-items="totalBrands"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td class="text-xs-center">{{ props.item.id }}</td>
+        <td class="text-xs-center">{{ props.item.name }}</td>
+        <td class="text-xs-center"><img v-if="props.item.image" :src="props.item.image" width="130" height="40"/></td>
+        <td class="text-xs-center">{{ props.item.letter }}</td>
+        <td class="text-xs-center">
+          <v-icon small class="mr-2" @click="editItem(props.item)">
+            edit
+          </v-icon>
+          <v-icon small @click="deleteItem(props.item)">
+            delete
+          </v-icon>
+        </td>
+      </template>
+    </v-data-table>
+  </v-card>
+</template>
+
+<script>
+  export default {
+    name: "myBrand",
+    data() {
+      return {
+        totalBrands: 0, // 总条数
+        brands: [], // 当前页品牌数据
+        search: "", // 查询关键字
+        loading: true, // 是否在加载中
+        pagination: {}, // 分页信息
+        headers: [ // 头信息
+          {text: 'id', align: 'center', value: 'id'},
+          {text: '名称', align: 'center', value: 'name', sortable: false},
+          {text: 'LOGO', align: 'center', value: 'image', sortable: false},
+          {text: '首字母', align: 'center', value: 'letter'},
+          {text: '操作', align: 'center', value: 'id', sortable: false}
+        ]
+      }
+    },
+    watch: {
+      pagination:{
+        deep: true, // 深度监视
+        handler(){
+          this.getDataFromServer();
+        }
+      },
+      search(){
+        this.pagination.page = 1;
+        this.getDataFromServer();
+      }
+    },
+    methods: {
+      getDataFromServer() { // 从服务端加载数据的函数
+        this.loading = true; // 加载数据
+        // 通过axios获取数据
+        this.$http.get("/item/brand/page", {
+          params: {
+            page: this.pagination.page, // 当前页
+            rows: this.pagination.rowsPerPage, // 每页条数
+            sortBy: this.pagination.sortBy, // 排序字段
+            desc: this.pagination.descending, // 是否降序
+            key: this.search // 查询字段
+          }
+        }).then(resp => { // 获取响应结果对象
+          this.totalBrands = resp.data.total; // 总条数
+          this.brands = resp.data.items; // 品牌数据
+          this.loading = false; // 加载完成
+        });
+      }
+    },
+    // 渲染后执行
+    mounted() {
+      this.getDataFromServer() // 调用数据初始化函数
+    }
+  }
+</script>
+
+<!-- scoped:当前样式只作用于当前组件的节点 -->
+<style scoped>
+
+</style>
+```
+
+
+
+
+
+大家下去可以尝试实现品牌的增删改功能
+---
+layout: post
+title:  webpack2
+categories: 乐优
+description: webpack2
+keywords: 乐优
+---
+# 0.学习目标
+
+- 了解vue-router使用
+- 了解webpack使用
+- 会使用vue-cli搭建项目
+- 独立搭建后台管理系统
+- 了解系统基本结构
+
+
+
+# 1.路由vue-router
+
+## 1.1.场景模拟
+
+现在我们来实现这样一个功能：
+
+一个页面，包含登录和注册，点击不同按钮，实现登录和注册页切换：
+
+ ![8gif](/images/leyou/8.gif)
+
+
+
+### 1.1.1.编写父组件
+
+为了让接下来的功能比较清晰，我们先新建一个文件夹：src:
+
+ ![1525868223969](/images/leyou/1525868223969.png)
+
+然后新建一个HTML文件，作为入口：index.html
+
+ ![1525868284332](/images/leyou/1525868284332.png)
+
+然后编写页面的基本结构：
+
+```html
+<div id="app">
+    <span>登录</span>
+    <span>注册</span>
+    <hr/>
+    <div>
+        登录页/注册页
+    </div>
+</div>
+<script src="../node_modules/vue/dist/vue.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el:"#app"
+    })
+</script>
+```
+
+样式：
+
+ ![1525868623712](/images/leyou/1525868623712.png)
+
+
+
+### 1.1.2.编写登录组件
+
+接下来我们来实现登录组件，以前我们都是写在一个文件中，但是为了复用性，开发中都会把组件放如独立的JS文件中，我们新建一个login.js
+
+ ![1525868736799](/images/leyou/1525868736799.png)
+
+编写组件，这里我们只写模板，不写功能：
+
+```js
+const loginForm = {
+    template:'\
+    <div>\
+    <h2>登录页</h2> \
+    用户名：<input type="text"><br/>\
+    密码：<input type="password"><br/>\
+    </div>\
+    '
+}
+```
+
+### 1.1.3.编写注册组件
+
+新建单文件组件：register.js
+
+ ![1525869269916](/images/leyou/1525869269916.png)
+
+编写模板：
+
+```js
+const registerForm = {
+    template:'\
+    <div>\
+    <h2>注册页</h2> \
+    用户名：<input type="text"><br/>\
+    密码：<input type="password"><br/>\
+    确认密码：<input type="password"><br/>\
+    </div>\
+    '
+}
+```
+
+### 1.1.4.在父组件中引用
+
+在index.html中使用刚刚编写的两个组件
+
+```html
+    <div id="app">
+        <span>登录</span>
+        <span>注册</span>
+        <hr/>
+        <div>
+            <login-form></login-form>
+            <register-form></register-form>
+        </div>
+    </div>
+    <script src="../node_modules/vue/dist/vue.js"></script>
+    <script src="js/login.js"></script>
+    <script src="js/register.js"></script>
+    <script type="text/javascript">
+        var vm = new Vue({
+            el:"#app",
+            components:{// 引用登录和注册组件
+                loginForm,
+                registerForm
+            }
+        })
+    </script>
+```
+
+效果：
+
+ ![1525869621647](/images/leyou/1525869621647.png)
+
+### 1.1.5.问题
+
+我们期待的是，当点击登录或注册按钮，分别显示登录页或注册页，而不是一起显示。
+
+但是，如何才能动态加载组件，实现组件切换呢？
+
+虽然使用原生的Html5和JS也能实现，但是官方推荐我们使用vue-router模块。
+
+
+
+## 1.2.vue-router简介和安装
+
+使用vue-router和vue可以非常方便的实现 复杂单页应用的动态路由功能。
+
+官网：https://router.vuejs.org/zh-cn/
+
+使用npm安装：`npm install vue-router --save` 
+
+ ![1525870170532](/images/leyou/1525870170532.png)
+
+在index.html中引入依赖：
+
+```html
+<script src="../node_modules/vue-router/dist/vue-router.js"></script>
+```
+
+
+
+## 1.3.快速入门
+
+新建vue-router对象，并且指定路由规则：
+
+```js
+// 创建VueRouter对象
+const router = new VueRouter({
+    routes:[ // 编写多个路由规则
+        {
+            path:"/login", // 请求路径
+            component:loginForm // 组件名称
+        },
+        {path:"/register",component:registerForm},
+    ]
+})
+```
+
+- 创建VueRouter对象，并指定路由参数
+- routes：路由规则的数组，可以指定多个对象，每个对象是一条路由规则，包含以下属性：
+  - path：路由的路径
+  - component：组件名称
+
+在父组件中引入router对象：
+
+```js
+var vm = new Vue({
+    el:"#app",
+    components:{// 引用登录和注册组件
+        loginForm,
+        registerForm
+    },
+    router // 引用上面定义的router对象
+})
+```
+
+
+
+页面跳转控制：
+
+```html
+<div id="app">
+    <!--router-link来指定跳转的路径-->
+    <span><router-link to="/login">登录</router-link></span>
+    <span><router-link to="/register">注册</router-link></span>
+    <hr/>
+    <div>
+        <!--vue-router的锚点-->
+        <router-view></router-view>
+    </div>
+</div>
+```
+
+- 通过`<router-view>`来指定一个锚点，当路由的路径匹配时，vue-router会自动把对应组件放到锚点位置进行渲染
+- 通过`<router-link>`指定一个跳转链接，当点击时，会触发vue-router的路由功能，路径中的hash值会随之改变
+
+效果：
+
+ ![a3212](/images/leyou/8.gif)
+
+
+
+**注意**：单页应用中，页面的切换并不是页面的跳转。仅仅是地址最后的hash值变化。
+
+事实上，我们总共就一个HTML：index.html
+
+
+
+## 1.4.父子组件
+
+
+
+
+
+# 2.webpack
+
+## 2.1.认识webpack
+
+Webpack 是一个前端资源的打包工具，它可以将js、image、css等资源当成一个模块进行打包。
+
+中文官方网站：https://www.webpackjs.com/
+
+![1525866284055](/images/leyou/1525866284055.png)
+
+官网给出的解释：
+
+![1525866410437](/images/leyou/1525866410437.png)
+
+为什么需要打包？
+
+- 将许多碎小文件打包成一个整体，减少单页面内的衍生请求次数，提高网站效率。
+- 将ES6的高级语法进行转换编译，以兼容老版本的浏览器。
+- 将代码打包的同时进行混淆，提高代码的安全性。
+
+## 2.2.四个核心概念
+
+学习Webpack，你需要先理解四个**核心概念**：
+
+- 入口(entry)
+
+  webpack打包的启点，可以有一个或多个，一般是js文件。webpack会从启点文件开始，寻找启点直接或间接依赖的其它所有的依赖，包括JS、CSS、图片资源等，作为将来打包的原始数据
+
+- 输出(output)
+
+  出口一般包含两个属性：path和filename。用来告诉webpack打包的目标文件夹，以及文件的名称。目的地也可以有多个。
+
+- 加载器（loader）
+
+  webpack本身只识别Js文件，如果要加载非JS文件，必须指定一些额外的加载器（loader），例如css-loader。然后将这些文件转为webpack能处理的有效模块，最后利用webpack的打包能力去处理。
+
+- 插件(plugins)
+
+  插件可以扩展webpack的功能，让webpack不仅仅是完成打包，甚至各种更复杂的功能，或者是对打包功能进行优化、压缩，提高效率。
+
+
+
+## 2.3.安装
+
+webpack支持全局安装和本地安装，官方推荐是本地安装，我们按照官方的来。
+
+输入命令：`npm install webpack webpack-cli --save-dev`
+
+![1525873000269](/images/leyou/1525873000269.png)
+
+此时，我们注意下项目中文件夹下，会有一个package.json文件。（其实早就有了）
+
+ ![1525873145475](/images/leyou/1525873145475.png)
+
+打开文件，可以看到我们之前用npm安装过的文件都会出现在这里：
+
+ ![1525873343908](/images/leyou/1525873343908.png)
+
+
+
+## 2.4.编写webpack配置
+
+接下来，我们编写一个webpack的配置，来指定一些打包的配置项。配置文件的名称，默认就是webpack.config.js，我们放到hello-vue的根目录：
+
+ ![1525873610812](/images/leyou/1525873610812.png)
+
+配置文件中就是要指定上面说的四个核心概念，入口、出口、加载器、插件。
+
+不过，加载器和插件是可选的。我们先编写入口和出口
+
+
+
+### 2.4.1.入口entry
+
+webpack打包的启点，可以有一个或多个，一般是js文件。现在思考一下我们有没有一个入口？貌似没有，我们所有的东西都集中在index.html，不是一个js，那怎么办？
+
+我们新建一个js，把index.html中的部分内容进行集中，然后在index.html中引用这个js不就OK了！
+
+ ![1525874002350](/images/leyou/1525874002350.png)
+
+然后把原来index.html中的js代码全部移动到main.js中
+
+```js
+// 使用es6的语法导入js模块
+import Vue from '../node_modules/vue/dist/vue';
+import VueRouter from '../node_modules/vue-router/dist/vue-router'
+import loginForm from './js/login'
+import registerForm from './js/register'
+
+Vue.use(VueRouter)
+
+// 创建VueRouter对象
+const router = new VueRouter({
+    routes:[ // 编写多个路由规则
+        {
+            path:"/login", // 请求路径
+            component:loginForm // 组件名称
+        },
+        {path:"/register",component:registerForm},
+    ]
+})
+var vm = new Vue({
+    el:"#app",
+    components:{// 引用登录和注册组件
+        loginForm,
+        registerForm
+    },
+    router
+})
+```
+
+- 原来的index.html中引入了很多其它js，在这里我们使用es6的import语法进行导入。
+
+  注意，要使用import，就需要在login.js和register.js中添加export导出语句：
+
+  ```js
+  const loginForm = {
+      template:`
+      <div> 
+      <h2>登录页</h2> 
+      用户名：<input type="text"><br/>
+      密码：<input type="password"><br/>
+      </div>
+      `
+  }
+  export default loginForm;
+  ```
+
+  register.js:
+
+  ```js
+  const registerForm = {
+      template:`
+      <div>
+      <h2>注册页</h2> 
+      用户名：<input type="text"><br/>
+      密码：<input type="password"><br/>
+      确认密码：<input type="password"><br/>
+      </div>
+      `
+  }
+  export default registerForm;
+  
+  ```
+
+  
+
+- vue-router使用模块话加载后，必须增加一句：Vue.use(VueRouter)
+
+这样，main.js就成了我们整个配置的入口了。
+
+
+
+我们在webpack.config.js中添加以下内容：
+
+```js
+module.exports={
+    entry:'./src/main.js',  //指定打包的入口文件
+}
+```
+
+### 2.4.2.出口output
+
+出口，就是输出的目的地。一般我们会用一个dist目录，作为打包输出的文件夹：
+
+ ![1525875474187](../../%E8%AF%BE%E5%90%8E/day05-Vue//images/leyou/1525875474187.png)
+
+然后，编写webpack.config.js，添加出口配置：
+
+```js
+module.exports={
+    entry:'./src/main.js',  //指定打包的入口文件
+    output:{
+        // path: 输出的目录，__dirname是相对于webpack.config.js配置文件的绝对路径
+        path : __dirname+'/dist',  
+        filename:'build.js'	 //输出的js文件名
+    }
+}
+```
+
+
+
+## 2.5.执行打包
+
+在控制台输入以下命令：
+
+```
+npx webpack --config webpack.config.js
+
+```
+
+
+
+![1525875749502](/images/leyou/1525875749502.png)
+
+随后，查看dist目录：
+
+ ![1525875792078](/images/leyou/1525875792078.png)
+
+尝试打开build.js，你根本看不懂：
+
+![1525876060602](/images/leyou/1525876060602.png)
+
+所有的js合并为1个，并且对变量名进行了随机打乱，这样就起到了 压缩、混淆的作用。
+
+
+
+## 2.6.测试运行
+
+在index.html中引入刚刚生成的build.js文件，
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div id="app">
+        <!--router-link来指定跳转的路径-->
+        <span><router-link to="/login">登录</router-link></span>
+        <span><router-link to="/register">注册</router-link></span>
+        <hr/>
+        <div>
+            <!--vue-router的锚点-->
+            <router-view></router-view>
+        </div>
+    </div>
+    <script src="../dist/build.js"></script>
+</body>
+</html>
+```
+
+
+
+然后运行：
+
+ ![1525875932114](/images/leyou/1525875932114.png)
+
+
+
+## 2.7.打包CSS
+
+### 2.7.1.编写css文件
+
+我们来编写一段CSS代码，对index的样式做一些美化：
+
+ ![1525877099220](/images/leyou/1525877099220.png)
+
+内容：
+
+```css
+#app a{
+    display: inline-block;
+    width: 150px;
+    line-height: 30px;
+    background-color: dodgerblue;
+    color: white;
+    font-size: 16px;
+    text-decoration: none;
+}
+#app a:hover{
+    background-color: whitesmoke;
+    color: dodgerblue;
+}
+#app div{
+    width: 300px;
+    height: 150px;
+}
+#app{
+    width: 305px;
+    border: 1px solid dodgerblue;
+}
+```
+
+### 2.7.2.安装加载器
+
+前面说过，webpack默认只支持js加载。要加载CSS文件，必须安装加载器：
+
+命令：
+
+```
+npm install style-loader css-loader --save-dev
+
+```
+
+
+
+![1525877313725](/images/leyou/1525877313725.png)
+
+此时，在package.json中能看到新安装的：
+
+ ![1525877634350](/images/leyou/1525877634350.png)
+
+
+
+### 2.7.3.在main.js引入css文件
+
+因为入口在main.js，因此css文件也要在这里引入。依然使用ES6 的模块语法：
+
+```js
+import './css/main.css'
+```
+
+### 2.7.4.在webpack.config.js添加加载器
+
+```js
+module.exports = {
+    entry: './src/main.js',  //指定打包的入口文件
+    output: {
+        path: __dirname + '/dist', // 注意：__dirname表示webpack.config.js所在目录的绝对路径
+        filename: 'build.js'  //输出文件
+    },
+    module: {
+        rules: [
+            {
+                test: /\.css$/, // 通过正则表达式匹配所有以.css后缀的文件
+                use: [ // 要使用的加载器，这两个顺序一定不要乱
+                    'style-loader',
+                    'css-loader'
+                ]
+            }
+        ]
+    }
+}
+```
+
+### 2.7.5.重新打包
+
+再次输入打包指令：`npx webpack --config webpack.config.js`
+
+ ![1525877746191](/images/leyou/1525877746191.png)
+
+效果：
+
+ ![1525877882425](/images/leyou/1525877882425.png)
+
+
+
+## 2.8.script脚本
+
+我们每次使用npm安装，都会在package.json中留下痕迹，事实上，package.json中不仅可以记录安装的内容，还可编写脚本，让我们运行命令更加快捷。
+
+我们可以把webpack的命令编入其中：
+
+ ![1525878015255](/images/leyou/1525878015255.png)
+
+以后，如果要打包，就可以直接输入：`npm run build`即可。
+
+- `npm run` ：执行npm脚本，后面跟的是脚本的名称`build`
+
+![1525878133337](/images/leyou/1525878133337.png)
+
+## 2.9.打包HTML
+
+之前的打包过程中，除了HTML文件外的其它文件都被打包了，当在线上部署时，我们还得自己复制HTML到dist，然后手动添加生成的js到HTML中，这非常不友好。
+
+webpack中的一个插件：html-webpack-plugin，可以解决这个问题。
+
+1）安装插件：`npm install --save-dev html-webpack-plugin`
+
+需要在webpack.config.js中添加插件：
+
+```js
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+module.exports = {
+    entry: './src/main.js',  //指定打包的入口文件
+    output: {
+        path: __dirname + '/dist',  // 注意：__dirname表示webpack.config.js所在目录的绝对路径
+        filename: 'build.js'		   //输出文件
+    },
+    module: {
+        rules: [
+            {
+                test: /\.css$/, // 通过正则表达式匹配所有以.css后缀的文件
+                use: [ // 要使用的加载器，这两个顺序一定不要乱
+                    'style-loader',
+                    'css-loader'
+                ]
+            }
+        ]
+    },
+    plugins:[
+        new HtmlWebpackPlugin({
+            title: '首页',  //生成的页面标题<head><title>首页</title></head>
+            filename: 'index.html', // dist目录下生成的文件名
+            template: './src/index.html' // 我们原来的index.html，作为模板
+        })
+    ]
+}
+```
+
+
+
+2）将原来HTML中的引入js代码删除：
+
+  ![1527390662284](/images/leyou/1527390662284.png)
+
+3）再次打包：`npm run build`
+
+![1525879126478](/images/leyou/1525879126478.png)
+
+4）查看dist目录：
+
+ ![1525879160040](/images/leyou/1525879160040.png)
+
+打开index.html，发现已经自动添加了当前目录下的build.js
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div id="app">
+        <!--router-link来指定跳转的路径-->
+        <span><router-link to="/login">登录</router-link></span>
+        <span><router-link to="/register">注册</router-link></span>
+        <div>
+            <!--vue-router的锚点-->
+            <router-view></router-view>
+        </div>
+    </div>
+<script type="text/javascript" src="build.js"></script></body>
+</html>
+```
+
+
+
+## 2.10.热更新的web服务
+
+刚才的案例中，每次修改任何js或css内容，都必须重新打包，非常麻烦。
+
+
+
+webpack给我们提供了一个插件，可以帮我们运行一个web服务，加载页面内容，并且修改js后不需要重新加载就能看到最新结果：
+
+1）安装插件：
+
+```
+npm install webpack-dev-server --save-dev
+```
+
+2）添加启动脚本
+
+在package.json中配置script
+
+```js
+  "scripts": {
+    "dev": "webpack-dev-server --inline --hot --open --port 8080 --host 127.0.0.1"
+  },
+```
+
+--inline：自动刷新
+
+--hot：热加载
+
+--port：指定端口
+
+--open：自动在默认浏览器打开
+
+--host：可以指定服务器的 ip，不指定则为127.0.0.1
+
+
+
+3）运行脚本：
+
+```
+npm run dev
+```
+
+
+
+ ![1525912021845](/images/leyou/1525912021845.png)
+
+4）效果：
+
+ ![1525912255757](/images/leyou/1525912255757.png)
+
+# 3.vue-cli
+
+## 3.1.介绍和安装
+
+在开发中，需要打包的东西不止是js、css、html。还有更多的东西要处理，这些插件和加载器如果我们一一去添加就会比较麻烦。
+
+幸好，vue官方提供了一个快速搭建vue项目的脚手架：vue-cli
+
+使用它能快速的构建一个web工程模板。
+
+官网：https://github.com/vuejs/vue-cli
+
+安装命令：
+
+```
+npm install -g vue-cli
+```
+
+
+
+## 3.2.快速上手
+
+我们新建一个module：
+
+ ![1525912928592](/images/leyou/1525912928592.png)
+
+打开终端并进入目录：
+
+ ![1525913049617](/images/leyou/1525913049617.png)
+
+用vue-cli命令，快速搭建一个webpack的项目：`vue init webpack`
+
+![1525913141066](/images/leyou/1525913141066.png)
+
+ ![1525913197139](/images/leyou/1525913197139.png)
+
+前面几项都走默认或yes
+
+下面这些我们选no
+
+ ![1525913230564](/images/leyou/1525913230564.png)
+
+最后，再选yes，使用 npm安装
+
+ ![1525913263487](/images/leyou/1525913263487.png)
+
+
+
+![1525913307569](/images/leyou/1525913307569.png)
+
+
+
+## 3.3.项目结构
+
+安装好的项目结构：
+
+ ![1525913435086](/images/leyou/1525913435086.png)
+
+
+
+入口文件：
+
+![1525913687860](/images/leyou/1525913687860.png)
+
+
+
+## 3.4.单文件组件
+
+需要注意的是，我们看到有一类后缀名为.vue的文件，我们称为单文件组件
+
+![1525914072353](/images/leyou/1525914072353.png)
+
+每一个.vue文件，就是一个独立的vue组件。类似于我们刚才写的loginForm.js和registerForm.js
+
+只不过，我们在js中编写 html模板和样式非常的不友好，而且没有语法提示和高亮。
+
+
+
+而单文件组件中包含三部分内容：
+
+- template：模板，支持html语法高亮和提示
+- script：js脚本，这里编写的就是vue的组件对象，看到上面的data(){}了吧
+- style：样式，支持CSS语法高亮和提示
+
+每个组件都有自己独立的html、JS、CSS，互不干扰，真正做到可独立复用。
+
+
+
+## 3.5.运行
+
+看看生成的package.json：
+
+![1525914618504](/images/leyou/1525914618504.png)
+
+- 可以看到这引入了非常多的依赖，绝大多数都是开发期依赖，比如大量的加载器。
+- 运行时依赖只有vue和vue-router
+- 脚本有三个：
+  - dev：使用了webpack-dev-server命令，开发时热部署使用
+  - start：使用了npm run dev命令，与上面的dev效果完全一样
+  - build：等同于webpack的打包功能，会打包到dist目录下。
+
+我们执行`npm run dev` 或者 `npm start` 都可以启动项目：
+
+ ![1525914808164](/images/leyou/1525914808164.png)
+
+
+
+页面：
+
+![1525914871848](/images/leyou/1525914871848.png)
+
+
+
+# 4.搭建后台管理前端
+
+## 4.1.导入已有资源
+
+后台项目相对复杂，为了有利于教学，我们不再从0搭建项目，而是直接使用课前资料中给大家准备好的源码：
+
+ ![1525955154460](/images/leyou/1525955154460.png)
+
+我们解压缩，放到工作目录中：
+
+ ![1525955615381](/images/leyou/1525955615381.png)
+
+
+
+然后在eclipse中导入新的工程：
+
+ ![1525955644681](/images/leyou/1525955644681.png)
+
+选中我们的工程：
+
+ ![1525955709334](/images/leyou/1525955709334.png)
+
+
+
+这正是一个用vue-cli构建的webpack工程，是不是与昨天的一样：
+
+ ![1525955811416](/images/leyou/1525955811416.png)
+
+## 4.2.安装依赖
+
+你应该注意到，这里并没有node_modules文件夹，方便给大家下发，已经把依赖都删除了。不过package.json中依然定义了我们所需的一切依赖：
+
+ ![1525956016683](/images/leyou/1525956016683.png)
+
+我们只需要通过命令来安装所需依赖即可。打开终端，进入项目目录，输入：`npm install`
+
+ ![1525957503521](/images/leyou/1525957503521.png)
+
+大概需要1分钟。
+
+## 4.3.运行一下看看
+
+输入命令：
+
+```
+npm run dev
+```
+
+ ![1525957604219](/images/leyou/1525957604219.png)
+
+发现默认的端口是9001。访问：http://localhost:9001
+
+会自动进行跳转：
+
+![1525958950616](/images/leyou/1525958950616.png)
+
+
+
+# 5.Vuetify框架
+
+## 5.1.为什么要学习UI框架
+
+Vue负责的是虽然会帮我们进行视图的渲染，但是样式是有我们自己来完成。这显然不是我们的强项，因此后端开发人员一般都喜欢使用一些现成的UI组件，拿来即用，常见的例如：
+
+- BootStrap
+- LayUI
+- EasyUI
+- ZUI
+
+然而这些UI组件的基因天生与Vue不合，因为他们更多的是利用DOM操作，借助于jQuery实现，而不是MVVM的思想。
+
+而目前与Vue吻合的UI框架也非常的多，国内比较知名的如：
+
+- element-ui：饿了么出品
+- i-view：某公司出品
+
+然而我们都不用，我们今天推荐的是一款国外的框架：Vuetify
+
+官方网站：https://vuetifyjs.com/zh-Hans/
+
+![1525960652724](/images/leyou/1525960652724.png)
+
+
+
+
+
+## 5.2.为什么是Vuetify
+
+有中国的为什么还要用外国的？原因如下：
+
+- Vuetify几乎不需要任何CSS代码，而element-ui许多布局样式需要我们来编写
+- Vuetify从底层构建起来的语义化组件。简单易学，容易记住。
+- Vuetify基于Material Design（谷歌推出的多平台设计规范），更加美观，动画效果酷炫，且风格统一
+
+这是官网的说明：
+
+![1525959769978](/images/leyou/1525959769978.png)
+
+缺陷：
+
+- 目前官网虽然有中文文档，但因为翻译问题，几乎不太能看。
+
+
+
+## 5.3.怎么用？
+
+基于官方网站的文档进行学习：
+
+![1525960312939](/images/leyou/1525960312939.png)
+
+
+
+我们重点关注`UI components`即可，里面有大量的UI组件，我们要用的时候再查看，不用现在学习，先看下有什么：
+
+ ![1525961862771](/images/leyou/1525961862771.png)
+
+
+
+ ![1525961875288](/images/leyou/1525961875288.png)
+
+以后用到什么组件，就来查询即可。
+
+
+
+
+
+# 6.项目结构
+
+开始编码前，我们先了解下项目的结构：
+
+## 6.1.目录结构
+
+首先是目录结构图：
+
+![1525962755237](/images/leyou/1525962755237.png)
+
+
+
+## 6.2.调用关系
+
+我们最主要理清index.html、main.js、App.vue之间的关系：
+
+![1525964023585](/images/leyou/1525964023585.png)
+
+
+
+理一下：
+
+- index.html中定义了空的`div`，其id为`app`。
+- main.js中定义了Vue对象，并且绑定通过id选择器，绑定到index.html的div中，因此**main.js的内容都将在index.html的div中显示**。
+- 而main.js中只有一行内容：`<App/>`,这是使用了App组件，即App.vue，也就是说index.html中最终展现的是App.vue中的内容。
+- App.vue中也没有内容，而是定义了vue-router的锚点：`<router-view>`,我们之前讲过，vue-router路由后的组件将会在锚点展示。
+- 最终的结论是：**一切路由后的内容都将通过App.vue在index.html中显示。**
+
+
+
+## 6.3.页面布局
+
+接下来我们一起看下页面布局：
+
+Layout组件是我们的整个页面的布局组件：
+
+![1525965105184](/images/leyou/1525965105184.png)
+
+一个典型的三块布局。包含左，上，中三部分：
+
+ ![1525965779366](/images/leyou/1525965779366.png)
+
+
+
+里面使用了Vuetify中的2个组件和一个布局元素：
+
+- `v-navigation-drawer` ：导航抽屉，主要用于容纳应用程序中的页面的导航链接。 
+
+   ![1525965560286](/images/leyou/1525965560286.png)
+
+- `v-toolbar `：工具栏通常是网站导航的主要途径。可以与导航抽屉一起很好地工作，动态选择是否打开导航抽屉，实现可伸缩的侧边栏。
+
+  ![1525965585695](/images/leyou/1525965585695.png)
+
+- `v-content`：并不是一个组件，而是标记页面布局的元素。可以根据您指定的**app**组件的结构动态调整大小，使得您可以创建高度可定制的组件。
+
+那么问题来了：`v-content`中的内容来自哪里？
+
+![1525966180568](/images/leyou/1525966180568.png)
+
+- Layout映射的路径是`/`
+- 除了Login以为的所有组件，都是定义在Layout的children属性，并且路径都是`/`的下面
+- 因此当路由到子组件时，会在Layout中定义的锚点中显示。
+- 并且Layout中的其它部分不会变化，这就实现了布局的共享。
+---
+layout: post
+title:  搭建管理系统页面
+categories: 乐优
+description: 搭建管理系统页面
+keywords: 乐优
+---
+# 0.学习目标
+
+- 使用资料搭建后台系统
+- 会使用nginx进行反向代理
+- 实现商品分类查询功能
+- 掌握cors解决跨域
+- 实现品牌查询功能
+
+
+
+# 1.使用域名访问本地项目
+
+## 1.1.统一环境
+
+我们现在访问页面使用的是：http://localhost:9001
+
+有没有什么问题？
+
+实际开发中，会有不同的环境：
+
+- 开发环境：自己的电脑
+- 测试环境：提供给测试人员使用的环境
+- 预发布环境：数据是和生成环境的数据一致，运行最新的项目代码进去测试
+- 生产环境：项目最终发布上线的环境
+
+如果不同环境使用不同的ip去访问，可能会出现一些问题。为了保证所有环境的一致，我们会在各种环境下都使用域名来访问。
+
+我们将使用以下域名：
+
+- 主域名是：www.leyou.com，
+- 管理系统域名：manage.leyou.com
+- 网关域名：api.leyou.com
+- ...
+
+但是最终，我们希望这些域名指向的还是我们本机的某个端口。
+
+那么，当我们在浏览器输入一个域名时，浏览器是如何找到对应服务的ip和端口的呢？
+
+## 1.2.域名解析
+
+一个域名一定会被解析为一个或多个ip。这一般会包含两步：
+
+- 本地域名解析
+
+  浏览器会首先在本机的hosts文件中查找域名映射的IP地址，如果查找到就返回IP ，没找到则进行域名服务器解析，一般本地解析都会失败，因为默认这个文件是空的。
+
+  - Windows下的hosts文件地址：C:/Windows/System32/drivers/etc/hosts
+  - Linux下的hosts文件所在路径： /etc/hosts 
+
+  样式：
+
+  ```
+  # My hosts
+  127.0.0.1 localhost
+  0.0.0.0 account.jetbrains.com
+  127.0.0.1 www.xmind.net
+  ```
+
+- 域名服务器解析
+
+  本地解析失败，才会进行域名服务器解析，域名服务器就是网络中的一台计算机，里面记录了所有注册备案的域名和ip映射关系，一般只要域名是正确的，并且备案通过，一定能找到。
+
+
+
+## 1.3.解决域名解析问题
+
+我们不可能去购买一个域名，因此我们可以伪造本地的hosts文件，实现对域名的解析。修改本地的host为：
+
+```
+127.0.0.1 api.leyou.com
+127.0.0.1 manage.leyou.com
+```
+
+这样就实现了域名的关系映射了。
+
+每次在C盘寻找hosts文件并修改是非常麻烦的，给大家推荐一个快捷修改host的工具，在课前资料中可以找到：
+
+ ![1526014883706](/images/leyou/1526014883706.png)
+
+效果：
+
+ ![1526015022365](/images/leyou/1526015022365.png)
+
+我们添加了两个映射关系：
+
+- 127.0.0.1 api.leyou.com ：我们的网关Zuul
+- 127.0.0.1 manage.leyou.com：我们的后台系统地址
+
+现在，ping一下域名试试是否畅通：
+
+ ![1526015211298](/images/leyou/1526015211298.png)
+
+OK！
+
+## 1.4.nginx解决端口问题
+
+虽然域名解决了，但是现在如果我们要访问，还得自己加上端口：`http://manage.taotao.com:9001`。
+
+这就不够优雅了。我们希望的是直接域名访问：`http://manage.taotao.com`。这种情况下端口默认是80，如何才能把请求转移到9001端口呢？
+
+这里就要用到反向代理工具：Nginx
+
+### 1.4.1.什么是Nginx
+
+![1526187409033](/images/leyou/1526187409033.png)
+
+NIO：not-blocking-io 非阻塞IO
+
+BIO：blocking-IO 阻塞IO
+
+nginx可以作为web服务器，但更多的时候，我们把它作为网关，因为它具备网关必备的功能：
+
+- 反向代理
+- 负载均衡
+- 动态路由
+- 请求过滤
+
+### 1.4.2.nginx作为web服务器
+
+Web服务器分2类：
+
+- web应用服务器，如：
+  - tomcat
+  - resin
+  - jetty
+
+- web服务器，如：
+  - Apache 服务器
+  - Nginx
+  - IIS
+
+区分：web服务器不能解析jsp等页面，只能处理js、css、html等静态资源。
+并发：web服务器的并发能力远高于web应用服务器。
+
+Nginx + tomcat
+
+### 1.4.3.nginx作为反向代理
+
+什么是反向代理？
+
+- 代理：通过客户机的配置，实现让一台服务器代理客户机，客户的所有请求都交给代理服务器处理。
+- 反向代理：用一台服务器，代理真实服务器，用户访问时，不再是访问真实服务器，而是代理服务器。
+
+nginx可以当做反向代理服务器来使用：
+
+- 我们需要提前在nginx中配置好反向代理的规则，不同的请求，交给不同的真实服务器处理
+- 当请求到达nginx，nginx会根据已经定义的规则进行请求的转发，从而实现路由功能
+
+
+
+利用反向代理，就可以解决我们前面所说的端口问题，如图
+
+![1526016663674](/images/leyou/1526016663674.png)
+
+### 1.4.4.安装和使用
+
+> ### 安装
+
+安装非常简单，把课前资料提供的nginx直接解压即可，绿色免安装，舒服！
+
+![img](/images/leyou/0C36B84E.gif) 
+
+我们在本地安装一台nginx：
+
+ ![1526016829605](/images/leyou/1526016829605.png)
+
+目录结构：
+
+ ![1526188477802](/images/leyou/1526188477802.png)
+
+
+
+> ### 使用
+
+nginx可以通过命令行来启动，操作命令：
+
+- 启动：`start nginx.exe`
+- 停止：`nginx.exe -s stop`
+- 重新加载：`nginx.exe -s reload`
+
+
+
+> ### 反向代理配置
+
+示例：
+
+ ![1526188831504](/images/leyou/1526188831504.png)
+
+nginx中的每个server就是一个反向代理配置，可以有多个server
+
+
+
+完整配置：
+
+```nginx
+
+#user  nobody;
+worker_processes  1;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+   
+    keepalive_timeout  65;
+
+    gzip  on;
+	server {
+        listen       80;
+        server_name  manage.leyou.com;
+
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        location / {
+			proxy_pass http://127.0.0.1:9001;
+			proxy_connect_timeout 600;
+			proxy_read_timeout 600;
+        }
+    }
+	server {
+        listen       80;
+        server_name  api.leyou.com;
+
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        location / {
+			proxy_pass http://127.0.0.1:10010;
+			proxy_connect_timeout 600;
+			proxy_read_timeout 600;
+        }
+    }
+}
+```
+
+
+
+## 1.5.测试
+
+启动nginx，然后用域名访问后台管理系统：
+
+![1526017010289](/images/leyou/1526017010289.png)
+
+现在实现了域名访问网站了，中间的流程是怎样的呢？
+
+![1526189945180](/images/leyou/1526189945180.png)
+
+1. 浏览器准备发起请求，访问http://mamage.leyou.com，但需要进行域名解析
+
+2. 优先进行本地域名解析，因为我们修改了hosts，所以解析成功，得到地址：127.0.0.1
+
+3. 请求被发往解析得到的ip，并且默认使用80端口：http://127.0.0.1:80
+
+   本机的nginx一直监听80端口，因此捕获这个请求
+
+4. nginx中配置了反向代理规则，将manage.leyou.com代理到127.0.0.1:9001，因此请求被转发
+
+5. 后台系统的webpack server监听的端口是9001，得到请求并处理，完成后将响应返回到nginx
+
+6. nginx将得到的结果返回到浏览器
+
+
+
+# 2.实现商品分类查询
+
+商城的核心自然是商品，而商品多了以后，肯定要进行分类，并且不同的商品会有不同的品牌信息，其关系如图所示：
+
+![1525999005260](/images/leyou/1525999005260.png)
+
+- 一个商品分类下有很多商品
+- 一个商品分类下有很多品牌
+- 而一个品牌，可能属于不同的分类
+- 一个品牌下也会有很多商品
+
+
+
+因此，我们需要依次去完成：商品分类、品牌、商品的开发。
+
+## 2.1.导入数据
+
+首先导入课前资料提供的sql：
+
+ ![1525999677772](/images/leyou/1525999677772.png)
+
+我们先看商品分类表：
+
+ ![1525999774439](/images/leyou/1525999774439.png)
+
+```mysql
+CREATE TABLE `tb_category` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '类目id',
+  `name` varchar(20) NOT NULL COMMENT '类目名称',
+  `parent_id` bigint(20) NOT NULL COMMENT '父类目id,顶级类目填0',
+  `is_parent` tinyint(1) NOT NULL COMMENT '是否为父节点，0为否，1为是',
+  `sort` int(4) NOT NULL COMMENT '排序指数，越小越靠前',
+  PRIMARY KEY (`id`),
+  KEY `key_parent_id` (`parent_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1424 DEFAULT CHARSET=utf8 COMMENT='商品类目表，类目和商品(spu)是一对多关系，类目与品牌是多对多关系';
+```
+
+因为商品分类会有层级关系，因此这里我们加入了`parent_id`字段，对本表中的其它分类进行自关联。
+
+
+
+## 2.2.页面实现
+
+### 2.2.1.页面分析
+
+首先我们看下要实现的效果：
+
+![1525999250932](/images/leyou/1525999250932.png)
+
+商品分类之间是会有层级关系的，采用树结构去展示是最直观的方式。
+
+一起来看页面，对应的是/pages/item/Category.vue：
+
+ ![1526000313361](/images/leyou/1526000313361.png)
+
+页面模板：
+
+```html
+<v-card>
+    <v-flex xs12 sm10>
+        <v-tree url="/item/category/list"
+                :treeData="treeData"
+                :isEdit="isEdit"
+                @handleAdd="handleAdd"
+                @handleEdit="handleEdit"
+                @handleDelete="handleDelete"
+                @handleClick="handleClick"
+                />
+    </v-flex>
+</v-card>
+```
+
+- `v-card`：卡片，是vuetify中提供的组件，提供一个悬浮效果的面板，一般用来展示一组数据。
+
+  ![1526000692741](/images/leyou/1526000692741.png)
+
+- `v-flex`：布局容器，用来控制响应式布局。与BootStrap的栅格系统类似，整个屏幕被分为12格。我们可以控制所占的格数来控制宽度：
+
+  ![1526001573140](/images/leyou/1526001573140.png)
+
+  本例中，我们用`sm10`控制在小屏幕及以上时，显示宽度为10格
+
+- `v-tree`：树组件。Vuetify并没有提供树组件，这个是我们自己编写的自定义组件：
+
+   ![1526001762446](/images/leyou/1526001762446.png)
+
+  里面涉及一些vue的高级用法，大家暂时不要关注其源码，会用即可。
+
+### 2.2.2.树组件的用法
+
+也可参考课前资料中的：《自定义Vue组件的用法.md》
+
+
+
+这里我贴出树组件的用法指南。
+
+> 属性列表：
+
+| 属性名称 | 说明                             | 数据类型 | 默认值 |
+| :------- | :------------------------------- | :------- | :----- |
+| url      | 用来加载数据的地址，即延迟加载   | String   | -      |
+| isEdit   | 是否开启树的编辑功能             | boolean  | false  |
+| treeData | 整颗树数据，这样就不用远程加载了 | Array    | -      |
+
+这里推荐使用url进行延迟加载，**每当点击父节点时，就会发起请求，根据父节点id查询子节点信息**。
+
+当有treeData属性时，就不会触发url加载
+
+远程请求返回的结果格式：
+
+```json
+[
+    { 
+        "id": 74,
+        "name": "手机",
+        "parentId": 0,
+        "isParent": true,
+        "sort": 2
+	},
+     { 
+        "id": 75,
+        "name": "家用电器",
+        "parentId": 0,
+        "isParent": true,
+        "sort": 3
+	}
+]
+```
+
+
+
+> 事件：
+
+| 事件名称     | 说明                                       | 回调参数                                         |
+| :----------- | :----------------------------------------- | :----------------------------------------------- |
+| handleAdd    | 新增节点时触发，isEdit为true时有效         | 新增节点node对象，包含属性：name、parentId和sort |
+| handleEdit   | 当某个节点被编辑后触发，isEdit为true时有效 | 被编辑节点的id和name                             |
+| handleDelete | 当删除节点时触发，isEdit为true时有效       | 被删除节点的id                                   |
+| handleClick  | 点击某节点时触发                           | 被点击节点的node对象,包含全部信息                |
+
+> 完整node的信息
+
+回调函数中返回完整的node节点会包含以下数据：
+
+```json
+{
+    "id": 76, // 节点id
+    "name": "手机", // 节点名称
+    "parentId": 75, // 父节点id
+    "isParent": false, // 是否是父节点
+    "sort": 1, // 顺序
+    "path": ["手机", "手机通讯", "手机"] // 所有父节点的名称数组
+}
+```
+
+## 2.3.实现功能
+
+### 2.3.1.url异步请求
+
+给大家的页面中，treeData是假数据，我们删除数据treeData属性，只保留url看看会发生什么：
+
+```html
+<v-tree url="/item/category/list"
+        :isEdit="isEdit"
+        @handleAdd="handleAdd"
+        @handleEdit="handleEdit"
+        @handleDelete="handleDelete"
+        @handleClick="handleClick"
+        />
+```
+
+刷新页面，可以看到：
+
+![1526004282868](/images/leyou/1526004282868.png)
+
+页面中的树没有了，并且发起了一条请求：http://localhost/api/item/category/list?pid=0 
+
+
+
+大家可能会觉得很奇怪，我们明明是使用的相对路径，讲道理发起的请求地址应该是：
+
+http://manage.leyou.com/item/category/list
+
+但实际却是：
+
+http://localhost/api/item/category/list?pid=0 
+
+这是因为，我们有一个全局的配置文件，对所有的请求路径进行了约定：
+
+ ![1526005059829](/images/leyou/1526005059829.png)
+
+ ![1526005071153](/images/leyou/1526005071153.png)
+
+路径是localhost，并且默认加上了/api的前缀，这恰好与我们的网关设置匹配，我们只需要把地址改成网关的地址即可,因为我们使用了nginx反向代理，这里可以写域名：
+
+ ![1526017217473](/images/leyou/1526017217473.png)
+
+再次查看页面，发现地址已经变成了正确的地址了：
+
+ ![1526017265625](/images/leyou/1526017265625.png)
+
+接下来，我们要做的事情就是编写后台接口，返回对应的数据即可。
+
+
+
+### 2.3.2.实体类
+
+在`ly-item-interface`中添加category实体类：
+
+```java
+@Table(name="tb_category")
+public class Category {
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private Long id;
+	private String name;
+	private Long parentId;
+	private Boolean isParent;
+	private Integer sort;
+	// getter和setter略
+    // 注意isParent的get和set方法
+}
+```
+
+需要注意的是，这里要用到jpa的注解，因此我们在`ly-item-iterface`中添加jpa依赖
+
+```xml
+<dependency>
+    <groupId>javax.persistence</groupId>
+    <artifactId>persistence-api</artifactId>
+    <version>1.0</version>
+</dependency>
+```
+
+结构：
+
+ ![1526006869782](/images/leyou/1526006869782.png)
+
+### 2.3.3.controller
+
+编写一个controller一般需要知道四个内容：
+
+- 请求方式：决定我们用GetMapping还是PostMapping
+- 请求路径：决定映射路径
+- 请求参数：决定方法的参数
+- 返回值结果：决定方法的返回值
+
+在刚才页面发起的请求中，我们就能得到绝大多数信息：
+
+ ![1527473096007](/images/leyou/1527473096007.png)
+
+- 请求方式：Get
+
+- 请求路径：/api/item/category/list。其中/api是网关前缀，/item是网关的路由映射，真实的路径应该是/category/list
+
+- 请求参数：pid=0，根据tree组件的说明，应该是父节点的id，第一次查询为0，那就是查询一级类目
+
+- 返回结果：？？
+
+  根据前面tree组件的用法我们知道，返回的应该是json数组：
+
+  ```json
+  [
+      { 
+          "id": 74,
+          "name": "手机",
+          "parentId": 0,
+          "isParent": true,
+          "sort": 2
+  	},
+       { 
+          "id": 75,
+          "name": "家用电器",
+          "parentId": 0,
+          "isParent": true,
+          "sort": 3
+  	}
+  ]
+  ```
+
+  对应的java类型可以是List集合，里面的元素就是类目对象了。
+
+controller代码：
+
+```java
+@RestController
+@RequestMapping("category")
+public class CategoryController {
+
+    @Autowired
+    private CategoryService categoryService;
+
+    /**
+     * 根据父节点查询商品类目
+     * @param pid
+     * @return
+     */
+    @GetMapping("list")
+    public ResponseEntity<List<Category>> queryByParentId(
+            @RequestParam(value = "pid", defaultValue = "0") Long pid) {
+        List<Category> list = this.categoryService.queryListByParent(pid);
+        if (list == null || list.size() < 1) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(list);
+    }
+}
+```
+
+
+
+### 2.3.4.service
+
+一般service层我们会定义接口和实现类，不过这里我们就偷懒一下，直接写实现类了：
+
+```java
+@Service
+public class CategoryService {
+
+    @Autowired
+    private CategoryMapper categoryMapper;
+
+    public List<Category> queryListByParent(Long pid) {
+        Category category = new Category();
+        category.setParentId(pid);
+        return this.categoryMapper.select(category);
+    }
+}
+```
+
+
+
+### 2.3.5.mapper
+
+我们使用通用mapper来简化开发：
+
+```java
+public interface CategoryMapper extends Mapper<Category> {
+}
+```
+
+要注意，我们并没有在mapper接口上声明@Mapper注解，那么mybatis如何才能找到接口呢？
+
+我们在启动类上添加一个扫描包功能：
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+@MapperScan("com.leyou.item.mapper") // 扫描mapper包
+public class LyItemService {
+    public static void main(String[] args) {
+        SpringApplication.run(LyItemService.class, args);
+    }
+}
+```
+
+### 2.3.6.启动并测试
+
+我们不经过网关，直接访问：
+
+ ![1526009785484](/images/leyou/1526009785484.png)
+
+然后试试网关是否畅通：
+
+  ![1526017422684](/images/leyou/1526017422684.png)
+
+一切OK！
+
+然后刷新页面查看：
+
+![1526017362418](/images/leyou/1526017362418.png)
+
+发现报错了！
+
+浏览器直接访问没事，但是这里却报错，什么原因？
+
+
+
+## 2.4.跨域问题
+
+### 2.4.1.什么是跨域
+
+跨域是指跨域名的访问，以下情况都属于跨域：
+
+| 跨域原因说明       | 示例                                   |
+| ------------------ | -------------------------------------- |
+| 域名不同           | `www.jd.com` 与 `www.taobao.com`       |
+| 域名相同，端口不同 | `www.jd.com:8080` 与 `www.jd.com:8081` |
+| 二级域名不同       | `item.jd.com` 与 `miaosha.jd.com`      |
+
+如果**域名和端口都相同，但是请求路径不同**，不属于跨域，如：
+
+`www.jd.com/item` 
+
+`www.jd.com/goods`
+
+
+
+而我们刚才是从`manage.leyou.com`去访问`api.leyou.com`，这属于二级域名不同，跨域了。
+
+
+
+### 2.4.2.为什么有跨域问题？
+
+跨域不一定会有跨域问题。
+
+因为跨域问题是浏览器对于ajax请求的一种安全限制：**一个页面发起的ajax请求，只能是于当前页同域名的路径**，这能有效的阻止跨站攻击。
+
+因此：**跨域问题 是针对ajax的一种限制**。
+
+但是这却给我们的开发带来了不变，而且在实际生成环境中，肯定会有很多台服务器之间交互，地址和端口都可能不同，怎么办？
+
+
+
+### 2.4.3.解决跨域问题的方案
+
+目前比较常用的跨域解决方案有3种：
+
+- Jsonp
+
+  最早的解决方案，利用script标签可以跨域的原理实现。
+
+  限制：
+
+  - 需要服务的支持
+  - 只能发起GET请求
+
+- nginx反向代理
+
+  思路是：利用nginx反向代理把跨域为不跨域，支持各种请求方式
+
+  缺点：需要在nginx进行额外配置，语义不清晰
+
+- CORS
+
+  规范化的跨域请求解决方案，安全可靠。
+
+  优势：
+
+  - 在服务端进行控制是否允许跨域，可自定义规则
+  - 支持各种请求方式
+
+  缺点：
+
+  - 会产生额外的请求
+
+我们这里会采用cors的跨域方案。
+
+## 2.5.cors解决跨域
+
+### 2.5.1.什么是cors
+
+CORS是一个W3C标准，全称是"跨域资源共享"（Cross-origin resource sharing）。
+
+它允许浏览器向跨源服务器，发出[`XMLHttpRequest`](http://www.ruanyifeng.com/blog/2012/09/xmlhttprequest_level_2.html)请求，从而克服了AJAX只能[同源](http://www.ruanyifeng.com/blog/2016/04/same-origin-policy.html)使用的限制。
+
+CORS需要浏览器和服务器同时支持。目前，所有浏览器都支持该功能，IE浏览器不能低于IE10。
+
+- 浏览器端：
+
+  目前，所有浏览器都支持该功能（IE10以下不行）。整个CORS通信过程，都是浏览器自动完成，不需要用户参与。
+
+- 服务端：
+
+  CORS通信与AJAX没有任何差别，因此你不需要改变以前的业务逻辑。只不过，浏览器会在请求中携带一些头信息，我们需要以此判断是否运行其跨域，然后在响应头中加入一些信息即可。这一般通过过滤器完成即可。
+
+### 2.5.2.原理有点复杂
+
+浏览器会将ajax请求分为两类，其处理方案略有差异：简单请求、特殊请求。
+
+#### 简单请求
+
+只要同时满足以下两大条件，就属于简单请求。：
+
+（1) 请求方法是以下三种方法之一：
+
+- HEAD
+- GET
+- POST
+
+（2）HTTP的头信息不超出以下几种字段：
+
+- Accept
+- Accept-Language
+- Content-Language
+- Last-Event-ID
+- Content-Type：只限于三个值`application/x-www-form-urlencoded`、`multipart/form-data`、`text/plain`
+
+
+
+当浏览器发现发现的ajax请求是简单请求时，会在请求头中携带一个字段：`Origin`.
+
+ ![1526019242125](/images/leyou/1526019242125.png)
+
+Origin中会指出当前请求属于哪个域（协议+域名+端口）。服务会根据这个值决定是否允许其跨域。
+
+如果服务器允许跨域，需要在返回的响应头中携带下面信息：
+
+```http
+Access-Control-Allow-Origin: http://manage.leyou.com
+Access-Control-Allow-Credentials: true
+Content-Type: text/html; charset=utf-8
+```
+
+- Access-Control-Allow-Origin：可接受的域，是一个具体域名或者*，代表任意
+- Access-Control-Allow-Credentials：是否允许携带cookie，默认情况下，cors不会携带cookie，除非这个值是true
+
+注意：
+
+如果跨域请求要想操作cookie，需要满足3个条件：
+
+- 服务的响应头中需要携带Access-Control-Allow-Credentials并且为true。
+- 浏览器发起ajax需要指定withCredentials 为true
+- 响应头中的Access-Control-Allow-Origin一定不能为*，必须是指定的域名
+
+#### 特殊请求
+
+不符合简单请求的条件，会被浏览器判定为特殊请求,，例如请求方式为PUT。
+
+> 预检请求
+
+特殊请求会在正式通信之前，增加一次HTTP查询请求，称为"预检"请求（preflight）。
+
+浏览器先询问服务器，当前网页所在的域名是否在服务器的许可名单之中，以及可以使用哪些HTTP动词和头信息字段。只有得到肯定答复，浏览器才会发出正式的`XMLHttpRequest`请求，否则就报错。
+
+一个“预检”请求的样板：
+
+```http
+OPTIONS /cors HTTP/1.1
+Origin: http://manage.leyou.com
+Access-Control-Request-Method: PUT
+Access-Control-Request-Headers: X-Custom-Header
+Host: api.leyou.com
+Accept-Language: en-US
+Connection: keep-alive
+User-Agent: Mozilla/5.0...
+```
+
+与简单请求相比，除了Origin以外，多了两个头：
+
+- Access-Control-Request-Method：接下来会用到的请求方式，比如PUT
+- Access-Control-Request-Headers：会额外用到的头信息
+
+> 预检请求的响应
+
+服务的收到预检请求，如果许可跨域，会发出响应：
+
+```http
+HTTP/1.1 200 OK
+Date: Mon, 01 Dec 2008 01:15:39 GMT
+Server: Apache/2.0.61 (Unix)
+Access-Control-Allow-Origin: http://manage.leyou.com
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Methods: GET, POST, PUT
+Access-Control-Allow-Headers: X-Custom-Header
+Access-Control-Max-Age: 1728000
+Content-Type: text/html; charset=utf-8
+Content-Encoding: gzip
+Content-Length: 0
+Keep-Alive: timeout=2, max=100
+Connection: Keep-Alive
+Content-Type: text/plain
+```
+
+除了`Access-Control-Allow-Origin`和`Access-Control-Allow-Credentials`以外，这里又额外多出3个头：
+
+- Access-Control-Allow-Methods：允许访问的方式
+- Access-Control-Allow-Headers：允许携带的头
+- Access-Control-Max-Age：本次许可的有效时长，单位是秒，**过期之前的ajax请求就无需再次进行预检了**
+
+
+
+如果浏览器得到上述响应，则认定为可以跨域，后续就跟简单请求的处理是一样的了。
+
+### 2.5.3.实现非常简单
+
+虽然原理比较复杂，但是前面说过：
+
+- 浏览器端都有浏览器自动完成，我们无需操心
+- 服务端可以通过拦截器统一实现，不必每次都去进行跨域判定的编写。
+
+事实上，SpringMVC已经帮我们写好了CORS的跨域过滤器：CorsFilter ,内部已经实现了刚才所讲的判定逻辑，我们直接用就好了。
+
+在`ly-api-gateway`中编写一个配置类，并且注册CorsFilter：
+
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+@Configuration
+public class GlobalCorsConfig {
+    @Bean
+    public CorsFilter corsFilter() {
+        //1.添加CORS配置信息
+        CorsConfiguration config = new CorsConfiguration();
+        //1) 允许的域,不要写*，否则cookie就无法使用了
+        config.addAllowedOrigin("http://manage.leyou.com");
+        //2) 是否发送Cookie信息
+        config.setAllowCredentials(true);
+        //3) 允许的请求方式
+        config.addAllowedMethod("OPTIONS");
+        config.addAllowedMethod("HEAD");
+        config.addAllowedMethod("GET");
+        config.addAllowedMethod("PUT");
+        config.addAllowedMethod("POST");
+        config.addAllowedMethod("DELETE");
+        config.addAllowedMethod("PATCH");
+        // 4）允许的头信息
+        config.addAllowedHeader("*");
+
+        //2.添加映射路径，我们拦截一切请求
+        UrlBasedCorsConfigurationSource configSource = new UrlBasedCorsConfigurationSource();
+        configSource.registerCorsConfiguration("/**", config);
+
+        //3.返回新的CorsFilter.
+        return new CorsFilter(configSource);
+    }
+}
+```
+
+结构：
+
+ ![1526021505774](/images/leyou/1526021505774.png)
+
+
+
+4.5.4.重启测试：
+
+访问正常：
+
+ ![1526021419016](/images/leyou/1526021419016.png)
+
+页面也OK了：
+
+![1526021447335](/images/leyou/1526021447335.png)
+
+
+
+分类的增删改功能暂时就不做了，页面已经预留好了事件接口，有兴趣的同学可以完成一下。
+
+
+
+# 3.品牌的查询
+
+商品分类完成以后，自然轮到了品牌功能了。
+
+先看看我们要实现的效果：
+
+![1526021968036](/images/leyou/1526021968036.png)
+
+
+
+接下来，我们从0开始，实现下从前端到后端的完整开发。
+
+## 3.1.从0开始
+
+为了方便看到效果，我们新建一个MyBrand.vue（注意先停掉服务器），从0开始搭建。
+
+ ![1526023142926](/images/leyou/1526023142926.png)
+
+内容初始化一下：
+
+```vue
+<template>
+  <span>
+    hello
+  </span>
+</template>
+
+<script>
+    export default {
+        name: "my-brand"
+    }
+</script>
+
+<style scoped>
+
+</style>
+```
+
+改变router新的index.js，将路由地址指向MyBrand.vue
+
+![1526023276997](/images/leyou/1526023276997.png)
+
+打开服务器，再次查看页面：
+
+![1526023471428](/images/leyou/1526023471428.png)
+
+
+
+干干净净了。
+
+
+
+## 3.2.品牌查询页面
+
+### 3.2.1.data-tables组件
+
+大家看到这个原型页面肯定能看出，其主体就是一个table。我们去Vuetify查看有关table的文档：
+
+![1526023540226](/images/leyou/1526023540226.png)
+
+仔细阅读，发现`v-data-table`中有以下核心属性：
+
+- dark：是否使用黑暗色彩主题，默认是false
+
+- expand：表格的行是否可以展开，默认是false
+
+- headers：定义表头的数组，数组的每个元素就是一个表头信息对象，结构：
+
+  ```js
+  {
+    text: string, // 表头的显示文本
+    value: string, // 表头对应的每行数据的key
+    align: 'left' | 'center' | 'right', // 位置
+    sortable: boolean, // 是否可排序
+    class: string[] | string,// 样式
+    width: string,// 宽度
+  }
+  ```
+
+- items：表格的数据的数组，数组的每个元素是一行数据的对象，对象的key要与表头的value一致
+
+- loading：是否显示加载数据的进度条，默认是false
+
+- no-data-text：当没有查询到数据时显示的提示信息，string类型，无默认值
+
+- pagination.sync：包含分页和排序信息的对象，将其与vue实例中的属性关联，表格的分页或排序按钮被触发时，会自动将最新的分页和排序信息更新。对象结构：
+
+  ```js
+  {
+      page: 1, // 当前页
+      rowsPerPage: 5, // 每页大小
+      sortBy: '', // 排序字段
+      descending:false, // 是否降序
+  }
+  ```
+
+- total-items：分页的总条数信息，number类型，无默认值
+
+- select-all ：是否显示每一行的复选框，Boolean类型，无默认值
+
+- value：当表格可选的时候，返回选中的行
+
+
+
+我们向下翻，找找有没有看起来牛逼的案例。
+
+找到这样一条：
+
+![1526023837773](/images/leyou/1526023837773.png)
+
+其它的案例都是由Vuetify帮我们对查询到的当前页数据进行排序和分页，这显然不是我们想要的。我们希望能在服务端完成对整体品牌数据的排序和分页，而这个案例恰好合适。
+
+点击按钮，我们直接查看源码，然后直接复制到MyBrand.vue中
+
+模板：
+
+```vue
+<template>
+  <div>
+    <v-data-table
+      :headers="headers"
+      :items="desserts"
+      :search="search"
+      :pagination.sync="pagination"
+      :total-items="totalDesserts"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td>{{ props.item.name }}</td>
+        <td class="text-xs-right">{{ props.item.calories }}</td>
+        <td class="text-xs-right">{{ props.item.fat }}</td>
+        <td class="text-xs-right">{{ props.item.carbs }}</td>
+        <td class="text-xs-right">{{ props.item.protein }}</td>
+        <td class="text-xs-right">{{ props.item.iron }}</td>
+      </template>
+    </v-data-table>
+  </div>
+</template>
+```
+
+
+
+### 3.2.2.分析
+
+接下来，就分析一下案例中每一部分是什么意思，搞清楚了，我们也可以自己玩了。
+
+先看模板中table上的一些属性：
+
+```vue
+<v-data-table
+              :headers="headers"
+              :items="desserts"
+              :search="search"
+              :pagination.sync="pagination"
+              :total-items="totalDesserts"
+              :loading="loading"
+              class="elevation-1"
+              >
+</v-data-table>
+```
+
+- headers：表头信息，是一个数组
+
+- items：要在表格中展示的数据，数组结构，每一个元素是一行
+
+- search：搜索过滤字段，用不到，暂时不管
+
+- pagination.sync：分页信息，包含了当前页，每页大小，排序字段，排序方式等。加上.sync代表服务端排序，当用户点击分页条时，该对象的值会跟着变化。监控这个值，并在这个值变化时去服务端查询，即可实现页面数据动态加载了。
+
+- total-items：总条数
+
+- loading：boolean类型，true：代表数据正在加载，会有进度条。false：数据加载完毕。
+
+  ![1526029254159](/images/leyou/1526029254159.png)
+
+
+
+另外，在`v-data-tables`中，我们还看到另一段代码：
+
+```vue
+<template slot="items" slot-scope="props">
+        <td>{{ props.item.name }}</td>
+        <td class="text-xs-right">{{ props.item.calories }}</td>
+        <td class="text-xs-right">{{ props.item.fat }}</td>
+        <td class="text-xs-right">{{ props.item.carbs }}</td>
+        <td class="text-xs-right">{{ props.item.protein }}</td>
+        <td class="text-xs-right">{{ props.item.iron }}</td>
+</template>
+```
+
+这段就是在渲染每一行的数据。Vue会自动遍历上面传递的`items`属性，并把得到的对象传递给这段`template`中的`props.item`属性。我们从中得到数据，渲染在页面即可。
+
+
+
+我们需要做的事情，主要有两件：
+
+- 给items和totalItems赋值
+- 当pagination变化时，重新获取数据，再次给items和totalItems赋值
+
+
+
+### 3.2.3.初步实现
+
+我们先弄点假品牌数据：
+
+```json
+[
+  {
+    "id": 2032,
+    "name": "OPPO",
+    "image": "http://img10.360buyimg.com/popshop/jfs/t2119/133/2264148064/4303/b8ab3755/56b2f385N8e4eb051.jpg",
+    "letter": "O"
+  },
+  {
+    "id": 2033,
+    "name": "飞利浦（PHILIPS）",
+    "image": "http://img12.360buyimg.com/popshop/jfs/t18361/122/1318410299/1870/36fe70c9/5ac43a4dNa44a0ce0.jpg",
+    "letter": "F"
+  },
+  {
+    "id": 2034,
+    "name": "华为（HUAWEI）",
+    "image": "http://img10.360buyimg.com/popshop/jfs/t5662/36/8888655583/7806/1c629c01/598033b4Nd6055897.jpg",
+    "letter": "H"
+  },
+  {
+    "id": 2036,
+    "name": "酷派（Coolpad）",
+    "image": "http://img10.360buyimg.com/popshop/jfs/t2521/347/883897149/3732/91c917ec/5670cf96Ncffa2ae6.jpg",
+    "letter": "K"
+  },
+  {
+    "id": 2037,
+    "name": "魅族（MEIZU）",
+    "image": "http://img13.360buyimg.com/popshop/jfs/t3511/131/31887105/4943/48f83fa9/57fdf4b8N6e95624d.jpg",
+    "letter": "M"
+  }
+]
+```
+
+品牌中有id,name,image,letter字段。
+
+
+
+#### 修改模板
+
+```vue
+  <div>
+    <v-data-table
+      :headers="headers"
+      :items="brands"
+      :search="search"
+      :pagination.sync="pagination"
+      :total-items="totalBrands"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td>{{ props.item.id }}</td>
+        <td class="text-xs-center">{{ props.item.name }}</td>
+        <td class="text-xs-center">
+          <img v-if="props.item.image" :src="props.item.image" width="130" height="40">
+          <span v-else>无</span>
+        </td>
+        <td class="text-xs-center">{{ props.item.letter }}</td>
+      </template>
+    </v-data-table>
+  </div>
+```
+
+我们修改了以下部分：
+
+- items：指向一个brands变量，等下在js代码中定义
+- total-items：指向了totalBrands变量，等下在js代码中定义
+- template模板中，渲染了四个字段：
+  - id：
+  - name
+  - image，注意，我们不是以文本渲染，而是赋值到一个`img`标签的src属性中，并且做了非空判断
+  - letter
+
+#### 编写数据
+
+接下来编写要用到的数据：
+
+```js
+{
+	data() {
+      return {
+        search: '', // 搜索过滤字段
+        totalBrands: 0, // 总条数
+        brands: [], // 当前页品牌数据
+        loading: true, // 是否在加载中
+        pagination: {}, // 分页信息
+        headers: [ // 头信息
+          {text: 'id', align: 'center', value: 'id'},
+          {text: '名称', align: 'center', sortable: false, value: 'name'},
+          {text: 'LOGO', align: 'center', sortable: false, value: 'image'},
+          {text: '首字母', align: 'center', value: 'letter', sortable: true,}
+        ]
+      }
+  }
+}
+```
+
+
+
+#### 编写函数，初始化数据
+
+接下来就是对brands和totalBrands完成赋值动作了。
+
+我们编写一个函数来完成赋值，提高复用性：
+
+```js
+methods:{
+      getDataFromServer(){ // 从服务的加载数据的方法。
+        // 伪造假数据
+        const brands = [
+          {
+            "id": 2032,
+            "name": "OPPO",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t2119/133/2264148064/4303/b8ab3755/56b2f385N8e4eb051.jpg",
+            "letter": "O",
+            "categories": null
+          },
+          {
+            "id": 2033,
+            "name": "飞利浦（PHILIPS）",
+            "image": "http://img12.360buyimg.com/popshop/jfs/t18361/122/1318410299/1870/36fe70c9/5ac43a4dNa44a0ce0.jpg",
+            "letter": "F",
+            "categories": null
+          },
+          {
+            "id": 2034,
+            "name": "华为（HUAWEI）",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t5662/36/8888655583/7806/1c629c01/598033b4Nd6055897.jpg",
+            "letter": "H",
+            "categories": null
+          },
+          {
+            "id": 2036,
+            "name": "酷派（Coolpad）",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t2521/347/883897149/3732/91c917ec/5670cf96Ncffa2ae6.jpg",
+            "letter": "K",
+            "categories": null
+          },
+          {
+            "id": 2037,
+            "name": "魅族（MEIZU）",
+            "image": "http://img13.360buyimg.com/popshop/jfs/t3511/131/31887105/4943/48f83fa9/57fdf4b8N6e95624d.jpg",
+            "letter": "M",
+            "categories": null
+          }
+        ];
+        // 模拟延迟一段时间，随后进行赋值
+        setTimeout(() => {
+          // 然后赋值给brands
+          this.brands = brands;
+          this.totalBrands = brands.length;
+          // 完成赋值后，把加载状态赋值为false
+          this.loading = false;
+        },400)
+      }
+}
+```
+
+然后使用钩子函数，在Vue实例初始化完毕后调用这个方法，这里使用mounted（渲染后）函数：
+
+```js
+mounted(){ // 渲染后执行
+    // 查询数据
+    this.getDataFromServer();
+}
+```
+
+
+
+#### 完整代码
+
+```vue
+<template>
+  <div>
+    <v-data-table
+      :headers="headers"
+      :items="brands"
+      :search="search"
+      :pagination.sync="pagination"
+      :total-items="totalBrands"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td>{{ props.item.id }}</td>
+        <td class="text-xs-center">{{ props.item.name }}</td>
+        <td class="text-xs-center"><img :src="props.item.image"></td>
+        <td class="text-xs-center">{{ props.item.letter }}</td>
+      </template>
+    </v-data-table>
+  </div>
+</template>
+
+<script>
+  export default {
+    name: "my-brand",
+    data() {
+      return {
+        search: '', // 搜索过滤字段
+        totalBrands: 0, // 总条数
+        brands: [], // 当前页品牌数据
+        loading: true, // 是否在加载中
+        pagination: {}, // 分页信息
+        headers: [
+          {text: 'id', align: 'center', value: 'id'},
+          {text: '名称', align: 'center', sortable: false, value: 'name'},
+          {text: 'LOGO', align: 'center', sortable: false, value: 'image'},
+          {text: '首字母', align: 'center', value: 'letter', sortable: true,}
+        ]
+      }
+    },
+    mounted(){ // 渲染后执行
+      // 查询数据
+      this.getDataFromServer();
+    },
+    methods:{
+      getDataFromServer(){ // 从服务的加载数的方法。
+        // 伪造假数据
+        const brands = [
+          {
+            "id": 2032,
+            "name": "OPPO",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t2119/133/2264148064/4303/b8ab3755/56b2f385N8e4eb051.jpg",
+            "letter": "O",
+            "categories": null
+          },
+          {
+            "id": 2033,
+            "name": "飞利浦（PHILIPS）",
+            "image": "http://img12.360buyimg.com/popshop/jfs/t18361/122/1318410299/1870/36fe70c9/5ac43a4dNa44a0ce0.jpg",
+            "letter": "F",
+            "categories": null
+          },
+          {
+            "id": 2034,
+            "name": "华为（HUAWEI）",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t5662/36/8888655583/7806/1c629c01/598033b4Nd6055897.jpg",
+            "letter": "H",
+            "categories": null
+          },
+          {
+            "id": 2036,
+            "name": "酷派（Coolpad）",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t2521/347/883897149/3732/91c917ec/5670cf96Ncffa2ae6.jpg",
+            "letter": "K",
+            "categories": null
+          },
+          {
+            "id": 2037,
+            "name": "魅族（MEIZU）",
+            "image": "http://img13.360buyimg.com/popshop/jfs/t3511/131/31887105/4943/48f83fa9/57fdf4b8N6e95624d.jpg",
+            "letter": "M",
+            "categories": null
+          }
+        ];
+        // 模拟延迟一段时间，随后进行赋值
+        setTimeout(() => {
+          // 然后赋值给brands
+          this.brands = brands;
+          this.totalBrands = brands.length;
+          // 完成赋值后，把加载状态赋值为false
+          this.loading = false;
+        },400)
+      }
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>
+```
+
+
+
+刷新页面查看：
+
+![1526029445561](/images/leyou/1526029445561.png)
+
+
+
+### 3.2.4.优化页面
+
+#### 编辑和删除按钮
+
+我们将来要对品牌进行增删改，需要给每一行数据添加 修改删除的按钮，一般放到改行的最后一列：
+
+![1526029907794](/images/leyou/1526029907794.png)
+
+其实就是多了一列，只是这一列没有数据，而是两个按钮而已。
+
+我们先在头（headers）中添加一列：
+
+```js
+headers: [
+    {text: 'id', align: 'center', value: 'id'},
+    {text: '名称', align: 'center', sortable: false, value: 'name'},
+    {text: 'LOGO', align: 'center', sortable: false, value: 'image'},
+    {text: '首字母', align: 'center', value: 'letter', sortable: true,},
+    {text: '操作', align: 'center', value: 'id', sortable: false}
+]
+```
+
+然后在模板中添加按钮：
+
+```vue
+<template slot="items" slot-scope="props">
+  <td>{{ props.item.id }}</td>
+  <td class="text-xs-center">{{ props.item.name }}</td>
+  <td class="text-xs-center"><img :src="props.item.image"></td>
+  <td class="text-xs-center">{{ props.item.letter }}</td>
+  <td class="justify-center">
+    编辑/删除
+  </td>
+</template>
+```
+
+因为不知道按钮怎么写，先放个普通文本看看：
+
+![1526030236992](/images/leyou/1526030236992.png)
+
+然后在官方文档中找到按钮的用法：
+
+![1526030329303](/images/leyou/1526030329303.png)
+
+修改我们的模板：
+
+```vue
+<template slot="items" slot-scope="props">
+    <td>{{ props.item.id }}</td>
+    <td class="text-xs-center">{{ props.item.name }}</td>
+    <td class="text-xs-center"><img :src="props.item.image"></td>
+    <td class="text-xs-center">{{ props.item.letter }}</td>
+    <td class="justify-center layout">
+        <v-btn color="info">编辑</v-btn>
+        <v-btn color="warning">删除</v-btn>
+    </td>
+</template>
+```
+
+![1526030431704](/images/leyou/1526030431704.png)
+
+#### 新增按钮
+
+因为新增根某个品牌无关，是独立的，因此我们可以放到表格的外面：
+
+ ![1526030663178](/images/leyou/1526030663178.png)
+
+效果：
+
+![1526030540341](/images/leyou/1526030540341.png)
+
+
+
+#### 卡片（card）
+
+为了不让按钮显得过于孤立，我们可以将按`新增按钮`和`表格`放到一张卡片（card）中。
+
+我们去官网查看卡片的用法：
+
+![1526031159242](/images/leyou/1526031159242.png)
+
+卡片`v-card`包含四个基本组件：
+
+- v-card-media：一般放图片或视频
+- v-card-title：卡片的标题，一般位于卡片顶部
+- v-card-text：卡片的文本（主体内容），一般位于卡片正中
+- v-card-action：卡片的按钮，一般位于卡片底部
+
+我们可以把`新增的按钮`放到`v-card-title`位置，把`table`放到下面，这样就成一个上下关系。
+
+```vue
+  <v-card>
+    <!-- 卡片的头部 -->
+    <v-card-title>
+      <v-btn color="primary">新增</v-btn>
+    </v-card-title>
+    <!-- 分割线 -->
+    <v-divider/>
+    <!--卡片的中部-->
+    <v-data-table
+      :headers="headers"
+      :items="brands"
+      :search="search"
+      :pagination.sync="pagination"
+      :total-items="totalBrands"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td>{{ props.item.id }}</td>
+        <td class="text-xs-center">{{ props.item.name }}</td>
+        <td class="text-xs-center"><img :src="props.item.image"></td>
+        <td class="text-xs-center">{{ props.item.letter }}</td>
+        <td class="justify-center layout">
+          <v-btn color="info">编辑</v-btn>
+          <v-btn color="warning">删除</v-btn>
+        </td>
+      </template>
+    </v-data-table>
+  </v-card>
+```
+
+效果：
+
+![1526031720583](/images/leyou/1526031720583.png)
+
+#### 添加搜索框
+
+我们还可以在卡片头部添加一个搜索框，其实就是一个文本输入框。
+
+查看官网中，文本框的用法：
+
+![1526031897445](/images/leyou/1526031897445.png)
+
+- name：字段名，表单中会用到
+- label：提示文字
+- value：值。可以用v-model代替，实现双向绑定
+
+
+
+修改模板，添加输入框：
+
+```html
+<v-card-title>
+    <v-btn color="primary">新增品牌</v-btn>
+    <!--搜索框，与search属性关联-->
+    <v-text-field label="输入关键字搜索" v-model="search"/>
+</v-card-title>
+```
+
+效果：
+
+![1526032177687](/images/leyou/1526032177687.png)
+
+发现输入框变的超级长！！！
+
+这个时候，我们可以使用Vuetify提供的一个空间隔离工具：
+
+![1526032321057](/images/leyou/1526032321057.png)
+
+修改代码：
+
+```html
+    <v-card-title>
+      <v-btn color="primary">新增品牌</v-btn>
+      <!--空间隔离组件-->
+      <v-spacer />
+      <!--搜索框，与search属性关联-->
+      <v-text-field label="输入关键字搜索" v-model="search"/>
+    </v-card-title>
+```
+
+
+
+![1526032398630](/images/leyou/1526032398630.png)
+
+
+
+#### 给搜索框添加搜索图标
+
+查看textfiled的文档，发现：
+
+ ![1526033007616](/images/leyou/1526033007616.png)
+
+通过append-icon属性可以为 输入框添加后置图标，所有可用图标名称可以到 [material-icons官网](https://material.io/tools/icons/)去查看。
+
+修改我们的代码：
+
+```html
+<v-text-field label="输入关键字搜索" v-model="search" append-icon="search"/>
+```
+
+![1526033167381](/images/leyou/1526033167381.png)
+
+
+
+#### 把文本框变紧凑
+
+搜索框看起来高度比较高，页面不够紧凑。这其实是因为默认在文本框下面预留有错误提示空间。通过下面的属性可以取消提示：
+
+![1526033439890](/images/leyou/1526033439890.png)
+
+修改代码：
+
+```html
+<v-text-field label="输入关键字搜索" v-model="search" append-icon="search" hide-details/>
+```
+
+效果：
+
+![1526033500219](/images/leyou/1526033500219.png)
+
+几乎已经达到了原来一样的效果了吧！
+
+
+
+## 3.3.后台提供查询接口
+
+前台页面已经准备好，接下来就是后台提供数据接口了。
+
+### 3.3.1.数据库表
+
+```mysql
+CREATE TABLE `tb_brand` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '品牌id',
+  `name` varchar(50) NOT NULL COMMENT '品牌名称',
+  `image` varchar(200) DEFAULT '' COMMENT '品牌图片地址',
+  `letter` char(1) DEFAULT '' COMMENT '品牌的首字母',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=325400 DEFAULT CHARSET=utf8 COMMENT='品牌表，一个品牌下有多个商品（spu），一对多关系';
+
+```
+
+简单的四个字段，不多解释。
+
+这里需要注意的是，品牌和商品分类之间是多对多关系。因此我们有一张中间表，来维护两者间关系：
+
+```mysql
+CREATE TABLE `tb_category_brand` (
+  `category_id` bigint(20) NOT NULL COMMENT '商品类目id',
+  `brand_id` bigint(20) NOT NULL COMMENT '品牌id',
+  PRIMARY KEY (`category_id`,`brand_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商品分类和品牌的中间表，两者是多对多关系';
+
+```
+
+但是，你可能会发现，这张表中并**没有设置外键约束**，似乎与数据库的设计范式不符。为什么这么做？
+
+- 外键会严重影响数据库读写的效率
+- 数据删除时会比较麻烦
+
+在电商行业，性能是非常重要的。我们宁可在代码中通过逻辑来维护表关系，也不设置外键。
+
+
+
+### 3.3.2.实体类
+
+```java
+@Table(name = "tb_brand")
+public class Brand {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;// 品牌名称
+    private String image;// 品牌图片
+    private Character letter;
+    // getter setter 略
+}
+```
+
+
+
+### 3.3.3.mapper
+
+通用mapper来简化开发：
+
+```java
+public interface BrandMapper extends Mapper<Brand> {
+}
+```
+
+### 3.3.4.controller
+
+编写controller先思考四个问题，这次没有前端代码，需要我们自己来设定
+
+- 请求方式：查询，肯定是Get
+
+- 请求路径：分页查询，/brand/page
+
+- 请求参数：根据我们刚才编写的页面，有分页功能，有排序功能，有搜索过滤功能，因此至少要有5个参数：
+
+  - page：当前页，int
+  - rows：每页大小，int
+  - sortBy：排序字段，String
+  - desc：是否为降序，boolean
+  - key：搜索关键词，String
+
+- 响应结果：分页结果一般至少需要两个数据
+
+  - total：总条数
+  - items：当前页数据
+  - totalPage：有些还需要总页数
+
+  这里我们封装一个类，来表示分页结果：
+
+  ```java
+  public class PageResult<T> {
+      private Long total;// 总条数
+      private Long totalPage;// 总页数
+      private List<T> items;// 当前页数据
+  
+      public PageResult() {
+      }
+  
+      public PageResult(Long total, List<T> items) {
+          this.total = total;
+          this.items = items;
+      }
+  
+      public PageResult(Long total, Long totalPage, List<T> items) {
+          this.total = total;
+          this.totalPage = totalPage;
+          this.items = items;
+      }
+  
+      public Long getTotal() {
+          return total;
+      }
+  
+      public void setTotal(Long total) {
+          this.total = total;
+      }
+  
+      public List<T> getItems() {
+          return items;
+      }
+  
+      public void setItems(List<T> items) {
+          this.items = items;
+      }
+  
+      public Long getTotalPage() {
+          return totalPage;
+      }
+  
+      public void setTotalPage(Long totalPage) {
+          this.totalPage = totalPage;
+      }
+  }
+  ```
+
+  另外，这个PageResult以后可能在其它项目中也有需求，因此我们将其抽取到`ly-common`中，提高复用性：
+
+   ![1526046620269](/images/leyou/1526046620269.png)
+
+接下来，我们编写Controller
+
+```java
+@RestController
+@RequestMapping("brand")
+public class BrandController {
+
+    @Autowired
+    private BrandService brandService;
+
+    @GetMapping("page")
+    public ResponseEntity<PageResult<Brand>> queryBrandByPage(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "rows", defaultValue = "5") Integer rows,
+            @RequestParam(value = "sortBy", required = false) String sortBy,
+            @RequestParam(value = "desc", defaultValue = "false") Boolean desc,
+            @RequestParam(value = "key", required = false) String key) {
+        PageResult<Brand> result = this.brandService.queryBrandByPageAndSort(page,rows,sortBy,desc, key);
+        if (result == null || result.getItems().size() == 0) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(result);
+    }
+}
+
+```
+
+
+
+### 3.3.5.Service
+
+```java
+@Service
+public class BrandService {
+
+    @Autowired
+    private BrandMapper brandMapper;
+
+    public PageResult<Brand> queryBrandByPageAndSort(
+            Integer page, Integer rows, String sortBy, Boolean desc, String key) {
+        // 开始分页
+        PageHelper.startPage(page, rows);
+        // 过滤
+        Example example = new Example(Brand.class);
+        if (StringUtils.isNotBlank(key)) {
+            example.createCriteria().andLike("name", "%" + key + "%")
+                    .orEqualTo("letter", key);
+        }
+        if (StringUtils.isNotBlank(sortBy)) {
+            // 排序
+            String orderByClause = sortBy + (desc ? " DESC" : " ASC");
+            example.setOrderByClause(orderByClause);
+        }
+        // 查询
+        Page<Brand> pageInfo = (Page<Brand>) brandMapper.selectByExample(example);
+        // 返回结果
+        return new PageResult<>(pageInfo.getTotal(), pageInfo);
+    }
+}
+```
+
+
+
+### 3.3.6.测试
+
+通过浏览器访问试试：http://api.leyou.com/api/item/brand/page
+
+ ![1526047708748](/images/leyou/1526047708748.png)
+
+接下来，去页面请求数据并渲染
+
+
+
+## 4.4.异步查询工具axios
+
+异步查询数据，自然是通过ajax查询，大家首先想起的肯定是jQuery。但jQuery与MVVM的思想不吻合，而且ajax只是jQuery的一小部分。因此不可能为了发起ajax请求而去引用这么大的一个库。
+
+### 4.3.1.axios入门
+
+Vue官方推荐的ajax请求框架叫做：axios，看下demo：
+
+![1526033988251](/images/leyou/1526033988251.png)
+
+axios的Get请求语法：
+
+```js
+axios.get("/item/category/list?pid=0") // 请求路径和请求参数拼接
+    .then(function(resp){
+    	// 成功回调函数
+	})
+    .catch(function(){
+    	// 失败回调函数
+	})
+// 参数较多时，可以通过params来传递参数
+axios.get("/item/category/list", {
+        params:{
+            pid:0
+        }
+	})
+    .then(function(resp){})// 成功时的回调
+    .catch(function(error){})// 失败时的回调
+```
+
+axios的POST请求语法：
+
+比如新增一个用户
+
+```js
+axios.post("/user",{
+    	name:"Jack",
+    	age:21
+	})
+    .then(function(resp){})
+    .catch(function(error){})
+```
+
+- 注意，POST请求传参，不需要像GET请求那样定义一个对象，在对象的params参数中传参。post()方法的第二个参数对象，就是将来要传递的参数
+
+PUT和DELETE请求与POST请求类似
+
+### 4.3.2.axios的全局配置
+
+而在我们的项目中，已经引入了axios，并且进行了简单的封装，在src下的http.js中：
+
+ ![1526034150067](/images/leyou/1526034150067.png)
+
+http.js中对axios进行了一些默认配置：
+
+```js
+import Vue from 'vue'
+import axios from 'axios'
+import config from './config'
+// config中定义的基础路径是：http://api.leyou.com/api
+axios.defaults.baseURL = config.api; // 设置axios的基础请求路径
+axios.defaults.timeout = 2000; // 设置axios的请求时间
+
+Vue.prototype.$http = axios;// 将axios赋值给Vue原型的$http属性，这样所有vue实例都可使用该对象
+
+```
+
+- http.js中导入了config的配置，还记得吗？
+
+    ![1526041205846](/images/leyou/1526041205846.png)
+
+- http.js对axios进行了全局配置：`baseURL=config.api`，即`http://api.leyou.com/api`。因此以后所有用axios发起的请求，都会以这个地址作为前缀。
+
+- 通过`Vue.property.$http = axios`，将`axios`赋值给了 Vue原型中的`$http`。这样以后所有的Vue实例都可以访问到$http，也就是访问到了axios了。
+
+### 4.3.3.测试一下：
+
+我们在组件`MyBrand.vue`的getDataFromServer方法，通过$http发起get请求，测试查询品牌的接口，看是否能获取到数据：
+
+   ![1526048221750](/images/leyou/1526048079191.png)
+
+网络监视：
+
+ ![1526048143014](/images/leyou/1526048143014.png)
+
+控制台结果：
+
+![1526048275064](/images/leyou/1526048275064.png)
+
+可以看到，在请求成功的返回结果response中，有一个data属性，里面就是真正的响应数据。
+
+响应结果中与我们设计的一致，包含3个内容：
+
+- total：总条数，目前是165
+- items：当前页数据
+- totalPage：总页数，我们没有返回
+
+
+
+## 4.5.异步加载品牌数据
+
+虽然已经通过ajax请求获取了品牌数据，但是刚才的请求没有携带任何参数，这样显然不对。我们后端接口需要5个参数：
+
+- page：当前页，int
+- rows：每页大小，int
+- sortBy：排序字段，String
+- desc：是否为降序，boolean
+- key：搜索关键词，String
+
+而页面中分页信息应该是在pagination对象中，我们通过浏览器工具，查看pagination中有哪些属性：
+
+ ![](/images/leyou/1526042136135.png)
+
+分别是：
+
+- descending：是否是降序，对应请求参数的desc
+- page：当前页，对应参数的page
+- rowsPerpage：每页大小，对应参数中的rows
+- sortBy：排序字段，对应参数的sortBy
+
+缺少一个搜索关键词，这个应该是通过v-model与输入框绑定的属性：search。这样，所有参数就都有了。
+
+
+
+另外，不要忘了把查询的结果赋值给brands和totalBrands属性，Vuetify会帮我们渲染页面。
+
+
+
+接下来，我们在`getDataFromServer`方法中完善请求参数：
+
+```js
+// 发起请求
+this.$http.get("/item/brand/page",{
+        params:{
+            key: this.search, // 搜索条件
+            page: this.pagination.page,// 当前页
+            rows: this.pagination.rowsPerPage,// 每页大小
+            sortBy: this.pagination.sortBy,// 排序字段
+            desc: this.pagination.descending// 是否降序
+        }
+    }).then(resp => { // 这里使用箭头函数
+        // 将得到的数据赋值给本地属性
+        this.brands = resp.data.items;
+        this.totalBrands = resp.data.total;
+        // 完成赋值后，把加载状态赋值为false
+        this.loading = false;
+    })
+```
+
+查看网络请求：
+
+ ![1526049810351](/images/leyou/1526049810351.png)
+
+效果：
+
+![1526049139244](/images/leyou/1526049139244.png)
+
+
+
+## 4.6.完成分页和过滤
+
+### 4.6.1.分页
+
+现在我们实现了页面加载时的第一次查询，你会发现你点击分页或搜索不会发起新的请求，怎么办？
+
+
+
+虽然点击分页，不会发起请求，但是通过浏览器工具查看，会发现pagination对象的属性一直在变化：
+
+ ![](/images/leyou/9.gif)
+
+我们可以利用Vue的监视功能：watch，当pagination发生改变时，会调用我们的回调函数，我们在回调函数中进行数据的查询即可！
+
+具体实现：
+
+![1526049643506](/images/leyou/1526049643506.png)
+
+成功实现分页功能：
+
+![1526049720200](/images/leyou/1526049720200.png)
+
+
+
+### 4.6.2.过滤
+
+分页实现了，过滤也很好实现了。过滤字段对应的是search属性，我们只要监视这个属性即可:
+
+ ![1526049939985](/images/leyou/1526049939985.png)
+
+查看网络请求：
+
+ ![1526050032436](/images/leyou/1526050032436.png)
+
+页面结果：
+
+![1526050071442](/images/leyou/1526050071442.png)
+
+
+
+## 4.7.完整代码
+
+```vue
+<template>
+  <v-card>
+    <v-card-title>
+      <v-btn color="primary" @click="addBrand">新增品牌</v-btn>
+      <!--搜索框，与search属性关联-->
+      <v-spacer/>
+      <v-text-field label="输入关键字搜索" v-model.lazy="search" append-icon="search" hide-details/>
+    </v-card-title>
+    <v-divider/>
+    <v-data-table
+      :headers="headers"
+      :items="brands"
+      :search="search"
+      :pagination.sync="pagination"
+      :total-items="totalBrands"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td>{{ props.item.id }}</td>
+        <td class="text-xs-center">{{ props.item.name }}</td>
+        <td class="text-xs-center"><img :src="props.item.image"></td>
+        <td class="text-xs-center">{{ props.item.letter }}</td>
+        <td class="justify-center layout">
+          <v-btn color="info">编辑</v-btn>
+          <v-btn color="warning">删除</v-btn>
+        </td>
+      </template>
+    </v-data-table>
+  </v-card>
+</template>
+
+<script>
+  import MyBrandForm from './MyBrandForm'
+  export default {
+    name: "my-brand",
+    data() {
+      return {
+        search: '', // 搜索过滤字段
+        totalBrands: 0, // 总条数
+        brands: [], // 当前页品牌数据
+        loading: true, // 是否在加载中
+        pagination: {}, // 分页信息
+        headers: [
+          {text: 'id', align: 'center', value: 'id'},
+          {text: '名称', align: 'center', sortable: false, value: 'name'},
+          {text: 'LOGO', align: 'center', sortable: false, value: 'image'},
+          {text: '首字母', align: 'center', value: 'letter', sortable: true,},
+          {text: '操作', align: 'center', value: 'id', sortable: false}
+        ]
+      }
+    },
+    mounted() { // 渲染后执行
+      // 查询数据
+      this.getDataFromServer();
+    },
+    watch: {
+      pagination: { // 监视pagination属性的变化
+        deep: true, // deep为true，会监视pagination的属性及属性中的对象属性变化
+        handler() {
+          // 变化后的回调函数，这里我们再次调用getDataFromServer即可
+          this.getDataFromServer();
+        }
+      },
+      search: { // 监视搜索字段
+        handler() {
+          this.getDataFromServer();
+        }
+      }
+    },
+    methods: {
+      getDataFromServer() { // 从服务的加载数的方法。
+        // 发起请求
+        this.$http.get("/item/brand/page", {
+          params: {
+            key: this.search, // 搜索条件
+            page: this.pagination.page,// 当前页
+            rows: this.pagination.rowsPerPage,// 每页大小
+            sortBy: this.pagination.sortBy,// 排序字段
+            desc: this.pagination.descending// 是否降序
+          }
+        }).then(resp => { // 这里使用箭头函数
+          this.brands = resp.data.items;
+          this.totalBrands = resp.data.total;
+          // 完成赋值后，把加载状态赋值为false
+          this.loading = false;
+        })
+      }
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>
+
+```
+---
+layout: post
+title:  商品分类及品牌
+categories: 乐优
+description: 商品分类及品牌
+keywords: 乐优
+---
+# 0.学习目标
+
+- 使用资料搭建后台系统
+- 会使用nginx进行反向代理
+- 实现商品分类查询功能
+- 掌握cors解决跨域
+- 实现品牌查询功能
+
+
+
+# 1.使用域名访问本地项目
+
+## 1.1.统一环境
+
+我们现在访问页面使用的是：http://localhost:9001
+
+有没有什么问题？
+
+实际开发中，会有不同的环境：
+
+- 开发环境：自己的电脑
+- 测试环境：提供给测试人员使用的环境
+- 预发布环境：数据是和生成环境的数据一致，运行最新的项目代码进去测试
+- 生产环境：项目最终发布上线的环境
+
+如果不同环境使用不同的ip去访问，可能会出现一些问题。为了保证所有环境的一致，我们会在各种环境下都使用域名来访问。
+
+我们将使用以下域名：
+
+- 主域名是：www.leyou.com，
+- 管理系统域名：manage.leyou.com
+- 网关域名：api.leyou.com
+- ...
+
+但是最终，我们希望这些域名指向的还是我们本机的某个端口。
+
+那么，当我们在浏览器输入一个域名时，浏览器是如何找到对应服务的ip和端口的呢？
+
+## 1.2.域名解析
+
+一个域名一定会被解析为一个或多个ip。这一般会包含两步：
+
+- 本地域名解析
+
+  浏览器会首先在本机的hosts文件中查找域名映射的IP地址，如果查找到就返回IP ，没找到则进行域名服务器解析，一般本地解析都会失败，因为默认这个文件是空的。
+
+  - Windows下的hosts文件地址：C:/Windows/System32/drivers/etc/hosts
+  - Linux下的hosts文件所在路径： /etc/hosts 
+
+  样式：
+
+  ```
+  # My hosts
+  127.0.0.1 localhost
+  0.0.0.0 account.jetbrains.com
+  127.0.0.1 www.xmind.net
+  ```
+
+- 域名服务器解析
+
+  本地解析失败，才会进行域名服务器解析，域名服务器就是网络中的一台计算机，里面记录了所有注册备案的域名和ip映射关系，一般只要域名是正确的，并且备案通过，一定能找到。
+
+
+
+## 1.3.解决域名解析问题
+
+我们不可能去购买一个域名，因此我们可以伪造本地的hosts文件，实现对域名的解析。修改本地的host为：
+
+```
+127.0.0.1 api.leyou.com
+127.0.0.1 manage.leyou.com
+```
+
+这样就实现了域名的关系映射了。
+
+每次在C盘寻找hosts文件并修改是非常麻烦的，给大家推荐一个快捷修改host的工具，在课前资料中可以找到：
+
+ ![1526014883706](/images/leyou/1526014883706.png)
+
+效果：
+
+ ![1526015022365](/images/leyou/1526015022365.png)
+
+我们添加了两个映射关系：
+
+- 127.0.0.1 api.leyou.com ：我们的网关Zuul
+- 127.0.0.1 manage.leyou.com：我们的后台系统地址
+
+现在，ping一下域名试试是否畅通：
+
+ ![1526015211298](/images/leyou/1526015211298.png)
+
+OK！
+
+## 1.4.nginx解决端口问题
+
+虽然域名解决了，但是现在如果我们要访问，还得自己加上端口：`http://manage.taotao.com:9001`。
+
+这就不够优雅了。我们希望的是直接域名访问：`http://manage.taotao.com`。这种情况下端口默认是80，如何才能把请求转移到9001端口呢？
+
+这里就要用到反向代理工具：Nginx
+
+### 1.4.1.什么是Nginx
+
+![1526187409033](/images/leyou/1526187409033.png)
+
+NIO：not-blocking-io 非阻塞IO
+
+BIO：blocking-IO 阻塞IO
+
+nginx可以作为web服务器，但更多的时候，我们把它作为网关，因为它具备网关必备的功能：
+
+- 反向代理
+- 负载均衡
+- 动态路由
+- 请求过滤
+
+### 1.4.2.nginx作为web服务器
+
+Web服务器分2类：
+
+- web应用服务器，如：
+  - tomcat
+  - resin
+  - jetty
+
+- web服务器，如：
+  - Apache 服务器
+  - Nginx
+  - IIS
+
+区分：web服务器不能解析jsp等页面，只能处理js、css、html等静态资源。
+并发：web服务器的并发能力远高于web应用服务器。
+
+Nginx + tomcat
+
+### 1.4.3.nginx作为反向代理
+
+什么是反向代理？
+
+- 代理：通过客户机的配置，实现让一台服务器代理客户机，客户的所有请求都交给代理服务器处理。
+- 反向代理：用一台服务器，代理真实服务器，用户访问时，不再是访问真实服务器，而是代理服务器。
+
+nginx可以当做反向代理服务器来使用：
+
+- 我们需要提前在nginx中配置好反向代理的规则，不同的请求，交给不同的真实服务器处理
+- 当请求到达nginx，nginx会根据已经定义的规则进行请求的转发，从而实现路由功能
+
+
+
+利用反向代理，就可以解决我们前面所说的端口问题，如图
+
+![1526016663674](/images/leyou/1526016663674.png)
+
+### 1.4.4.安装和使用
+
+> ### 安装
+
+安装非常简单，把课前资料提供的nginx直接解压即可，绿色免安装，舒服！
+
+![img](/images/leyou/0C36B84E.gif) 
+
+我们在本地安装一台nginx：
+
+ ![1526016829605](/images/leyou/1526016829605.png)
+
+目录结构：
+
+ ![1526188477802](/images/leyou/1526188477802.png)
+
+
+
+> ### 使用
+
+nginx可以通过命令行来启动，操作命令：
+
+- 启动：`start nginx.exe`
+- 停止：`nginx.exe -s stop`
+- 重新加载：`nginx.exe -s reload`
+
+
+
+> ### 反向代理配置
+
+示例：
+
+ ![1526188831504](/images/leyou/1526188831504.png)
+
+nginx中的每个server就是一个反向代理配置，可以有多个server
+
+
+
+完整配置：
+
+```nginx
+
+#user  nobody;
+worker_processes  1;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+   
+    keepalive_timeout  65;
+
+    gzip  on;
+	server {
+        listen       80;
+        server_name  manage.leyou.com;
+
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        location / {
+			proxy_pass http://127.0.0.1:9001;
+			proxy_connect_timeout 600;
+			proxy_read_timeout 600;
+        }
+    }
+	server {
+        listen       80;
+        server_name  api.leyou.com;
+
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        location / {
+			proxy_pass http://127.0.0.1:10010;
+			proxy_connect_timeout 600;
+			proxy_read_timeout 600;
+        }
+    }
+}
+```
+
+
+
+## 1.5.测试
+
+启动nginx，然后用域名访问后台管理系统：
+
+![1526017010289](/images/leyou/1526017010289.png)
+
+现在实现了域名访问网站了，中间的流程是怎样的呢？
+
+![1526189945180](/images/leyou/1526189945180.png)
+
+1. 浏览器准备发起请求，访问http://mamage.leyou.com，但需要进行域名解析
+
+2. 优先进行本地域名解析，因为我们修改了hosts，所以解析成功，得到地址：127.0.0.1
+
+3. 请求被发往解析得到的ip，并且默认使用80端口：http://127.0.0.1:80
+
+   本机的nginx一直监听80端口，因此捕获这个请求
+
+4. nginx中配置了反向代理规则，将manage.leyou.com代理到127.0.0.1:9001，因此请求被转发
+
+5. 后台系统的webpack server监听的端口是9001，得到请求并处理，完成后将响应返回到nginx
+
+6. nginx将得到的结果返回到浏览器
+
+
+
+# 2.实现商品分类查询
+
+商城的核心自然是商品，而商品多了以后，肯定要进行分类，并且不同的商品会有不同的品牌信息，其关系如图所示：
+
+![1525999005260](/images/leyou/1525999005260.png)
+
+- 一个商品分类下有很多商品
+- 一个商品分类下有很多品牌
+- 而一个品牌，可能属于不同的分类
+- 一个品牌下也会有很多商品
+
+
+
+因此，我们需要依次去完成：商品分类、品牌、商品的开发。
+
+## 2.1.导入数据
+
+首先导入课前资料提供的sql：
+
+ ![1525999677772](/images/leyou/1525999677772.png)
+
+我们先看商品分类表：
+
+ ![1525999774439](/images/leyou/1525999774439.png)
+
+```mysql
+CREATE TABLE `tb_category` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '类目id',
+  `name` varchar(20) NOT NULL COMMENT '类目名称',
+  `parent_id` bigint(20) NOT NULL COMMENT '父类目id,顶级类目填0',
+  `is_parent` tinyint(1) NOT NULL COMMENT '是否为父节点，0为否，1为是',
+  `sort` int(4) NOT NULL COMMENT '排序指数，越小越靠前',
+  PRIMARY KEY (`id`),
+  KEY `key_parent_id` (`parent_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1424 DEFAULT CHARSET=utf8 COMMENT='商品类目表，类目和商品(spu)是一对多关系，类目与品牌是多对多关系';
+```
+
+因为商品分类会有层级关系，因此这里我们加入了`parent_id`字段，对本表中的其它分类进行自关联。
+
+
+
+## 2.2.页面实现
+
+### 2.2.1.页面分析
+
+首先我们看下要实现的效果：
+
+![1525999250932](/images/leyou/1525999250932.png)
+
+商品分类之间是会有层级关系的，采用树结构去展示是最直观的方式。
+
+一起来看页面，对应的是/pages/item/Category.vue：
+
+ ![1526000313361](/images/leyou/1526000313361.png)
+
+页面模板：
+
+```html
+<v-card>
+    <v-flex xs12 sm10>
+        <v-tree url="/item/category/list"
+                :treeData="treeData"
+                :isEdit="isEdit"
+                @handleAdd="handleAdd"
+                @handleEdit="handleEdit"
+                @handleDelete="handleDelete"
+                @handleClick="handleClick"
+                />
+    </v-flex>
+</v-card>
+```
+
+- `v-card`：卡片，是vuetify中提供的组件，提供一个悬浮效果的面板，一般用来展示一组数据。
+
+  ![1526000692741](/images/leyou/1526000692741.png)
+
+- `v-flex`：布局容器，用来控制响应式布局。与BootStrap的栅格系统类似，整个屏幕被分为12格。我们可以控制所占的格数来控制宽度：
+
+  ![1526001573140](/images/leyou/1526001573140.png)
+
+  本例中，我们用`sm10`控制在小屏幕及以上时，显示宽度为10格
+
+- `v-tree`：树组件。Vuetify并没有提供树组件，这个是我们自己编写的自定义组件：
+
+   ![1526001762446](/images/leyou/1526001762446.png)
+
+  里面涉及一些vue的高级用法，大家暂时不要关注其源码，会用即可。
+
+### 2.2.2.树组件的用法
+
+也可参考课前资料中的：《自定义Vue组件的用法.md》
+
+
+
+这里我贴出树组件的用法指南。
+
+> 属性列表：
+
+| 属性名称 | 说明                             | 数据类型 | 默认值 |
+| :------- | :------------------------------- | :------- | :----- |
+| url      | 用来加载数据的地址，即延迟加载   | String   | -      |
+| isEdit   | 是否开启树的编辑功能             | boolean  | false  |
+| treeData | 整颗树数据，这样就不用远程加载了 | Array    | -      |
+
+这里推荐使用url进行延迟加载，**每当点击父节点时，就会发起请求，根据父节点id查询子节点信息**。
+
+当有treeData属性时，就不会触发url加载
+
+远程请求返回的结果格式：
+
+```json
+[
+    { 
+        "id": 74,
+        "name": "手机",
+        "parentId": 0,
+        "isParent": true,
+        "sort": 2
+	},
+     { 
+        "id": 75,
+        "name": "家用电器",
+        "parentId": 0,
+        "isParent": true,
+        "sort": 3
+	}
+]
+```
+
+
+
+> 事件：
+
+| 事件名称     | 说明                                       | 回调参数                                         |
+| :----------- | :----------------------------------------- | :----------------------------------------------- |
+| handleAdd    | 新增节点时触发，isEdit为true时有效         | 新增节点node对象，包含属性：name、parentId和sort |
+| handleEdit   | 当某个节点被编辑后触发，isEdit为true时有效 | 被编辑节点的id和name                             |
+| handleDelete | 当删除节点时触发，isEdit为true时有效       | 被删除节点的id                                   |
+| handleClick  | 点击某节点时触发                           | 被点击节点的node对象,包含全部信息                |
+
+> 完整node的信息
+
+回调函数中返回完整的node节点会包含以下数据：
+
+```json
+{
+    "id": 76, // 节点id
+    "name": "手机", // 节点名称
+    "parentId": 75, // 父节点id
+    "isParent": false, // 是否是父节点
+    "sort": 1, // 顺序
+    "path": ["手机", "手机通讯", "手机"] // 所有父节点的名称数组
+}
+```
+
+## 2.3.实现功能
+
+### 2.3.1.url异步请求
+
+给大家的页面中，treeData是假数据，我们删除数据treeData属性，只保留url看看会发生什么：
+
+```html
+<v-tree url="/item/category/list"
+        :isEdit="isEdit"
+        @handleAdd="handleAdd"
+        @handleEdit="handleEdit"
+        @handleDelete="handleDelete"
+        @handleClick="handleClick"
+        />
+```
+
+刷新页面，可以看到：
+
+![1526004282868](/images/leyou/1526004282868.png)
+
+页面中的树没有了，并且发起了一条请求：http://localhost/api/item/category/list?pid=0 
+
+
+
+大家可能会觉得很奇怪，我们明明是使用的相对路径，讲道理发起的请求地址应该是：
+
+http://manage.leyou.com/item/category/list
+
+但实际却是：
+
+http://localhost/api/item/category/list?pid=0 
+
+这是因为，我们有一个全局的配置文件，对所有的请求路径进行了约定：
+
+ ![1526005059829](/images/leyou/1526005059829.png)
+
+ ![1526005071153](/images/leyou/1526005071153.png)
+
+路径是localhost，并且默认加上了/api的前缀，这恰好与我们的网关设置匹配，我们只需要把地址改成网关的地址即可,因为我们使用了nginx反向代理，这里可以写域名：
+
+ ![1526017217473](/images/leyou/1526017217473.png)
+
+再次查看页面，发现地址已经变成了正确的地址了：
+
+ ![1526017265625](/images/leyou/1526017265625.png)
+
+接下来，我们要做的事情就是编写后台接口，返回对应的数据即可。
+
+
+
+### 2.3.2.实体类
+
+在`ly-item-interface`中添加category实体类：
+
+ ![1527483519579](/images/leyou/1527483519579.png)
+
+```java
+@Table(name="tb_category")
+public class Category {
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private Long id;
+	private String name;
+	private Long parentId;
+	private Boolean isParent;
+	private Integer sort;
+	// getter和setter略
+    // 注意isParent的get和set方法
+}
+```
+
+需要注意的是，这里要用到jpa的注解，因此我们在`ly-item-iterface`中添加jpa依赖
+
+```xml
+<dependency>
+    <groupId>javax.persistence</groupId>
+    <artifactId>persistence-api</artifactId>
+    <version>1.0</version>
+</dependency>
+```
+
+结构：
+
+ ![1526006869782](/images/leyou/1526006869782.png)
+
+### 2.3.3.controller
+
+编写一个controller一般需要知道四个内容：
+
+- 请求方式：决定我们用GetMapping还是PostMapping
+- 请求路径：决定映射路径
+- 请求参数：决定方法的参数
+- 返回值结果：决定方法的返回值
+
+在刚才页面发起的请求中，我们就能得到绝大多数信息：
+
+ ![1527473096007](/images/leyou/1527473096007.png)
+
+- 请求方式：Get
+
+- 请求路径：/api/item/category/list。其中/api是网关前缀，/item是网关的路由映射，真实的路径应该是/category/list
+
+- 请求参数：pid=0，根据tree组件的说明，应该是父节点的id，第一次查询为0，那就是查询一级类目
+
+- 返回结果：？？
+
+  根据前面tree组件的用法我们知道，返回的应该是json数组：
+
+  ```json
+  [
+      { 
+          "id": 74,
+          "name": "手机",
+          "parentId": 0,
+          "isParent": true,
+          "sort": 2
+  	},
+       { 
+          "id": 75,
+          "name": "家用电器",
+          "parentId": 0,
+          "isParent": true,
+          "sort": 3
+  	}
+  ]
+  ```
+
+  对应的java类型可以是List集合，里面的元素就是类目对象了。
+
+
+
+controller代码：
+
+```java
+@RestController
+@RequestMapping("category")
+public class CategoryController {
+
+    @Autowired
+    private CategoryService categoryService;
+
+    /**
+     * 根据父节点查询商品类目
+     * @param pid
+     * @return
+     */
+    @GetMapping("list")
+    public ResponseEntity<List<Category>> queryByParentId(
+            @RequestParam(value = "pid", defaultValue = "0") Long pid) {
+        List<Category> list = this.categoryService.queryListByParent(pid);
+        if (list == null || list.size() < 1) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(list);
+    }
+}
+```
+
+
+
+### 2.3.4.service
+
+一般service层我们会定义接口和实现类，不过这里我们就偷懒一下，直接写实现类了：
+
+```java
+@Service
+public class CategoryService {
+
+    @Autowired
+    private CategoryMapper categoryMapper;
+
+    public List<Category> queryListByParent(Long pid) {
+        Category category = new Category();
+        category.setParentId(pid);
+        return this.categoryMapper.select(category);
+    }
+}
+```
+
+
+
+### 2.3.5.mapper
+
+我们使用通用mapper来简化开发：
+
+```java
+public interface CategoryMapper extends Mapper<Category> {
+}
+```
+
+要注意，我们并没有在mapper接口上声明@Mapper注解，那么mybatis如何才能找到接口呢？
+
+我们在启动类上添加一个扫描包功能：
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+@MapperScan("com.leyou.item.mapper") // 扫描mapper包
+public class LyItemService {
+    public static void main(String[] args) {
+        SpringApplication.run(LyItemService.class, args);
+    }
+}
+```
+
+
+
+项目结构：
+
+ ![1527483458604](/images/leyou/1527483458604.png)
+
+
+
+### 2.3.6.启动并测试
+
+我们不经过网关，直接访问：
+
+ ![1526009785484](/images/leyou/1526009785484.png)
+
+然后试试网关是否畅通：
+
+  ![1526017422684](/images/leyou/1526017422684.png)
+
+一切OK！
+
+然后刷新页面查看：
+
+![1526017362418](/images/leyou/1526017362418.png)
+
+发现报错了！
+
+浏览器直接访问没事，但是这里却报错，什么原因？
+
+
+
+## 2.4.跨域问题
+
+### 2.4.1.什么是跨域
+
+跨域是指跨域名的访问，以下情况都属于跨域：
+
+| 跨域原因说明       | 示例                                   |
+| ------------------ | -------------------------------------- |
+| 域名不同           | `www.jd.com` 与 `www.taobao.com`       |
+| 域名相同，端口不同 | `www.jd.com:8080` 与 `www.jd.com:8081` |
+| 二级域名不同       | `item.jd.com` 与 `miaosha.jd.com`      |
+
+如果**域名和端口都相同，但是请求路径不同**，不属于跨域，如：
+
+`www.jd.com/item` 
+
+`www.jd.com/goods`
+
+
+
+而我们刚才是从`manage.leyou.com`去访问`api.leyou.com`，这属于二级域名不同，跨域了。
+
+
+
+### 2.4.2.为什么有跨域问题？
+
+跨域不一定会有跨域问题。
+
+因为跨域问题是浏览器对于ajax请求的一种安全限制：**一个页面发起的ajax请求，只能是于当前页同域名的路径**，这能有效的阻止跨站攻击。
+
+因此：**跨域问题 是针对ajax的一种限制**。
+
+但是这却给我们的开发带来了不变，而且在实际生成环境中，肯定会有很多台服务器之间交互，地址和端口都可能不同，怎么办？
+
+
+
+### 2.4.3.解决跨域问题的方案
+
+目前比较常用的跨域解决方案有3种：
+
+- Jsonp
+
+  最早的解决方案，利用script标签可以跨域的原理实现。
+
+  限制：
+
+  - 需要服务的支持
+  - 只能发起GET请求
+
+- nginx反向代理
+
+  思路是：利用nginx反向代理把跨域为不跨域，支持各种请求方式
+
+  缺点：需要在nginx进行额外配置，语义不清晰
+
+- CORS
+
+  规范化的跨域请求解决方案，安全可靠。
+
+  优势：
+
+  - 在服务端进行控制是否允许跨域，可自定义规则
+  - 支持各种请求方式
+
+  缺点：
+
+  - 会产生额外的请求
+
+我们这里会采用cors的跨域方案。
+
+## 2.5.cors解决跨域
+
+### 2.5.1.什么是cors
+
+CORS是一个W3C标准，全称是"跨域资源共享"（Cross-origin resource sharing）。
+
+它允许浏览器向跨源服务器，发出[`XMLHttpRequest`](http://www.ruanyifeng.com/blog/2012/09/xmlhttprequest_level_2.html)请求，从而克服了AJAX只能[同源](http://www.ruanyifeng.com/blog/2016/04/same-origin-policy.html)使用的限制。
+
+CORS需要浏览器和服务器同时支持。目前，所有浏览器都支持该功能，IE浏览器不能低于IE10。
+
+- 浏览器端：
+
+  目前，所有浏览器都支持该功能（IE10以下不行）。整个CORS通信过程，都是浏览器自动完成，不需要用户参与。
+
+- 服务端：
+
+  CORS通信与AJAX没有任何差别，因此你不需要改变以前的业务逻辑。只不过，浏览器会在请求中携带一些头信息，我们需要以此判断是否运行其跨域，然后在响应头中加入一些信息即可。这一般通过过滤器完成即可。
+
+### 2.5.2.原理有点复杂
+
+浏览器会将ajax请求分为两类，其处理方案略有差异：简单请求、特殊请求。
+
+#### 简单请求
+
+只要同时满足以下两大条件，就属于简单请求。：
+
+（1) 请求方法是以下三种方法之一：
+
+- HEAD
+- GET
+- POST
+
+（2）HTTP的头信息不超出以下几种字段：
+
+- Accept
+- Accept-Language
+- Content-Language
+- Last-Event-ID
+- Content-Type：只限于三个值`application/x-www-form-urlencoded`、`multipart/form-data`、`text/plain`
+
+
+
+当浏览器发现发现的ajax请求是简单请求时，会在请求头中携带一个字段：`Origin`.
+
+ ![1526019242125](/images/leyou/1526019242125.png)
+
+Origin中会指出当前请求属于哪个域（协议+域名+端口）。服务会根据这个值决定是否允许其跨域。
+
+如果服务器允许跨域，需要在返回的响应头中携带下面信息：
+
+```http
+Access-Control-Allow-Origin: http://manage.leyou.com
+Access-Control-Allow-Credentials: true
+Content-Type: text/html; charset=utf-8
+```
+
+- Access-Control-Allow-Origin：可接受的域，是一个具体域名或者*，代表任意
+- Access-Control-Allow-Credentials：是否允许携带cookie，默认情况下，cors不会携带cookie，除非这个值是true
+
+注意：
+
+如果跨域请求要想操作cookie，需要满足3个条件：
+
+- 服务的响应头中需要携带Access-Control-Allow-Credentials并且为true。
+- 浏览器发起ajax需要指定withCredentials 为true
+- 响应头中的Access-Control-Allow-Origin一定不能为*，必须是指定的域名
+
+#### 特殊请求
+
+不符合简单请求的条件，会被浏览器判定为特殊请求,，例如请求方式为PUT。
+
+> 预检请求
+
+特殊请求会在正式通信之前，增加一次HTTP查询请求，称为"预检"请求（preflight）。
+
+浏览器先询问服务器，当前网页所在的域名是否在服务器的许可名单之中，以及可以使用哪些HTTP动词和头信息字段。只有得到肯定答复，浏览器才会发出正式的`XMLHttpRequest`请求，否则就报错。
+
+一个“预检”请求的样板：
+
+```http
+OPTIONS /cors HTTP/1.1
+Origin: http://manage.leyou.com
+Access-Control-Request-Method: PUT
+Access-Control-Request-Headers: X-Custom-Header
+Host: api.leyou.com
+Accept-Language: en-US
+Connection: keep-alive
+User-Agent: Mozilla/5.0...
+```
+
+与简单请求相比，除了Origin以外，多了两个头：
+
+- Access-Control-Request-Method：接下来会用到的请求方式，比如PUT
+- Access-Control-Request-Headers：会额外用到的头信息
+
+> 预检请求的响应
+
+服务的收到预检请求，如果许可跨域，会发出响应：
+
+```http
+HTTP/1.1 200 OK
+Date: Mon, 01 Dec 2008 01:15:39 GMT
+Server: Apache/2.0.61 (Unix)
+Access-Control-Allow-Origin: http://manage.leyou.com
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Methods: GET, POST, PUT
+Access-Control-Allow-Headers: X-Custom-Header
+Access-Control-Max-Age: 1728000
+Content-Type: text/html; charset=utf-8
+Content-Encoding: gzip
+Content-Length: 0
+Keep-Alive: timeout=2, max=100
+Connection: Keep-Alive
+Content-Type: text/plain
+```
+
+除了`Access-Control-Allow-Origin`和`Access-Control-Allow-Credentials`以外，这里又额外多出3个头：
+
+- Access-Control-Allow-Methods：允许访问的方式
+- Access-Control-Allow-Headers：允许携带的头
+- Access-Control-Max-Age：本次许可的有效时长，单位是秒，**过期之前的ajax请求就无需再次进行预检了**
+
+
+
+如果浏览器得到上述响应，则认定为可以跨域，后续就跟简单请求的处理是一样的了。
+
+### 2.5.3.实现非常简单
+
+虽然原理比较复杂，但是前面说过：
+
+- 浏览器端都有浏览器自动完成，我们无需操心
+- 服务端可以通过拦截器统一实现，不必每次都去进行跨域判定的编写。
+
+事实上，SpringMVC已经帮我们写好了CORS的跨域过滤器：CorsFilter ,内部已经实现了刚才所讲的判定逻辑，我们直接用就好了。
+
+在`ly-api-gateway`中编写一个配置类，并且注册CorsFilter：
+
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+@Configuration
+public class GlobalCorsConfig {
+    @Bean
+    public CorsFilter corsFilter() {
+        //1.添加CORS配置信息
+        CorsConfiguration config = new CorsConfiguration();
+        //1) 允许的域,不要写*，否则cookie就无法使用了
+        config.addAllowedOrigin("http://manage.leyou.com");
+        //2) 是否发送Cookie信息
+        config.setAllowCredentials(true);
+        //3) 允许的请求方式
+        config.addAllowedMethod("OPTIONS");
+        config.addAllowedMethod("HEAD");
+        config.addAllowedMethod("GET");
+        config.addAllowedMethod("PUT");
+        config.addAllowedMethod("POST");
+        config.addAllowedMethod("DELETE");
+        config.addAllowedMethod("PATCH");
+        // 4）允许的头信息
+        config.addAllowedHeader("*");
+
+        //2.添加映射路径，我们拦截一切请求
+        UrlBasedCorsConfigurationSource configSource = new UrlBasedCorsConfigurationSource();
+        configSource.registerCorsConfiguration("/**", config);
+
+        //3.返回新的CorsFilter.
+        return new CorsFilter(configSource);
+    }
+}
+```
+
+结构：
+
+ ![1526021505774](/images/leyou/1526021505774.png)
+
+
+
+4.5.4.重启测试：
+
+访问正常：
+
+ ![1526021419016](/images/leyou/1526021419016.png)
+
+页面也OK了：
+
+![1526021447335](/images/leyou/1526021447335.png)
+
+
+
+分类的增删改功能暂时就不做了，页面已经预留好了事件接口，有兴趣的同学可以完成一下。
+
+
+
+# 3.品牌的查询
+
+商品分类完成以后，自然轮到了品牌功能了。
+
+先看看我们要实现的效果：
+
+![1526021968036](/images/leyou/1526021968036.png)
+
+
+
+接下来，我们从0开始，实现下从前端到后端的完整开发。
+
+## 3.1.从0开始
+
+为了方便看到效果，我们新建一个MyBrand.vue（注意先停掉服务器），从0开始搭建。
+
+ ![1526023142926](/images/leyou/1526023142926.png)
+
+内容初始化一下：
+
+```vue
+<template>
+  <span>
+    hello
+  </span>
+</template>
+
+<script>
+    export default {
+        name: "my-brand"
+    }
+</script>
+
+<style scoped>
+
+</style>
+```
+
+改变router新的index.js，将路由地址指向MyBrand.vue
+
+![1526023276997](/images/leyou/1526023276997.png)
+
+打开服务器，再次查看页面：
+
+![1526023471428](/images/leyou/1526023471428.png)
+
+
+
+干干净净了。
+
+
+
+## 3.2.品牌查询页面
+
+### 3.2.1.data-tables组件
+
+大家看到这个原型页面肯定能看出，其主体就是一个table。我们去Vuetify查看有关table的文档：
+
+![1526023540226](/images/leyou/1526023540226.png)
+
+仔细阅读，发现`v-data-table`中有以下核心属性：
+
+- dark：是否使用黑暗色彩主题，默认是false
+
+- expand：表格的行是否可以展开，默认是false
+
+- headers：定义表头的数组，数组的每个元素就是一个表头信息对象，结构：
+
+  ```js
+  {
+    text: string, // 表头的显示文本
+    value: string, // 表头对应的每行数据的key
+    align: 'left' | 'center' | 'right', // 位置
+    sortable: boolean, // 是否可排序
+    class: string[] | string,// 样式
+    width: string,// 宽度
+  }
+  ```
+
+- items：表格的数据的数组，数组的每个元素是一行数据的对象，对象的key要与表头的value一致
+
+- loading：是否显示加载数据的进度条，默认是false
+
+- no-data-text：当没有查询到数据时显示的提示信息，string类型，无默认值
+
+- pagination.sync：包含分页和排序信息的对象，将其与vue实例中的属性关联，表格的分页或排序按钮被触发时，会自动将最新的分页和排序信息更新。对象结构：
+
+  ```js
+  {
+      page: 1, // 当前页
+      rowsPerPage: 5, // 每页大小
+      sortBy: '', // 排序字段
+      descending:false, // 是否降序
+  }
+  ```
+
+- total-items：分页的总条数信息，number类型，无默认值
+
+- select-all ：是否显示每一行的复选框，Boolean类型，无默认值
+
+- value：当表格可选的时候，返回选中的行
+
+
+
+我们向下翻，找找有没有看起来牛逼的案例。
+
+找到这样一条：
+
+![1526023837773](/images/leyou/1526023837773.png)
+
+其它的案例都是由Vuetify帮我们对查询到的当前页数据进行排序和分页，这显然不是我们想要的。我们希望能在服务端完成对整体品牌数据的排序和分页，而这个案例恰好合适。
+
+点击按钮，我们直接查看源码，然后直接复制到MyBrand.vue中
+
+模板：
+
+```vue
+<template>
+  <div>
+    <v-data-table
+      :headers="headers"
+      :items="desserts"
+      :search="search"
+      :pagination.sync="pagination"
+      :total-items="totalDesserts"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td>{{ props.item.name }}</td>
+        <td class="text-xs-right">{{ props.item.calories }}</td>
+        <td class="text-xs-right">{{ props.item.fat }}</td>
+        <td class="text-xs-right">{{ props.item.carbs }}</td>
+        <td class="text-xs-right">{{ props.item.protein }}</td>
+        <td class="text-xs-right">{{ props.item.iron }}</td>
+      </template>
+    </v-data-table>
+  </div>
+</template>
+```
+
+
+
+### 3.2.2.分析
+
+接下来，就分析一下案例中每一部分是什么意思，搞清楚了，我们也可以自己玩了。
+
+先看模板中table上的一些属性：
+
+```vue
+<v-data-table
+              :headers="headers"
+              :items="desserts"
+              :search="search"
+              :pagination.sync="pagination"
+              :total-items="totalDesserts"
+              :loading="loading"
+              class="elevation-1"
+              >
+</v-data-table>
+```
+
+- headers：表头信息，是一个数组
+
+- items：要在表格中展示的数据，数组结构，每一个元素是一行
+
+- search：搜索过滤字段，用不到，暂时不管
+
+- pagination.sync：分页信息，包含了当前页，每页大小，排序字段，排序方式等。加上.sync代表服务端排序，当用户点击分页条时，该对象的值会跟着变化。监控这个值，并在这个值变化时去服务端查询，即可实现页面数据动态加载了。
+
+- total-items：总条数
+
+- loading：boolean类型，true：代表数据正在加载，会有进度条。false：数据加载完毕。
+
+  ![1526029254159](/images/leyou/1526029254159.png)
+
+
+
+另外，在`v-data-tables`中，我们还看到另一段代码：
+
+```vue
+<template slot="items" slot-scope="props">
+        <td>{{ props.item.name }}</td>
+        <td class="text-xs-right">{{ props.item.calories }}</td>
+        <td class="text-xs-right">{{ props.item.fat }}</td>
+        <td class="text-xs-right">{{ props.item.carbs }}</td>
+        <td class="text-xs-right">{{ props.item.protein }}</td>
+        <td class="text-xs-right">{{ props.item.iron }}</td>
+</template>
+```
+
+这段就是在渲染每一行的数据。Vue会自动遍历上面传递的`items`属性，并把得到的对象传递给这段`template`中的`props.item`属性。我们从中得到数据，渲染在页面即可。
+
+
+
+我们需要做的事情，主要有两件：
+
+- 给items和totalItems赋值
+- 当pagination变化时，重新获取数据，再次给items和totalItems赋值
+
+
+
+### 3.2.3.初步实现
+
+我们先弄点假品牌数据：
+
+```json
+[
+  {
+    "id": 2032,
+    "name": "OPPO",
+    "image": "http://img10.360buyimg.com/popshop/jfs/t2119/133/2264148064/4303/b8ab3755/56b2f385N8e4eb051.jpg",
+    "letter": "O"
+  },
+  {
+    "id": 2033,
+    "name": "飞利浦（PHILIPS）",
+    "image": "http://img12.360buyimg.com/popshop/jfs/t18361/122/1318410299/1870/36fe70c9/5ac43a4dNa44a0ce0.jpg",
+    "letter": "F"
+  },
+  {
+    "id": 2034,
+    "name": "华为（HUAWEI）",
+    "image": "http://img10.360buyimg.com/popshop/jfs/t5662/36/8888655583/7806/1c629c01/598033b4Nd6055897.jpg",
+    "letter": "H"
+  },
+  {
+    "id": 2036,
+    "name": "酷派（Coolpad）",
+    "image": "http://img10.360buyimg.com/popshop/jfs/t2521/347/883897149/3732/91c917ec/5670cf96Ncffa2ae6.jpg",
+    "letter": "K"
+  },
+  {
+    "id": 2037,
+    "name": "魅族（MEIZU）",
+    "image": "http://img13.360buyimg.com/popshop/jfs/t3511/131/31887105/4943/48f83fa9/57fdf4b8N6e95624d.jpg",
+    "letter": "M"
+  }
+]
+```
+
+品牌中有id,name,image,letter字段。
+
+
+
+#### 修改模板
+
+```vue
+  <div>
+    <v-data-table
+      :headers="headers"
+      :items="brands"
+      :search="search"
+      :pagination.sync="pagination"
+      :total-items="totalBrands"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td>{{ props.item.id }}</td>
+        <td class="text-xs-center">{{ props.item.name }}</td>
+        <td class="text-xs-center">
+          <img v-if="props.item.image" :src="props.item.image" width="130" height="40">
+          <span v-else>无</span>
+        </td>
+        <td class="text-xs-center">{{ props.item.letter }}</td>
+      </template>
+    </v-data-table>
+  </div>
+```
+
+我们修改了以下部分：
+
+- items：指向一个brands变量，等下在js代码中定义
+- total-items：指向了totalBrands变量，等下在js代码中定义
+- template模板中，渲染了四个字段：
+  - id：
+  - name
+  - image，注意，我们不是以文本渲染，而是赋值到一个`img`标签的src属性中，并且做了非空判断
+  - letter
+
+#### 编写数据
+
+接下来编写要用到的数据：
+
+```js
+{
+	data() {
+      return {
+        search: '', // 搜索过滤字段
+        totalBrands: 0, // 总条数
+        brands: [], // 当前页品牌数据
+        loading: true, // 是否在加载中
+        pagination: {}, // 分页信息
+        headers: [ // 头信息
+          {text: 'id', align: 'center', value: 'id'},
+          {text: '名称', align: 'center', sortable: false, value: 'name'},
+          {text: 'LOGO', align: 'center', sortable: false, value: 'image'},
+          {text: '首字母', align: 'center', value: 'letter', sortable: true,}
+        ]
+      }
+  }
+}
+```
+
+
+
+#### 编写函数，初始化数据
+
+接下来就是对brands和totalBrands完成赋值动作了。
+
+我们编写一个函数来完成赋值，提高复用性：
+
+```js
+methods:{
+      getDataFromServer(){ // 从服务的加载数据的方法。
+        // 伪造假数据
+        const brands = [
+          {
+            "id": 2032,
+            "name": "OPPO",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t2119/133/2264148064/4303/b8ab3755/56b2f385N8e4eb051.jpg",
+            "letter": "O",
+            "categories": null
+          },
+          {
+            "id": 2033,
+            "name": "飞利浦（PHILIPS）",
+            "image": "http://img12.360buyimg.com/popshop/jfs/t18361/122/1318410299/1870/36fe70c9/5ac43a4dNa44a0ce0.jpg",
+            "letter": "F",
+            "categories": null
+          },
+          {
+            "id": 2034,
+            "name": "华为（HUAWEI）",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t5662/36/8888655583/7806/1c629c01/598033b4Nd6055897.jpg",
+            "letter": "H",
+            "categories": null
+          },
+          {
+            "id": 2036,
+            "name": "酷派（Coolpad）",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t2521/347/883897149/3732/91c917ec/5670cf96Ncffa2ae6.jpg",
+            "letter": "K",
+            "categories": null
+          },
+          {
+            "id": 2037,
+            "name": "魅族（MEIZU）",
+            "image": "http://img13.360buyimg.com/popshop/jfs/t3511/131/31887105/4943/48f83fa9/57fdf4b8N6e95624d.jpg",
+            "letter": "M",
+            "categories": null
+          }
+        ];
+        // 模拟延迟一段时间，随后进行赋值
+        setTimeout(() => {
+          // 然后赋值给brands
+          this.brands = brands;
+          this.totalBrands = brands.length;
+          // 完成赋值后，把加载状态赋值为false
+          this.loading = false;
+        },400)
+      }
+}
+```
+
+然后使用钩子函数，在Vue实例初始化完毕后调用这个方法，这里使用mounted（渲染后）函数：
+
+```js
+mounted(){ // 渲染后执行
+    // 查询数据
+    this.getDataFromServer();
+}
+```
+
+
+
+#### 完整代码
+
+```vue
+<template>
+  <div>
+    <v-data-table
+      :headers="headers"
+      :items="brands"
+      :search="search"
+      :pagination.sync="pagination"
+      :total-items="totalBrands"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td>{{ props.item.id }}</td>
+        <td class="text-xs-center">{{ props.item.name }}</td>
+        <td class="text-xs-center"><img :src="props.item.image"></td>
+        <td class="text-xs-center">{{ props.item.letter }}</td>
+      </template>
+    </v-data-table>
+  </div>
+</template>
+
+<script>
+  export default {
+    name: "my-brand",
+    data() {
+      return {
+        search: '', // 搜索过滤字段
+        totalBrands: 0, // 总条数
+        brands: [], // 当前页品牌数据
+        loading: true, // 是否在加载中
+        pagination: {}, // 分页信息
+        headers: [
+          {text: 'id', align: 'center', value: 'id'},
+          {text: '名称', align: 'center', sortable: false, value: 'name'},
+          {text: 'LOGO', align: 'center', sortable: false, value: 'image'},
+          {text: '首字母', align: 'center', value: 'letter', sortable: true,}
+        ]
+      }
+    },
+    mounted(){ // 渲染后执行
+      // 查询数据
+      this.getDataFromServer();
+    },
+    methods:{
+      getDataFromServer(){ // 从服务的加载数的方法。
+        // 伪造假数据
+        const brands = [
+          {
+            "id": 2032,
+            "name": "OPPO",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t2119/133/2264148064/4303/b8ab3755/56b2f385N8e4eb051.jpg",
+            "letter": "O",
+            "categories": null
+          },
+          {
+            "id": 2033,
+            "name": "飞利浦（PHILIPS）",
+            "image": "http://img12.360buyimg.com/popshop/jfs/t18361/122/1318410299/1870/36fe70c9/5ac43a4dNa44a0ce0.jpg",
+            "letter": "F",
+            "categories": null
+          },
+          {
+            "id": 2034,
+            "name": "华为（HUAWEI）",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t5662/36/8888655583/7806/1c629c01/598033b4Nd6055897.jpg",
+            "letter": "H",
+            "categories": null
+          },
+          {
+            "id": 2036,
+            "name": "酷派（Coolpad）",
+            "image": "http://img10.360buyimg.com/popshop/jfs/t2521/347/883897149/3732/91c917ec/5670cf96Ncffa2ae6.jpg",
+            "letter": "K",
+            "categories": null
+          },
+          {
+            "id": 2037,
+            "name": "魅族（MEIZU）",
+            "image": "http://img13.360buyimg.com/popshop/jfs/t3511/131/31887105/4943/48f83fa9/57fdf4b8N6e95624d.jpg",
+            "letter": "M",
+            "categories": null
+          }
+        ];
+        // 模拟延迟一段时间，随后进行赋值
+        setTimeout(() => {
+          // 然后赋值给brands
+          this.brands = brands;
+          this.totalBrands = brands.length;
+          // 完成赋值后，把加载状态赋值为false
+          this.loading = false;
+        },400)
+      }
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>
+```
+
+
+
+刷新页面查看：
+
+![1526029445561](/images/leyou/1526029445561.png)
+
+
+
+### 3.2.4.优化页面
+
+#### 编辑和删除按钮
+
+我们将来要对品牌进行增删改，需要给每一行数据添加 修改删除的按钮，一般放到改行的最后一列：
+
+![1526029907794](/images/leyou/1526029907794.png)
+
+其实就是多了一列，只是这一列没有数据，而是两个按钮而已。
+
+我们先在头（headers）中添加一列：
+
+```js
+headers: [
+    {text: 'id', align: 'center', value: 'id'},
+    {text: '名称', align: 'center', sortable: false, value: 'name'},
+    {text: 'LOGO', align: 'center', sortable: false, value: 'image'},
+    {text: '首字母', align: 'center', value: 'letter', sortable: true,},
+    {text: '操作', align: 'center', value: 'id', sortable: false}
+]
+```
+
+然后在模板中添加按钮：
+
+```vue
+<template slot="items" slot-scope="props">
+  <td>{{ props.item.id }}</td>
+  <td class="text-xs-center">{{ props.item.name }}</td>
+  <td class="text-xs-center"><img :src="props.item.image"></td>
+  <td class="text-xs-center">{{ props.item.letter }}</td>
+  <td class="justify-center">
+    编辑/删除
+  </td>
+</template>
+```
+
+因为不知道按钮怎么写，先放个普通文本看看：
+
+![1526030236992](/images/leyou/1526030236992.png)
+
+然后在官方文档中找到按钮的用法：
+
+![1526030329303](/images/leyou/1526030329303.png)
+
+修改我们的模板：
+
+```vue
+<template slot="items" slot-scope="props">
+    <td>{{ props.item.id }}</td>
+    <td class="text-xs-center">{{ props.item.name }}</td>
+    <td class="text-xs-center"><img :src="props.item.image"></td>
+    <td class="text-xs-center">{{ props.item.letter }}</td>
+    <td class="justify-center layout">
+        <v-btn color="info">编辑</v-btn>
+        <v-btn color="warning">删除</v-btn>
+    </td>
+</template>
+```
+
+![1526030431704](/images/leyou/1526030431704.png)
+
+#### 新增按钮
+
+因为新增根某个品牌无关，是独立的，因此我们可以放到表格的外面：
+
+ ![1526030663178](/images/leyou/1526030663178.png)
+
+效果：
+
+![1526030540341](/images/leyou/1526030540341.png)
+
+
+
+#### 卡片（card）
+
+为了不让按钮显得过于孤立，我们可以将按`新增按钮`和`表格`放到一张卡片（card）中。
+
+我们去官网查看卡片的用法：
+
+![1526031159242](/images/leyou/1526031159242.png)
+
+卡片`v-card`包含四个基本组件：
+
+- v-card-media：一般放图片或视频
+- v-card-title：卡片的标题，一般位于卡片顶部
+- v-card-text：卡片的文本（主体内容），一般位于卡片正中
+- v-card-action：卡片的按钮，一般位于卡片底部
+
+我们可以把`新增的按钮`放到`v-card-title`位置，把`table`放到下面，这样就成一个上下关系。
+
+```vue
+  <v-card>
+    <!-- 卡片的头部 -->
+    <v-card-title>
+      <v-btn color="primary">新增</v-btn>
+    </v-card-title>
+    <!-- 分割线 -->
+    <v-divider/>
+    <!--卡片的中部-->
+    <v-data-table
+      :headers="headers"
+      :items="brands"
+      :search="search"
+      :pagination.sync="pagination"
+      :total-items="totalBrands"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td>{{ props.item.id }}</td>
+        <td class="text-xs-center">{{ props.item.name }}</td>
+        <td class="text-xs-center"><img :src="props.item.image"></td>
+        <td class="text-xs-center">{{ props.item.letter }}</td>
+        <td class="justify-center layout">
+          <v-btn color="info">编辑</v-btn>
+          <v-btn color="warning">删除</v-btn>
+        </td>
+      </template>
+    </v-data-table>
+  </v-card>
+```
+
+效果：
+
+![1526031720583](/images/leyou/1526031720583.png)
+
+#### 添加搜索框
+
+我们还可以在卡片头部添加一个搜索框，其实就是一个文本输入框。
+
+查看官网中，文本框的用法：
+
+![1526031897445](/images/leyou/1526031897445.png)
+
+- name：字段名，表单中会用到
+- label：提示文字
+- value：值。可以用v-model代替，实现双向绑定
+
+
+
+修改模板，添加输入框：
+
+```html
+<v-card-title>
+    <v-btn color="primary">新增品牌</v-btn>
+    <!--搜索框，与search属性关联-->
+    <v-text-field label="输入关键字搜索" v-model="search"/>
+</v-card-title>
+```
+
+效果：
+
+![1526032177687](/images/leyou/1526032177687.png)
+
+发现输入框变的超级长！！！
+
+这个时候，我们可以使用Vuetify提供的一个空间隔离工具：
+
+![1526032321057](/images/leyou/1526032321057.png)
+
+修改代码：
+
+```html
+    <v-card-title>
+      <v-btn color="primary">新增品牌</v-btn>
+      <!--空间隔离组件-->
+      <v-spacer />
+      <!--搜索框，与search属性关联-->
+      <v-text-field label="输入关键字搜索" v-model="search"/>
+    </v-card-title>
+```
+
+
+
+![1526032398630](/images/leyou/1526032398630.png)
+
+
+
+#### 给搜索框添加搜索图标
+
+查看textfiled的文档，发现：
+
+ ![1526033007616](/images/leyou/1526033007616.png)
+
+通过append-icon属性可以为 输入框添加后置图标，所有可用图标名称可以到 [material-icons官网](https://material.io/tools/icons/)去查看。
+
+修改我们的代码：
+
+```html
+<v-text-field label="输入关键字搜索" v-model="search" append-icon="search"/>
+```
+
+![1526033167381](/images/leyou/1526033167381.png)
+
+
+
+#### 把文本框变紧凑
+
+搜索框看起来高度比较高，页面不够紧凑。这其实是因为默认在文本框下面预留有错误提示空间。通过下面的属性可以取消提示：
+
+![1526033439890](/images/leyou/1526033439890.png)
+
+修改代码：
+
+```html
+<v-text-field label="输入关键字搜索" v-model="search" append-icon="search" hide-details/>
+```
+
+效果：
+
+![1526033500219](/images/leyou/1526033500219.png)
+
+几乎已经达到了原来一样的效果了吧！
+
+
+
+## 3.3.后台提供查询接口
+
+前台页面已经准备好，接下来就是后台提供数据接口了。
+
+### 3.3.1.数据库表
+
+```mysql
+CREATE TABLE `tb_brand` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '品牌id',
+  `name` varchar(50) NOT NULL COMMENT '品牌名称',
+  `image` varchar(200) DEFAULT '' COMMENT '品牌图片地址',
+  `letter` char(1) DEFAULT '' COMMENT '品牌的首字母',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=325400 DEFAULT CHARSET=utf8 COMMENT='品牌表，一个品牌下有多个商品（spu），一对多关系';
+
+```
+
+简单的四个字段，不多解释。
+
+这里需要注意的是，品牌和商品分类之间是多对多关系。因此我们有一张中间表，来维护两者间关系：
+
+```mysql
+CREATE TABLE `tb_category_brand` (
+  `category_id` bigint(20) NOT NULL COMMENT '商品类目id',
+  `brand_id` bigint(20) NOT NULL COMMENT '品牌id',
+  PRIMARY KEY (`category_id`,`brand_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商品分类和品牌的中间表，两者是多对多关系';
+
+```
+
+但是，你可能会发现，这张表中并**没有设置外键约束**，似乎与数据库的设计范式不符。为什么这么做？
+
+- 外键会严重影响数据库读写的效率
+- 数据删除时会比较麻烦
+
+在电商行业，性能是非常重要的。我们宁可在代码中通过逻辑来维护表关系，也不设置外键。
+
+
+
+### 3.3.2.实体类
+
+ ![1527483519579](/images/leyou/1527483519579.png)
+
+```java
+@Table(name = "tb_brand")
+public class Brand {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;// 品牌名称
+    private String image;// 品牌图片
+    private Character letter;
+    // getter setter 略
+}
+```
+
+
+
+### 3.3.3.mapper
+
+通用mapper来简化开发：
+
+```java
+public interface BrandMapper extends Mapper<Brand> {
+}
+```
+
+### 3.3.4.controller
+
+编写controller先思考四个问题，这次没有前端代码，需要我们自己来设定
+
+- 请求方式：查询，肯定是Get
+
+- 请求路径：分页查询，/brand/page
+
+- 请求参数：根据我们刚才编写的页面，有分页功能，有排序功能，有搜索过滤功能，因此至少要有5个参数：
+
+  - page：当前页，int
+  - rows：每页大小，int
+  - sortBy：排序字段，String
+  - desc：是否为降序，boolean
+  - key：搜索关键词，String
+
+- 响应结果：分页结果一般至少需要两个数据
+
+  - total：总条数
+  - items：当前页数据
+  - totalPage：有些还需要总页数
+
+  这里我们封装一个类，来表示分页结果：
+
+  ```java
+  public class PageResult<T> {
+      private Long total;// 总条数
+      private Long totalPage;// 总页数
+      private List<T> items;// 当前页数据
+  
+      public PageResult() {
+      }
+  
+      public PageResult(Long total, List<T> items) {
+          this.total = total;
+          this.items = items;
+      }
+  
+      public PageResult(Long total, Long totalPage, List<T> items) {
+          this.total = total;
+          this.totalPage = totalPage;
+          this.items = items;
+      }
+  
+      public Long getTotal() {
+          return total;
+      }
+  
+      public void setTotal(Long total) {
+          this.total = total;
+      }
+  
+      public List<T> getItems() {
+          return items;
+      }
+  
+      public void setItems(List<T> items) {
+          this.items = items;
+      }
+  
+      public Long getTotalPage() {
+          return totalPage;
+      }
+  
+      public void setTotalPage(Long totalPage) {
+          this.totalPage = totalPage;
+      }
+  }
+  ```
+
+  另外，这个PageResult以后可能在其它项目中也有需求，因此我们将其抽取到`ly-common`中，提高复用性：
+
+   ![1526046620269](/images/leyou/1526046620269.png)
+
+接下来，我们编写Controller
+
+```java
+@RestController
+@RequestMapping("brand")
+public class BrandController {
+
+    @Autowired
+    private BrandService brandService;
+
+    @GetMapping("page")
+    public ResponseEntity<PageResult<Brand>> queryBrandByPage(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "rows", defaultValue = "5") Integer rows,
+            @RequestParam(value = "sortBy", required = false) String sortBy,
+            @RequestParam(value = "desc", defaultValue = "false") Boolean desc,
+            @RequestParam(value = "key", required = false) String key) {
+        PageResult<Brand> result = this.brandService.queryBrandByPageAndSort(page,rows,sortBy,desc, key);
+        if (result == null || result.getItems().size() == 0) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(result);
+    }
+}
+
+```
+
+
+
+### 3.3.5.Service
+
+```java
+@Service
+public class BrandService {
+
+    @Autowired
+    private BrandMapper brandMapper;
+
+    public PageResult<Brand> queryBrandByPageAndSort(
+            Integer page, Integer rows, String sortBy, Boolean desc, String key) {
+        // 开始分页
+        PageHelper.startPage(page, rows);
+        // 过滤
+        Example example = new Example(Brand.class);
+        if (StringUtils.isNotBlank(key)) {
+            example.createCriteria().andLike("name", "%" + key + "%")
+                    .orEqualTo("letter", key);
+        }
+        if (StringUtils.isNotBlank(sortBy)) {
+            // 排序
+            String orderByClause = sortBy + (desc ? " DESC" : " ASC");
+            example.setOrderByClause(orderByClause);
+        }
+        // 查询
+        Page<Brand> pageInfo = (Page<Brand>) brandMapper.selectByExample(example);
+        // 返回结果
+        return new PageResult<>(pageInfo.getTotal(), pageInfo);
+    }
+}
+```
+
+
+
+完整结构：
+
+ ![1527483582757](/images/leyou/1527483582757.png)
+
+
+
+### 3.3.6.测试
+
+通过浏览器访问试试：http://api.leyou.com/api/item/brand/page
+
+ ![1526047708748](/images/leyou/1526047708748.png)
+
+接下来，去页面请求数据并渲染
+
+
+
+## 4.4.异步查询工具axios
+
+异步查询数据，自然是通过ajax查询，大家首先想起的肯定是jQuery。但jQuery与MVVM的思想不吻合，而且ajax只是jQuery的一小部分。因此不可能为了发起ajax请求而去引用这么大的一个库。
+
+### 4.3.1.axios入门
+
+Vue官方推荐的ajax请求框架叫做：axios，看下demo：
+
+![1526033988251](/images/leyou/1526033988251.png)
+
+axios的Get请求语法：
+
+```js
+axios.get("/item/category/list?pid=0") // 请求路径和请求参数拼接
+    .then(function(resp){
+    	// 成功回调函数
+	})
+    .catch(function(){
+    	// 失败回调函数
+	})
+// 参数较多时，可以通过params来传递参数
+axios.get("/item/category/list", {
+        params:{
+            pid:0
+        }
+	})
+    .then(function(resp){})// 成功时的回调
+    .catch(function(error){})// 失败时的回调
+```
+
+axios的POST请求语法：
+
+比如新增一个用户
+
+```js
+axios.post("/user",{
+    	name:"Jack",
+    	age:21
+	})
+    .then(function(resp){})
+    .catch(function(error){})
+```
+
+- 注意，POST请求传参，不需要像GET请求那样定义一个对象，在对象的params参数中传参。post()方法的第二个参数对象，就是将来要传递的参数
+
+PUT和DELETE请求与POST请求类似
+
+### 4.3.2.axios的全局配置
+
+而在我们的项目中，已经引入了axios，并且进行了简单的封装，在src下的http.js中：
+
+ ![1526034150067](/images/leyou/1526034150067.png)
+
+http.js中对axios进行了一些默认配置：
+
+```js
+import Vue from 'vue'
+import axios from 'axios'
+import config from './config'
+// config中定义的基础路径是：http://api.leyou.com/api
+axios.defaults.baseURL = config.api; // 设置axios的基础请求路径
+axios.defaults.timeout = 2000; // 设置axios的请求时间
+
+Vue.prototype.$http = axios;// 将axios赋值给Vue原型的$http属性，这样所有vue实例都可使用该对象
+
+```
+
+- http.js中导入了config的配置，还记得吗？
+
+      ![1526041205846](/images/leyou/1526041205846.png)
+
+- http.js对axios进行了全局配置：`baseURL=config.api`，即`http://api.leyou.com/api`。因此以后所有用axios发起的请求，都会以这个地址作为前缀。
+
+- 通过`Vue.property.$http = axios`，将`axios`赋值给了 Vue原型中的`$http`。这样以后所有的Vue实例都可以访问到$http，也就是访问到了axios了。
+
+### 4.3.3.测试一下：
+
+我们在组件`MyBrand.vue`的getDataFromServer方法，通过$http发起get请求，测试查询品牌的接口，看是否能获取到数据：
+
+   ![1526048221750](/images/leyou/1526048079191.png)
+
+网络监视：
+
+ ![1526048143014](/images/leyou/1526048143014.png)
+
+控制台结果：
+
+![1526048275064](/images/leyou/1526048275064.png)
+
+可以看到，在请求成功的返回结果response中，有一个data属性，里面就是真正的响应数据。
+
+响应结果中与我们设计的一致，包含3个内容：
+
+- total：总条数，目前是165
+- items：当前页数据
+- totalPage：总页数，我们没有返回
+
+
+
+## 4.5.异步加载品牌数据
+
+虽然已经通过ajax请求获取了品牌数据，但是刚才的请求没有携带任何参数，这样显然不对。我们后端接口需要5个参数：
+
+- page：当前页，int
+- rows：每页大小，int
+- sortBy：排序字段，String
+- desc：是否为降序，boolean
+- key：搜索关键词，String
+
+而页面中分页信息应该是在pagination对象中，我们通过浏览器工具，查看pagination中有哪些属性：
+
+ ![](/images/leyou/1526042136135.png)
+
+分别是：
+
+- descending：是否是降序，对应请求参数的desc
+- page：当前页，对应参数的page
+- rowsPerpage：每页大小，对应参数中的rows
+- sortBy：排序字段，对应参数的sortBy
+
+缺少一个搜索关键词，这个应该是通过v-model与输入框绑定的属性：search。这样，所有参数就都有了。
+
+
+
+另外，不要忘了把查询的结果赋值给brands和totalBrands属性，Vuetify会帮我们渲染页面。
+
+
+
+接下来，我们在`getDataFromServer`方法中完善请求参数：
+
+```js
+// 发起请求
+this.$http.get("/item/brand/page",{
+        params:{
+            key: this.search, // 搜索条件
+            page: this.pagination.page,// 当前页
+            rows: this.pagination.rowsPerPage,// 每页大小
+            sortBy: this.pagination.sortBy,// 排序字段
+            desc: this.pagination.descending// 是否降序
+        }
+    }).then(resp => { // 这里使用箭头函数
+        // 将得到的数据赋值给本地属性
+        this.brands = resp.data.items;
+        this.totalBrands = resp.data.total;
+        // 完成赋值后，把加载状态赋值为false
+        this.loading = false;
+    })
+```
+
+查看网络请求：
+
+ ![1526049810351](/images/leyou/1526049810351.png)
+
+效果：
+
+![1526049139244](/images/leyou/1526049139244.png)
+
+
+
+## 4.6.完成分页和过滤
+
+### 4.6.1.分页
+
+现在我们实现了页面加载时的第一次查询，你会发现你点击分页或搜索不会发起新的请求，怎么办？
+
+
+
+虽然点击分页，不会发起请求，但是通过浏览器工具查看，会发现pagination对象的属性一直在变化：
+
+ ![](/images/leyou/9.gif)
+
+我们可以利用Vue的监视功能：watch，当pagination发生改变时，会调用我们的回调函数，我们在回调函数中进行数据的查询即可！
+
+具体实现：
+
+![1526049643506](/images/leyou/1526049643506.png)
+
+成功实现分页功能：
+
+![1526049720200](/images/leyou/1526049720200.png)
+
+
+
+### 4.6.2.过滤
+
+分页实现了，过滤也很好实现了。过滤字段对应的是search属性，我们只要监视这个属性即可:
+
+ ![1526049939985](/images/leyou/1526049939985.png)
+
+查看网络请求：
+
+ ![1526050032436](/images/leyou/1526050032436.png)
+
+页面结果：
+
+![1526050071442](/images/leyou/1526050071442.png)
+
+
+
+## 4.7.完整代码
+
+```vue
+<template>
+  <v-card>
+    <v-card-title>
+      <v-btn color="primary" @click="addBrand">新增品牌</v-btn>
+      <!--搜索框，与search属性关联-->
+      <v-spacer/>
+      <v-text-field label="输入关键字搜索" v-model.lazy="search" append-icon="search" hide-details/>
+    </v-card-title>
+    <v-divider/>
+    <v-data-table
+      :headers="headers"
+      :items="brands"
+      :search="search"
+      :pagination.sync="pagination"
+      :total-items="totalBrands"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td>{{ props.item.id }}</td>
+        <td class="text-xs-center">{{ props.item.name }}</td>
+        <td class="text-xs-center"><img :src="props.item.image"></td>
+        <td class="text-xs-center">{{ props.item.letter }}</td>
+        <td class="justify-center layout">
+          <v-btn color="info">编辑</v-btn>
+          <v-btn color="warning">删除</v-btn>
+        </td>
+      </template>
+    </v-data-table>
+  </v-card>
+</template>
+
+<script>
+  import MyBrandForm from './MyBrandForm'
+  export default {
+    name: "my-brand",
+    data() {
+      return {
+        search: '', // 搜索过滤字段
+        totalBrands: 0, // 总条数
+        brands: [], // 当前页品牌数据
+        loading: true, // 是否在加载中
+        pagination: {}, // 分页信息
+        headers: [
+          {text: 'id', align: 'center', value: 'id'},
+          {text: '名称', align: 'center', sortable: false, value: 'name'},
+          {text: 'LOGO', align: 'center', sortable: false, value: 'image'},
+          {text: '首字母', align: 'center', value: 'letter', sortable: true,},
+          {text: '操作', align: 'center', value: 'id', sortable: false}
+        ]
+      }
+    },
+    mounted() { // 渲染后执行
+      // 查询数据
+      this.getDataFromServer();
+    },
+    watch: {
+      pagination: { // 监视pagination属性的变化
+        deep: true, // deep为true，会监视pagination的属性及属性中的对象属性变化
+        handler() {
+          // 变化后的回调函数，这里我们再次调用getDataFromServer即可
+          this.getDataFromServer();
+        }
+      },
+      search: { // 监视搜索字段
+        handler() {
+          this.getDataFromServer();
+        }
+      }
+    },
+    methods: {
+      getDataFromServer() { // 从服务的加载数的方法。
+        // 发起请求
+        this.$http.get("/item/brand/page", {
+          params: {
+            key: this.search, // 搜索条件
+            page: this.pagination.page,// 当前页
+            rows: this.pagination.rowsPerPage,// 每页大小
+            sortBy: this.pagination.sortBy,// 排序字段
+            desc: this.pagination.descending// 是否降序
+          }
+        }).then(resp => { // 这里使用箭头函数
+          this.brands = resp.data.items;
+          this.totalBrands = resp.data.total;
+          // 完成赋值后，把加载状态赋值为false
+          this.loading = false;
+        })
+      }
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>
+
+```
+---
+layout: post
+title:  品牌管理
+categories: 乐优
+description: 品牌管理
+keywords: 乐优
+---
+# 0.学习目标
+
+- 独立实现品牌新增
+- 实现图片上传
+- 了解FastDFS的安装
+- 使用FastDFS客户端实现上传
+
+
+
+# 1.品牌的新增
+
+昨天我们完成了品牌的查询，接下来就是新增功能。
+
+## 1.1.页面实现
+
+### 1.1.1.初步编写弹窗
+
+当我们点击新增按钮，应该出现一个弹窗，然后在弹窗中出现一个表格，我们就可以填写品牌信息了。
+
+我们查看Vuetify官网，弹窗是如何实现：
+
+![1526115791468](/images/leyou/1526115791468.png)
+
+另外，我们可以通过文档看到对话框的一些属性：
+
+- value：控制窗口的可见性，true可见，false，不可见
+- max-width：控制对话框最大宽度
+- scrollable ：是否可滚动，要配合v-card来使用，默认是false
+- persistent ：点击弹窗以外的地方不会关闭弹窗，默认是false
+
+现在，我们来使用一下。
+
+首先，我们在data中定义一个show属性，来控制对话框的显示状态：
+
+ ![1526116451280](/images/leyou/1526116451280.png)
+
+然后，在页面添加一个`v-dialog`
+
+```html
+<!--弹出的对话框-->
+<v-dialog max-width="500" v-model="show" persistent>
+    <v-card>
+        <!--对话框的标题-->
+        <v-toolbar dense dark color="primary">
+            <v-toolbar-title>新增品牌</v-toolbar-title>
+        </v-toolbar>
+        <!--对话框的内容，表单-->
+        <v-card-text class="px-5">
+            我是表单
+        </v-card-text>
+    </v-card>
+</v-dialog>
+```
+
+说明：
+
+- 我们给dialog指定了3个属性，分别是
+
+  - max-width：限制宽度
+  - v-model：value值双向绑定到show变量，用来控制窗口显示
+  - persisitent：控制窗口不会被意外关闭
+
+- 因为可滚动需要配合`v-card`使用，因此我们在对话框中加入了一个`v-card`
+
+  - 在`v-card`的头部添加了一个 `v-toolbar`，作为窗口的头部，并且写了标题为：新增品牌
+    - dense：紧凑显示
+    - dark：黑暗主题
+    - color：颜色，primary就是整个网站的主色调，蓝色
+  - 在`v-card`的内容部分，暂时空置，等会写表单
+
+- `class=“px-5"`：vuetify的内置样式，含义是padding的x轴设置为5，这样表单内容会缩进一些，而不是顶着边框
+
+  基本语法：`{property}{direction}-{size}`
+
+  - property：属性，有两种`padding`和`margin`
+    - `p`：对应`padding`
+    - `m`：对应`margin`
+  - direction：只padding和margin的作用方向，
+    - `t` - 对应`margin-top`或者`padding-top`属性
+    - `b` - 对应`margin-bottom` or `padding-bottom`
+    - `l` - 对应`margin-left` or `padding-left`
+    - `r` - 对应`margin-right` or `padding-right`
+    - `x` - 同时对应`*-left`和`*-right`属性
+    - `y` - 同时对应`*-top`和`*-bottom`属性
+  - size：控制空间大小，基于`$spacer`进行倍增，`$spacer`默认是16px
+    - `0`：将`margin`或padding的大小设置为0
+    - `1` - 将`margin`或者`padding`属性设置为`$spacer * .25`
+    - `2` - 将`margin`或者`padding`属性设置为`$spacer * .5`
+    - `3` - 将`margin`或者`padding`属性设置为`$spacer`
+    - `4` - 将`margin`或者`padding`属性设置为`$spacer * 1.5`
+    - `5` - 将`margin`或者`padding`属性设置为`$spacer * 3`
+
+### 1.1.2.实现弹窗的可见和关闭
+
+> 窗口可见
+
+接下来，我们要在点击新增品牌按钮时，将窗口显示，因此要给新增按钮绑定事件。
+
+```js
+<v-btn color="primary" @click="addBrand">新增品牌</v-btn>
+```
+
+然后定义一个addBrand方法：
+
+```js
+addBrand(){
+    // 控制弹窗可见：
+    this.show = true;
+}
+```
+
+效果：
+
+![1526118714621](/images/leyou/1526118714621.png)
+
+
+
+> 窗口关闭
+
+现在，悲剧发生了，因为我们设置了persistent属性，窗口无法被关闭了。除非把show属性设置为false
+
+因此我们需要给窗口添加一个关闭按钮：
+
+```html
+<!--对话框的标题-->
+<v-toolbar dense dark color="primary">
+    <v-toolbar-title>新增品牌</v-toolbar-title>
+    <v-spacer/>
+    <!--关闭窗口的按钮-->
+    <v-btn icon @click="closeWindow"><v-icon>close</v-icon></v-btn>
+</v-toolbar>
+```
+
+并且，我们还给按钮绑定了点击事件，回调函数为closeWindow。
+
+接下来，编写closeWindow函数：
+
+```js
+closeWindow(){
+    // 关闭窗口
+    this.show = false;
+}
+```
+
+
+
+效果：
+
+ ![1526119096686](/images/leyou/1526119096686.png)
+
+
+
+### 1.1.3.新增品牌的表单页
+
+接下来就是写表单了。我们有两种选择：
+
+- 直接在dialog对话框中编写表单代码
+- 另外编写一个组件，组件内写表单代码。然后在对话框引用组件
+
+选第几种？
+
+
+
+我们选第二种方案，优点：
+
+- 表单代码独立组件，可拔插，方便后期的维护。
+- 代码分离，可读性更好。
+
+
+
+我们新建一个`MyBrandForm.vue`组件：
+
+ ![1526119788914](/images/leyou/1526119788914.png)
+
+将MyBrandForm引入到MyBrand中，这里使用局部组件的语法：
+
+先导入自定义组件：
+
+```js
+  // 导入自定义的表单组件
+  import MyBrandForm from './MyBrandForm'
+```
+
+然后通过components属性来指定局部组件：
+
+```js
+components:{
+    MyBrandForm
+}
+```
+
+然后在页面中引用：
+
+
+
+页面效果：
+
+ ![1526128384960](/images/leyou/1526128384960.png)
+
+### 1.1.4.编写表单
+
+#### 1.1.4.1.表单
+
+查看文档，找到关于表单的部分：
+
+![1526128476264](/images/leyou/1526128476264.png)
+
+`v-form`，表单组件，内部可以有许多输入项。`v-form`有下面的属性：
+
+- value：true，代表表单验证通过；false，代表表单验证失败
+
+`v-form`提供了两个方法：
+
+- reset：重置表单数据
+- validate：校验整个表单数据，前提是你写好了校验规则。返回Boolean表示校验成功或失败
+
+
+
+我们在data中定义一个valid属性，跟表单的value进行双向绑定，观察表单是否通过校验，同时把等会要跟表单关联的品牌brand对象声明出来：
+
+```js
+  export default {
+    name: "my-brand-form",
+    data() {
+      return {
+        valid:false, // 表单校验结果标记
+        brand:{
+          name:'', // 品牌名称
+          letter:'', // 品牌首字母
+          image:'',// 品牌logo
+          categories:[], // 品牌所属的商品分类数组
+        }
+      }
+    }
+  }
+```
+
+然后，在页面先写一个表单：
+
+```html
+<v-form v-model="valid">
+
+</v-form>
+```
+
+
+
+#### 1.1.4.2.文本框
+
+我们的品牌总共需要这些字段：
+
+- 名称
+- 首字母
+- 商品分类，有很多个
+- LOGO
+
+表单项主要包括文本框、密码框、多选框、单选框、文本域、下拉选框、文件上传等。思考下我们的品牌需要哪些？
+
+- 文本框：品牌名称、品牌首字母都属于文本框
+- 文件上传：品牌需要图片，这个是文件上传框
+- 下拉选框：商品分类提前已经定义好，这里需要通过下拉选框展示，提供给用户选择。
+
+先看文本框，昨天已经用过的，叫做`v-text-field`：
+
+ ![1526129519056](/images/leyou/1526129519056.png)
+
+查看文档，`v-text-field`有以下关键属性：
+
+- **append-icon**：文本框后追加图标，需要填写图标名称。无默认值
+- clearable：是否添加一个清空图标，点击会清空文本框。默认是false
+- color：颜色
+- counter：是否添加一个文本计数器，在角落显示文本长度，指定true或允许的组大长度。无默认值
+- dark：是否应用黑暗色调，默认是false
+- disable：是否禁用，默认是false
+- flat：是否移除默认的动画效果，默认是false
+- full-width：指定宽度为全屏，默认是false
+- hide-details：是否因此错误提示，默认是false
+- hint：输入框的提示文本
+- **label**：输入框的标签
+- **multi-line**：是否转为文本域，默认是false。文本框和文本域可以自由切换
+- placeholder：输入框占位符文本，focus后消失
+- **required**：是否为必填项，如果是，会在label后加*，不具备校验功能。默认是false
+- **rows**：文本域的行数，`multi-line`为true时才有效
+- **rules**：指定校验规则及错误提示信息，数组结构。默认[]
+- **single-line**：是否单行文本显示，默认是false
+- **suffix**：显示后缀
+
+接下来，我们先添加两个字段：品牌名称、品牌的首字母，校验规则暂时不写：
+
+```html
+  <v-form v-model="valid">
+    <v-text-field v-model="brand.name" label="请输入品牌名称" required />
+    <v-text-field v-model="brand.letter" label="请输入品牌首字母" required />
+  </v-form>
+```
+
+- 千万不要忘了通过`v-model`把表单项与`brand`的属性关联起来。
+
+效果：
+
+![1526131172190](/images/leyou/1526131172190.png)
+
+#### 1.1.4.3.级联下拉选框
+
+接下来就是商品分类了，按照刚才的分析，商品分类应该是下拉选框。
+
+但是大家仔细思考，商品分类包含三级。在展示的时候，应该是先由用户选中1级，才显示2级；选择了2级，才显示3级。形成一个多级分类的三级联动效果。
+
+这个时候，就不是普通的下拉选框，而是三级联动的下拉选框！
+
+这样的选框，在Vuetify中并没有提供（它提供的是基本的下拉框）。因此我已经给大家编写了一个无限级联动的下拉选框，能够满足我们的需求。
+
+ ![1526131637045](/images/leyou/1526131637045.png)
+
+具体请参考课前资料的《自定义组件用法指南.md》
+
+我们在代码中使用：
+
+```js
+    <v-cascader
+      url="/item/category/list"
+      multiple 
+      required
+      v-model="brand.categories"
+      label="请选择商品分类"/>
+```
+
+- url：加载商品分类选项的接口路径
+- multiple：是否多选，这里设置为true，因为一个品牌可能有多个分类
+- requried：是否是必须的，这里为true，会在提示上加*，提醒用户
+- v-model：关联我们brand对象的categories属性
+- label：文字说明
+
+
+
+效果：
+
+ ![1526132934902](/images/leyou/1526132934902.png)
+
+data中获取的结果：
+
+ ![1526133224362](/images/leyou/1526133224362.png)
+
+
+
+#### 1.1.4.4.文件上传项
+
+在Vuetify中，也没有文件上传的组件。
+
+ ![img](/images/leyou/0B26B319.gif) 
+
+还好，我已经给大家写好了一个文件上传的组件：
+
+ ![1526133576597](/images/leyou/1526133576597.png)
+
+详细用法，参考《自定义组件使用指南.md》
+
+我们添加上传的组件：
+
+```html
+<v-layout row>
+    <v-flex xs3>
+        <span style="font-size: 16px; color: #444">品牌LOGO：</span>
+    </v-flex>
+    <v-flex>
+        <v-upload
+             v-model="brand.image"
+             url="/upload" 
+             :multiple="false" 
+             :pic-width="250" 
+             :pic-height="90"
+                  />
+    </v-flex>
+</v-layout>
+```
+
+注意：
+
+- 文件上传组件本身没有提供文字提示。因此我们需要自己添加一段文字说明
+- 我们要实现文字和图片组件左右放置，因此这里使用了`v-layout`布局组件：
+  - layout添加了row属性，代表这是一行，如果是column，代表是多行
+  - layout下面有`v-flex`组件，是这一行的单元，我们有2个单元
+    - `<v-flex xs3>` ：显示文字说明，xs3是响应式布局，代表占12格中的3格
+    - 剩下的部分就是图片上传组件了
+- `v-upload`：图片上传组件，包含以下属性：
+  - v-model：将上传的结果绑定到brand的image属性
+  - url：上传的路径，我们先随便写一个。
+  - multiple：是否运行多图片上传，这里是false。因为品牌LOGO只有一个
+  - pic-width和pic-height：可以控制l图片上传后展示的宽高
+
+最终结果：
+
+ ![1526136024649](/images/leyou/1526136024649.png)
+
+
+
+#### 1.1.4.5.按钮
+
+上面已经把所有的表单项写完。最后就差提交和清空的按钮了。
+
+在表单的最下面添加两个按钮：
+
+```html
+    <v-layout class="my-4" row>
+      <v-spacer/>
+      <v-btn @click="submit" color="primary">提交</v-btn>
+      <v-btn @click="clear" >重置</v-btn>
+    </v-layout>
+```
+
+- 通过layout来进行布局，`my-4`增大上下边距
+- `v-spacer`占用一定空间，将按钮都排挤到页面右侧
+- 两个按钮分别绑定了submit和clear事件
+
+我们先将方法定义出来：
+
+```js
+methods:{
+    submit(){
+        // 提交表单
+    },
+    clear(){
+        // 重置表单
+    }
+}
+```
+
+重置表单相对简单，因为v-form组件已经提供了reset方法，用来清空表单数据。只要我们拿到表单组件对象，就可以调用方法了。
+
+我们可以通过`$refs`内置对象来获取表单组件。
+
+首先，在表单上定义`ref`属性：
+
+ ![1526137891067](/images/leyou/1526137891067.png)
+
+然后，在页面查看`this.$refs`属性：
+
+![1526138030853](/images/leyou/1526138030853.png)
+
+看到`this.$refs`中只有一个属性，就是`myBrandForm`
+
+我们在clear中来获取表单对象并调用reset方法：
+
+```js
+    methods:{
+      submit(){
+        // 提交表单
+        console.log(this);
+      },
+      clear(){
+        // 重置表单
+        this.$refs.myBrandForm.reset();
+        // 需要手动清空商品分类
+        this.categories = [];
+      }
+    }
+```
+
+要注意的是，这里我们还手动把this.categories清空了，因为我写的级联选择组件并没有跟表单结合起来。需要手动清空。
+
+### 1.1.5.表单校验
+
+#### 1.1.5.1.校验规则
+
+Vuetify的表单校验，是通过rules属性来指定的：
+
+![1526138441735](/images/leyou/1526138441735.png)
+
+校验规则的写法：
+
+![1526138475159](/images/leyou/1526138475159.png)
+
+说明：
+
+- 规则是一个数组
+- 数组中的元素是一个函数，该函数接收表单项的值作为参数，函数返回值两种情况：
+  - 返回true，代表成功，
+  - 返回错误提示信息，代表失败
+
+#### 1.1.5.2.项目中代码
+
+我们有四个字段：
+
+- name：做非空校验和长度校验，长度必须大于1
+- letter：首字母，校验长度为1，非空。
+- image：图片，不做校验，图片可以为空
+- categories：非空校验，自定义组件已经帮我们完成，不用写了
+
+首先，我们定义规则：
+
+```js
+nameRules:[
+    v => !!v || "品牌名称不能为空",
+    v => v.length > 1 || "品牌名称至少2位"
+],
+letterRules:[
+    v => !!v || "首字母不能为空",
+    v => /^[A-Z]{1}$/.test(v) || "品牌字母只能是A~Z的大写字母"
+]
+```
+
+然后，在页面标签中指定：
+
+```html
+<v-text-field v-model="brand.name" label="请输入品牌名称" required :rules="nameRules" />
+<v-text-field v-model="brand.letter" label="请输入品牌首字母" required :rules="letterRules" />
+```
+
+效果：
+
+ ![1526139379209](/images/leyou/1526139379209.png)
+
+
+
+### 1.1.6.表单提交
+
+在submit方法中添加表单提交的逻辑：
+
+```js
+submit() {
+    // 1、表单校验
+    if (this.$refs.myBrandForm.validate()) {
+        // 2、定义一个请求参数对象，通过解构表达式来获取brand中的属性
+        const {categories ,letter ,...params} = this.brand;
+        // 3、数据库中只要保存分类的id即可，因此我们对categories的值进行处理,只保留id，并转为字符串
+        params.cids = categories.map(c => c.id).join(",");
+        // 4、将字母都处理为大写
+        params.letter = letter.toUpperCase();
+        // 5、将数据提交到后台
+        this.$http.post('/item/brand', params)
+            .then(() => {
+            // 6、弹出提示
+            this.$message.success("保存成功！");
+        })
+            .catch(() => {
+            this.$message.error("保存失败！");
+        });
+    }
+}
+```
+
+- 1、通过`this.$refs.myBrandForm`选中表单，然后调用表单的`validate`方法，进行表单校验。返回boolean值，true代表校验通过
+
+- 2、通过解构表达式来获取brand中的值，categories和letter需要处理，单独获取。其它的存入params对象中
+
+- 3、品牌和商品分类的中间表只保存两者的id，而brand.categories中保存的数对象数组，里面有id和name属性，因此这里通过数组的map功能转为id数组，然后通过join方法拼接为字符串
+
+- 4、首字母都处理为大写保存
+
+- 5、发起请求
+
+- 6、弹窗提示成功还是失败，这里用到的是我们的自定义组件功能message组件：
+
+   ![1526140298249](/images/leyou/1526140298249.png)
+
+  这个插件把`$message`对象绑定到了Vue的原型上，因此我们可以通过`this.$message`来直接调用。
+
+  包含以下常用方法：
+
+  - info、error、success、warning等，弹出一个带有提示信息的窗口，色调与为普通（灰）、错误（红色）、成功（绿色）和警告（黄色）。使用方法：this.$message.info("msg")
+  - confirm：确认框。用法：`this.$message.confirm("确认框的提示信息")`，返回一个Promise
+
+## 1.2.后台实现新增
+
+### 1.2.1.controller
+
+还是一样，先分析四个内容：
+
+- 请求方式：刚才看到了是POST
+- 请求路径：/brand
+- 请求参数：brand对象，外加商品分类的id数组cids
+- 返回值：无
+
+代码：
+
+```java
+/**
+ * 新增品牌
+ * @param brand
+ * @return
+ */
+@PostMapping
+public ResponseEntity<Void> saveBrand(Brand brand, @RequestParam("cids") List<Long> cids) {
+    this.brandService.saveBrand(brand, cids);
+    return new ResponseEntity<>(HttpStatus.CREATED);
+}
+```
+
+
+
+### 1.2.2.Service
+
+这里要注意，我们不仅要新增品牌，还要维护品牌和商品分类的中间表。
+
+```java
+@Transactional
+public void saveBrand(Brand brand, List<Long> cids) {
+    // 新增品牌信息
+    this.brandMapper.insertSelective(brand);
+    // 新增品牌和分类中间表
+    for (Long cid : cids) {
+        this.brandMapper.insertCategoryBrand(cid, brand.getId());
+    }
+}
+```
+
+这里调用了brandMapper中的一个自定义方法，来实现中间表的数据新增
+
+### 1.2.3.Mapper
+
+通用Mapper只能处理单表，也就是Brand的数据，因此我们手动编写一个方法及sql，实现中间表的新增：
+
+```java
+public interface BrandMapper extends Mapper<Brand> {
+    /**
+     * 新增商品分类和品牌中间表数据
+     * @param cid 商品分类id
+     * @param bid 品牌id
+     * @return
+     */
+    @Insert("INSERT INTO tb_category_brand (category_id, brand_id) VALUES (#{cid},#{bid})")
+    int insertCategoryBrand(@Param("cid") Long cid, @Param("bid") Long bid);
+}
+```
+
+## 1.3.请求参数格式错误
+
+### 1.3.1.原因分析
+
+我们填写表单并提交，发现报错了：
+
+ ![1526180888663](/images/leyou/1526180888663.png)
+
+查看控制台的请求详情：
+
+ ![1526180937974](/images/leyou/1526180937974.png)
+
+
+
+发现请求的数据格式是JSON格式。
+
+> 原因分析：
+
+axios处理请求体的原则会根据请求数据的格式来定：
+
+- 如果请求体是对象：会转为json发送
+
+- 如果请求体是String：会作为普通表单请求发送，但需要我们自己保证String的格式是键值对。
+
+  如：name=jack&age=12
+
+### 1.3.2.QS工具
+
+QS是一个第三方库，我们可以用`npm install qs --save`来安装。不过我们在项目中已经集成了，大家无需安装：
+
+ ![1526181889564](/images/leyou/1526181889564.png)
+
+这个工具的名字：QS，即Query String，请求参数字符串。
+
+什么是请求参数字符串？例如： name=jack&age=21
+
+QS工具可以便捷的实现 JS的Object与QueryString的转换。
+
+
+
+在我们的项目中，将QS注入到了Vue的原型对象中，我们可以通过`this.$qs`来获取这个工具：
+
+我们将`this.$qs`对象打印到控制台：
+
+```js
+created(){
+    console.log(this.$qs);
+}
+```
+
+发现其中有3个方法：
+
+ ![1526181747560](/images/leyou/1526181747560.png)
+
+这里我们要使用的方法是stringify，它可以把Object转为QueryString。
+
+
+
+测试一下，使用浏览器工具，把qs对象保存为一个临时变量：
+
+ ![1526182053758](/images/leyou/1526182053758.png)
+
+然后调用stringify方法：
+
+ ![1526182230872](/images/leyou/1526182230872.png)
+
+成功将person对象变成了 name=jack&age=21的字符串了
+
+
+
+### 1.3.3.解决问题
+
+修改页面，对参数处理后发送：
+
+![1526181301670](/images/leyou/1526181301670.png)
+
+然后再次发起请求：
+
+ ![1526181331443](/images/leyou/1526181331443.png)
+
+发现请求成功：
+
+ ![1526181358204](/images/leyou/1526181358204.png)
+
+参数格式：
+
+ ![1526181384653](/images/leyou/1526181384653.png)
+
+数据库：
+
+ ![1526181553737](/images/leyou/1526181553737.png)
+
+
+
+## 1.4.新增完成后关闭窗口
+
+我们发现有一个问题：新增不管成功还是失败，窗口都一致在这里，不会关闭。
+
+这样很不友好，我们希望如果新增失败，窗口保持；但是新增成功，窗口关闭才对。
+
+
+
+因此，我们需要**在新增的ajax请求完成以后，关闭窗口**
+
+但问题在于，控制窗口是否显示的标记在父组件：MyBrand.vue中。子组件如何才能操作父组件的属性？或者告诉父组件该关闭窗口了？
+
+
+
+之前我们讲过一个父子组件的通信，有印象吗？
+
+- 第一步，在父组件中定义一个函数，用来关闭窗口，不过之前已经定义过了，我们优化一下，关闭的同时重新加载数据：
+
+```js
+closeWindow(){
+    // 关闭窗口
+    this.show = false;
+    // 重新加载数据
+    this.getDataFromServer();
+}
+```
+
+- 第二步，父组件在使用子组件时，绑定事件，关联到这个函数：
+
+```html
+<!--对话框的内容，表单-->
+<v-card-text class="px-5">
+    <my-brand-form @close="closeWindow"/>
+</v-card-text>
+```
+
+- 第三步，子组件通过`this.$emit`调用父组件的函数：
+
+ ![1526216993249](/images/leyou/1526216993249.png)
+
+
+
+测试一下
+
+
+
+
+
+# 2.实现图片上传
+
+刚才的新增实现中，我们并没有上传图片，接下来我们一起完成图片上传逻辑。
+
+文件的上传并不只是在品牌管理中有需求，以后的其它服务也可能需要，因此我们创建一个独立的微服务，专门处理各种上传。
+
+## 2.1.搭建项目
+
+### 2.1.1.创建module
+
+![1526192299113](/images/leyou/1526192299113.png)
+
+![1526192347113](/images/leyou/1526192347113.png)
+
+### 2.1.2.依赖
+
+我们需要EurekaClient和web依赖：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>leyou</artifactId>
+        <groupId>com.leyou.parent</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leyou.service</groupId>
+    <artifactId>ly-upload</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+### 2.1.3.编写配置
+
+```yaml
+server:
+  port: 8082
+spring:
+  application:
+    name: upload-service
+  servlet:
+    multipart:
+      max-file-size: 5MB # 限制文件上传的大小
+# Eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+  instance:
+    lease-renewal-interval-in-seconds: 5 # 每隔5秒发送一次心跳
+    lease-expiration-duration-in-seconds: 10 # 10秒不发送就过期
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+    instance-id: ${spring.application.name}:${server.port}
+```
+
+需要注意的是，我们应该添加了限制文件大小的配置
+
+### 2.1.4.启动类
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+public class LyUploadService {
+    public static void main(String[] args) {
+        SpringApplication.run(LyUploadService.class, args);
+    }
+}
+
+```
+
+结构：
+
+ ![1526192931088](/images/leyou/1526192931088.png)
+
+
+
+## 2.2.编写上传功能
+
+### 2.2.1.controller
+
+编写controller需要知道4个内容：
+
+- 请求方式：上传肯定是POST
+- 请求路径：/upload/image
+- 请求参数：文件，参数名是file，SpringMVC会封装为一个接口：MultipleFile
+- 返回结果：上传成功后得到的文件的url路径
+
+代码如下：
+
+```java
+@RestController
+@RequestMapping("upload")
+public class UploadController {
+
+    @Autowired
+    private UploadService uploadService;
+
+    /**
+     * 上传图片功能
+     * @param file
+     * @return
+     */
+    @PostMapping("image")
+    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {
+        String url = this.uploadService.upload(file);
+        if (StringUtils.isBlank(url)) {
+            // url为空，证明上传失败
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        // 返回200，并且携带url路径
+        return ResponseEntity.ok(url);
+    }
+}
+```
+
+
+
+### 2.2.2.service
+
+在上传文件过程中，我们需要对上传的内容进行校验：
+
+1. 校验文件大小
+2. 校验文件的媒体类型
+3. 校验文件的内容
+
+文件大小在Spring的配置文件中设置，因此已经会被校验，我们不用管。
+
+具体代码：
+
+```java
+@Service
+public class UploadService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UploadController.class);
+
+    // 支持的文件类型
+    private static final List<String> suffixes = Arrays.asList("image/png", "image/jpeg");
+
+    public String upload(MultipartFile file) {
+        try {
+            // 1、图片信息校验
+            // 1)校验文件类型
+            String type = file.getContentType();
+            if (!suffixes.contains(type)) {
+                logger.info("上传失败，文件类型不匹配：{}", type);
+                return null;
+            }
+            // 2)校验图片内容
+            BufferedImage image = ImageIO.read(file.getInputStream());
+            if (image == null) {
+                logger.info("上传失败，文件内容不符合要求");
+                return null;
+            }
+            // 2、保存图片
+            // 2.1、生成保存目录
+            File dir = new File("D:\\heima\\upload");
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            // 2.2、保存图片
+            file.transferTo(new File(dir, file.getOriginalFilename()));
+
+            // 2.3、拼接图片地址
+            String url = "http://image.leyou.com/upload/" + file.getOriginalFilename();
+
+            return url;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+}
+```
+
+
+
+这里有一个问题：为什么图片地址需要使用另外的url？
+
+- 图片不能保存在服务器内部，这样会对服务器产生额外的加载负担
+- 一般静态资源都应该使用独立域名，这样访问静态资源时不会携带一些不必要的cookie，减小请求的数据量
+
+
+
+### 2.2.3.测试上传
+
+我们通过RestClient工具来测试：
+
+ ![1526196967376](/images/leyou/1526196967376.png)
+
+结果：
+
+ ![1526197027688](/images/leyou/1526197027688.png)
+
+去目录下查看：
+
+ ![1526197060729](/images/leyou/1526197060729.png)
+
+上传成功！
+
+
+
+### 2.2.4.绕过网关
+
+图片上传是文件的传输，如果也经过Zuul网关的代理，文件就会经过多次网路传输，造成不必要的网络负担。在高并发时，可能导致网络阻塞，Zuul网关不可用。这样我们的整个系统就瘫痪了。
+
+所以，我们上传文件的请求就不经过网关来处理了。
+
+#### 2.2.4.1.Zuul的路由过滤
+
+Zuul中提供了一个ignored-patterns属性，用来忽略不希望路由的URL路径，示例：
+
+```properties
+zuul.ignored-patterns: /upload/**
+```
+
+路径过滤会对一切微服务进行判定。
+
+Zuul还提供了`ignored-services`属性，进行服务过滤：
+
+```properties
+zuul.ignored-services: upload-servie
+```
+
+我们这里采用忽略服务：
+
+```yaml
+zuul:
+  ignored-services:
+    - upload-service # 忽略upload-service服务
+```
+
+上面的配置采用了集合语法，代表可以配置多个
+
+#### 2.2.4.2.Nginx的rewrite指令
+
+现在，我们修改页面的访问路径：
+
+```html
+<v-upload
+      v-model="brand.image" 
+      url="/upload/image" 
+      :multiple="false" 
+      :pic-width="250" :pic-height="90"
+      />
+```
+
+查看页面的请求路径：
+
+ ![1526196446765](/images/leyou/1526196446765.png)
+
+可以看到这个地址不对，依然是去找Zuul网关，因为我们的系统全局配置了URL地址。怎么办？
+
+有同学会想：修改页面请求地址不就好了。
+
+注意：原则上，我们是不能把除了网关以外的服务对外暴露的，不安全。
+
+
+
+既然不能修改页面请求，那么就只能在Nginx反向代理上做文章了。
+
+我们修改nginx配置，将以/api/upload开头的请求拦截下来，转交到真实的服务地址:
+
+```nginx
+location /api/upload {
+    proxy_pass http://127.0.0.1:8082;
+    proxy_connect_timeout 600;
+    proxy_read_timeout 600;
+}
+```
+
+这样写大家觉得对不对呢？
+
+
+
+显然是不对的，因为ip和端口虽然对了，但是路径没变，依然是：http://127.0.0.1:8002/api/upload/image
+
+前面多了一个/api
+
+
+
+Nginx提供了rewrite指令，用于对地址进行重写，语法规则：
+
+```
+rewrite "用来匹配路径的正则" 重写后的路径 [指令];
+```
+
+我们的案例：
+
+```nginx 
+	server {
+        listen       80;
+        server_name  api.leyou.com;
+
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+    	# 上传路径的映射
+		location /api/upload {	
+			proxy_pass http://127.0.0.1:8082;
+			proxy_connect_timeout 600;
+			proxy_read_timeout 600;
+			
+			rewrite "^/api/(.*)$" /$1 break; 
+        }
+		
+        location / {
+			proxy_pass http://127.0.0.1:10010;
+			proxy_connect_timeout 600;
+			proxy_read_timeout 600;
+        }
+    }
+```
+
+- 首先，我们映射路径是/api/upload，而下面一个映射路径是 / ，根据最长路径匹配原则，/api/upload优先级更高。也就是说，凡是以/api/upload开头的路径，都会被第一个配置处理
+
+- `proxy_pass`：反向代理，这次我们代理到8082端口，也就是upload-service服务
+
+- `rewrite "^/api/(.*)$" /$1 break`，路径重写：
+
+  - `"^/api/(.*)$"`：匹配路径的正则表达式，用了分组语法，把`/api/`以后的所有部分当做1组
+
+  - `/$1`：重写的目标路径，这里用$1引用前面正则表达式匹配到的分组（组编号从1开始），即`/api/`后面的所有。这样新的路径就是除去`/api/`以外的所有，就达到了去除`/api`前缀的目的
+
+  - `break`：指令，常用的有2个，分别是：last、break
+
+    - last：重写路径结束后，将得到的路径重新进行一次路径匹配
+    - break：重写路径结束后，不再重新匹配路径。
+
+    我们这里不能选择last，否则以新的路径/upload/image来匹配，就不会被正确的匹配到8082端口了
+
+修改完成，输入`nginx -s reload`命令重新加载配置。然后再次上传试试。
+
+### 2.2.5.跨域问题
+
+重启nginx，再次上传，发现报错了：
+
+![1526200471676](/images/leyou/1526200471676.png)
+
+不过庆幸的是，这个错误已经不是第一次见了，跨域问题。
+
+我们在upload-service中添加一个CorsFilter即可：
+
+```java
+@Configuration
+public class GlobalCorsConfig {
+    @Bean
+    public CorsFilter corsFilter() {
+        //1.添加CORS配置信息
+        CorsConfiguration config = new CorsConfiguration();
+        //1) 允许的域,不要写*，否则cookie就无法使用了
+        config.addAllowedOrigin("http://manage.leyou.com");
+        //2) 是否发送Cookie信息
+        config.setAllowCredentials(false);
+        //3) 允许的请求方式
+        config.addAllowedMethod("OPTIONS");
+        config.addAllowedMethod("POST");
+        config.addAllowedHeader("*");
+
+        //2.添加映射路径，我们拦截一切请求
+        UrlBasedCorsConfigurationSource configSource = new UrlBasedCorsConfigurationSource();
+        configSource.registerCorsConfiguration("/**", config);
+
+        //3.返回新的CorsFilter.
+        return new CorsFilter(configSource);
+    }
+}
+```
+
+
+
+再次测试：
+
+ ![1526200606487](/images/leyou/1526200606487.png)
+
+不过，非常遗憾的是，访问图片地址，却没有响应。
+
+ ![1526200927268](/images/leyou/1526200927268.png)
+
+这是因为我们并没有任何服务器对应image.leyou.com这个域名。。
+
+这个问题，我们暂时放下，回头再来解决。
+
+### 2.2.6.之前上传的缺陷
+
+先思考一下，之前上传的功能，有没有什么问题？
+
+上传本身没有任何问题，问题出在保存文件的方式，我们是保存在服务器机器，就会有下面的问题：
+
+- 单机器存储，存储能力有限
+- 无法进行水平扩展，因为多台机器的文件无法共享,会出现访问不到的情况
+- 数据没有备份，有单点故障风险
+- 并发能力差
+
+这个时候，最好使用分布式文件存储来代替本地文件存储。
+
+# 3.FastDFS
+
+## 3.1.什么是分布式文件系统
+
+分布式文件系统（Distributed File System）是指文件系统管理的物理存储资源不一定直接连接在本地节点上，而是通过计算机网络与节点相连。 
+
+通俗来讲：
+
+- 传统文件系统管理的文件就存储在本机。
+- 分布式文件系统管理的文件存储在很多机器，这些机器通过网络连接，要被统一管理。无论是上传或者访问文件，都需要通过管理中心来访问
+
+## 3.2.什么是FastDFS
+
+FastDFS是由淘宝的余庆先生所开发的一个轻量级、高性能的开源分布式文件系统。用纯C语言开发，功能丰富：
+
+- 文件存储
+- 文件同步
+- 文件访问（上传、下载）
+- 存取负载均衡
+- 在线扩容
+
+适合有大容量存储需求的应用或系统。同类的分布式文件系统有谷歌的GFS、HDFS（Hadoop）、TFS（淘宝）等。
+
+## 3.3.FastDFS的架构
+
+### 3.3.1.架构图
+
+先上图：
+
+ ![1526205318630](/images/leyou/1526205318630.png)
+
+FastDFS两个主要的角色：Tracker Server 和 Storage Server 。
+
+- Tracker Server：跟踪服务器，主要负责调度storage节点与client通信，在访问上起负载均衡的作用，和记录storage节点的运行状态，是连接client和storage节点的枢纽。 
+- Storage Server：存储服务器，保存文件和文件的meta data（元数据），每个storage server会启动一个单独的线程主动向Tracker cluster中每个tracker server报告其状态信息，包括磁盘使用情况，文件同步情况及文件上传下载次数统计等信息
+- Group：文件组，多台Storage Server的集群。上传一个文件到同组内的一台机器上后，FastDFS会将该文件即时同步到同组内的其它所有机器上，起到备份的作用。不同组的服务器，保存的数据不同，而且相互独立，不进行通信。 
+- Tracker Cluster：跟踪服务器的集群，有一组Tracker Server（跟踪服务器）组成。
+- Storage Cluster ：存储集群，有多个Group组成。
+
+### 3.3.2.上传和下载流程
+
+> 上传
+
+ ![1526205664373](/images/leyou/1526205664373.png)
+
+1. Client通过Tracker server查找可用的Storage server。
+2. Tracker server向Client返回一台可用的Storage server的IP地址和端口号。
+3. Client直接通过Tracker server返回的IP地址和端口与其中一台Storage server建立连接并进行文件上传。
+4. 上传完成，Storage server返回Client一个文件ID，文件上传结束。
+
+> 下载
+
+ ![1526205705687](/images/leyou/1526205705687.png)
+
+1. Client通过Tracker server查找要下载文件所在的的Storage server。
+2. Tracker server向Client返回包含指定文件的某个Storage server的IP地址和端口号。
+3. Client直接通过Tracker server返回的IP地址和端口与其中一台Storage server建立连接并指定要下载文件。
+4. 下载文件成功。
+
+
+
+## 3.4.安装和使用
+
+参考课前资料的：《centos安装FastDFS.md》
+
+ ![1526205975025](/images/leyou/1526205975025.png)
+
+
+
+## 3.5.java客户端
+
+余庆先生提供了一个Java客户端，但是作为一个C程序员，写的java代码可想而知。而且已经很久不维护了。
+
+这里推荐一个开源的FastDFS客户端，支持最新的SpringBoot2.0。
+
+配置使用极为简单，支持连接池，支持自动生成缩略图，狂拽酷炫吊炸天啊，有木有。
+
+地址：[tobato/FastDFS_client](https://github.com/tobato/FastDFS_Client)
+
+ ![1526206304954](/images/leyou/1526206304954.png)
+
+### 3.5.1.引入依赖
+
+在父工程中，我们已经管理了依赖，版本为：
+
+```xml
+<fastDFS.client.version>1.26.2</fastDFS.client.version>
+```
+
+因此，这里我们直接引入坐标即可：
+
+```xml
+<dependency>
+    <groupId>com.github.tobato</groupId>
+    <artifactId>fastdfs-client</artifactId>
+</dependency>
+```
+
+
+
+### 3.5.2.引入配置类
+
+纯java配置：
+
+```java
+@Configuration
+@Import(FdfsClientConfig.class)
+// 解决jmx重复注册bean的问题
+@EnableMBeanExport(registration = RegistrationPolicy.IGNORE_EXISTING)
+public class FastClientImporter {
+}
+```
+
+### 3.5.3.编写FastDFS属性
+
+```yaml
+fdfs:
+  so-timeout: 1501
+  connect-timeout: 601
+  thumb-image: # 缩略图
+    width: 60
+    height: 60
+  tracker-list: # tracker地址
+    - 192.168.56.101:22122
+```
+
+### 3.5.4.测试
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = LyUploadService.class)
+public class FdfsTest {
+
+    @Autowired
+    private FastFileStorageClient storageClient;
+
+    @Autowired
+    private ThumbImageConfig thumbImageConfig;
+
+    @Test
+    public void testUpload() throws FileNotFoundException {
+        File file = new File("D:\\test\\baby.png");
+        // 上传并且生成缩略图
+        StorePath storePath = this.storageClient.uploadFile(
+                new FileInputStream(file), file.length(), "png", null);
+        // 带分组的路径
+        System.out.println(storePath.getFullPath());
+        // 不带分组的路径
+        System.out.println(storePath.getPath());
+    }
+
+    @Test
+    public void testUploadAndCreateThumb() throws FileNotFoundException {
+        File file = new File("D:\\test\\baby.png");
+        // 上传并且生成缩略图
+        StorePath storePath = this.storageClient.uploadImageAndCrtThumbImage(
+                new FileInputStream(file), file.length(), "png", null);
+        // 带分组的路径
+        System.out.println(storePath.getFullPath());
+        // 不带分组的路径
+        System.out.println(storePath.getPath());
+        // 获取缩略图路径
+        String path = thumbImageConfig.getThumbImagePath(storePath.getPath());
+        System.out.println(path);
+    }
+}
+```
+
+结果：
+
+```
+group1/M00/00/00/wKg4ZVro5eCAZEMVABfYcN8vzII630.png
+M00/00/00/wKg4ZVro5eCAZEMVABfYcN8vzII630.png
+M00/00/00/wKg4ZVro5eCAZEMVABfYcN8vzII630_60x60.png
+```
+
+访问第一个路径：
+
+![1526215187172](/images/leyou/1526215187172.png)
+
+访问最后一个路径（缩略图路径），注意加组名：
+
+ ![1526215257110](/images/leyou/1526215257110.png)
+
+
+
+### 3.5.5.改造上传逻辑
+
+```java
+@Service
+public class UploadService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UploadController.class);
+
+    // 支持的文件类型
+    private static final List<String> suffixes = Arrays.asList("image/png", "image/jpeg");
+
+    @Autowired
+    FastFileStorageClient storageClient;
+
+    public String upload(MultipartFile file) {
+        try {
+            // 1、图片信息校验
+            // 1)校验文件类型
+            String type = file.getContentType();
+            if (!suffixes.contains(type)) {
+                logger.info("上传失败，文件类型不匹配：{}", type);
+                return null;
+            }
+            // 2)校验图片内容
+            BufferedImage image = ImageIO.read(file.getInputStream());
+            if (image == null) {
+                logger.info("上传失败，文件内容不符合要求");
+                return null;
+            }
+
+            // 2、将图片上传到FastDFS
+            // 2.1、获取文件后缀名
+            String extension = StringUtils.substringAfterLast(file.getOriginalFilename(), ".");
+            // 2.2、上传
+            StorePath storePath = this.storageClient.uploadFile(
+                    file.getInputStream(), file.getSize(), extension, null);
+            // 2.3、返回完整路径
+            return "http://image.leyou.com/" + storePath.getFullPath();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+}
+```
+
+
+
+只需要把原来保存文件的逻辑去掉，然后上传到FastDFS即可。
+
+
+
+### 3.5.6.测试
+
+通过RestClient测试：
+
+ ![1526215940805](/images/leyou/1526215940805.png)
+
+## 3.6.页面测试上传
+
+发现上传成功：
+
+ ![1526216133300](/images/leyou/1526216133300.png)
+
+不过，当我们访问页面时：
+
+ ![1526216178123](/images/leyou/1526216178123.png)
+
+这是因为我们图片是上传到虚拟机的，ip为：192.168.56.101
+
+因此，我们需要将image.leyou.com映射到192.168.56.101
+
+修改我们的hosts：
+
+ ![1526216272835](/images/leyou/1526216272835.png)
+
+
+
+再次上传：
+
+ ![1526216322359](/images/leyou/1526216322359.png)
+
+
+
+# 4.修改品牌（作业）
+
+修改的难点在于回显。
+
+当我们点击编辑按钮，希望弹出窗口的同时，看到原来的数据：
+
+![1526216494380](/images/leyou/1526216494380.png)
+
+
+
+## 4.1.点击编辑出现弹窗
+
+这个比较简单，修改show属性为true即可实现，我们绑定一个点击事件：
+
+```html
+<v-btn color="info" @click="editBrand">编辑</v-btn>
+```
+
+然后编写事件，改变show 的状态：
+
+ ![1526217622765](/images/leyou/1526217622765.png)
+
+如果仅仅是这样，编辑按钮与新增按钮将没有任何区别，关键在于，如何回显呢？
+
+## 4.2.回显数据
+
+回显数据，就是把当前点击的品牌数据传递到子组件（MyBrandForm）。而父组件给子组件传递数据，通过props属性。
+
+- 第一步：在编辑时获取当前选中的品牌信息，并且记录到data中
+
+  先在data中定义属性，用来接收用来编辑的brand数据：
+
+   ![1526218080029](/images/leyou/1526218080029.png)
+
+  我们在页面触发编辑事件时，把当前的brand传递给editBrand方法：
+
+  ```html
+  <v-btn color="info" @click="editBrand(props.item)">编辑</v-btn>
+  ```
+
+  然后在editBrand中接收数据，赋值给oldBrand：
+
+  ```js
+  editBrand(oldBrand){
+    // 控制弹窗可见：
+    this.show = true;
+    // 获取要编辑的brand
+    this.oldBrand = oldBrand;
+  },
+  ```
+
+- 第二步：把获取的brand数据 传递给子组件
+
+  ```html
+  <!--对话框的内容，表单-->
+  <v-card-text class="px-5">
+      <my-brand-form @close="closeWindow" :oldBrand="oldBrand"/>
+  </v-card-text>
+  ```
+
+- 第三步：在子组件中通过props接收要编辑的brand数据，Vue会自动完成回显
+
+  接收数据：
+
+   ![1526218243761](/images/leyou/1526218243761.png)
+
+  通过watch函数监控oldBrand的变化，把值copy到本地的brand：
+
+  ```js
+  watch: {
+      oldBrand: {// 监控oldBrand的变化
+          handler(val) {
+              if(val){
+                  // 注意不要直接复制，否则这边的修改会影响到父组件的数据，copy属性即可
+                  this.brand =  Object.deepCopy(val)
+              }else{
+                  // 为空，初始化brand
+                  this.brand = {
+                      name: '',
+                      letter: '',
+                      image: '',
+                      categories: [],
+                  }
+              }
+          },
+              deep: true
+      }
+  }
+  ```
+
+  - Object.deepCopy 自定义的对对象进行深度复制的方法。
+  - 需要判断监听到的是否为空，如果为空，应该进行初始化
+
+
+
+测试：发现数据回显了，除了商品分类以外：
+
+ ![1526219653994](/images/leyou/1526219653994.png)
+
+
+
+## 4.3.商品分类回显
+
+为什么商品分类没有回显？
+
+因为品牌中并没有商品分类数据。我们需要在进入编辑页面之前，查询商品分类信息：
+
+### 4.3.1.后台提供接口
+
+> #### controller
+
+```java
+/**
+     * 通过品牌id查询商品分类
+     * @param bid
+     * @return
+     */
+@GetMapping("bid/{bid}")
+public ResponseEntity<List<Category>> queryByBrandId(@PathVariable("bid") Long bid) {
+    List<Category> list = this.categoryService.queryByBrandId(bid);
+    if (list == null || list.size() < 1) {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    return ResponseEntity.ok(list);
+}
+```
+
+
+
+> Service
+
+```java
+public List<Category> queryByBrandId(Long bid) {
+    return this.categoryMapper.queryByBrandId(bid);
+}
+```
+
+
+
+> mapper
+
+因为需要通过中间表进行子查询，所以这里要手写Sql：
+
+```java
+/**
+     * 根据品牌id查询商品分类
+     * @param bid
+     * @return
+     */
+@Select("SELECT * FROM tb_category WHERE id IN (SELECT category_id FROM tb_category_brand WHERE brand_id = #{bid})")
+List<Category> queryByBrandId(Long bid);
+```
+
+### 4.3.2.前台查询分类并渲染
+
+我们在编辑页面打开之前，先把数据查询完毕：
+
+```js
+editBrand(oldBrand){
+    // 根据品牌信息查询商品分类
+    this.$http.get("/item/category/bid/" + oldBrand.id)
+        .then(({data}) => {
+        // 控制弹窗可见：
+        this.show = true;
+        // 获取要编辑的brand
+        this.oldBrand = oldBrand
+        // 回显商品分类
+        this.oldBrand.categories = data;
+    })
+}
+```
+
+
+
+再次测试：数据成功回显了
+
+ ![1526222999115](/images/leyou/1526222999115.png)
+
+
+
+### 4.3.3.新增窗口数据干扰
+
+但是，此时却产生了新问题：新增窗口竟然也有数据？
+
+原因：
+
+​	如果之前打开过编辑，那么在父组件中记录的oldBrand会保留。下次再打开窗口，如果是编辑窗口到没问题，但是新增的话，就会再次显示上次打开的品牌信息了。
+
+
+
+解决：
+
+​	新增窗口打开前，把数据置空。
+
+```js
+addBrand() {
+    // 控制弹窗可见：
+    this.show = true;
+    // 把oldBrand变为null
+    this.oldBrand = null;
+}
+```
+
+
+
+### 4.3.4.提交表单时判断是新增还是修改
+
+新增和修改是同一个页面，我们该如何判断？
+
+父组件中点击按钮弹出新增或修改的窗口，因此父组件非常清楚接下来是新增还是修改。
+
+因此，最简单的方案就是，在父组件中定义变量，记录新增或修改状态，当弹出页面时，把这个状态也传递给子组件。
+
+第一步：在父组件中记录状态：
+
+ ![1526224372366](/images/leyou/1526224372366.png)
+
+
+
+第二步：在新增和修改前，更改状态：
+
+ ![1526224447288](/images/leyou/1526224447288.png)
+
+第三步：传递给子组件
+
+ ![1526224495244](/images/leyou/1526224495244.png)
+
+第四步，子组件接收标记：
+
+ ![1526224563838](/images/leyou/1526224563838.png)
+
+
+
+标题的动态化：
+
+ ![1526224628514](/images/leyou/1526224628514.png)
+
+表单提交动态：
+
+axios除了除了get和post外，还有一个通用的请求方式：
+
+```js
+// 将数据提交到后台
+// this.$http.post('/item/brand', this.$qs.stringify(params))
+this.$http({
+    method: this.isEdit ? 'put' : 'post', // 动态判断是POST还是PUT
+    url: '/item/brand',
+    data: this.$qs.stringify(this.brand)
+}).then(() => {
+    // 关闭窗口
+    this.$emit("close");
+    this.$message.success("保存成功！");
+})
+    .catch(() => {
+    this.$message.error("保存失败！");
+});
+```
+
+
+
+
+
+
+
+# 5.删除（作业）
+---
+layout: post
+title:  商品规格管理
+categories: 乐优
+description: 商品规格管理
+keywords: 乐优
+---
+# 0.学习目标
+
+- 了解商品规格数据结构设计思路
+- 实现商品规格查询
+- 了解SPU和SKU数据结构设计思路
+- 实现商品查询
+- 了解商品新增的页面实现
+- 独立编写商品新增后台功能
+
+
+
+
+
+# 1.商品规格数据结构
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+乐优商城是一个全品类的电商网站，因此商品的种类繁多，每一件商品，其属性又有差别。为了更准确描述商品及细分差别，抽象出两个概念：SPU和SKU，了解一下：
+
+## 1.1.SPU和SKU
+
+SPU：Standard Product Unit （标准产品单位） ，一组具有共同属性的商品集
+
+SKU：Stock Keeping Unit（库存量单位），SPU商品集因具体特性不同而细分的每个商品
+
+以图为例来看：
+
+![1526085541996](/images/leyou/1526085541996.png)
+
+- 本页的 华为Mate10 就是一个商品集（SPU）
+- 因为颜色、内存等不同，而细分出不同的Mate10，如亮黑色128G版。（SKU）
+
+可以看出：
+
+- SPU是一个抽象的商品集概念，为了方便后台的管理。
+- SKU才是具体要销售的商品，每一个SKU的价格、库存可能会不一样，用户购买的是SKU而不是SPU
+
+
+
+## 1.2.数据库设计分析
+
+### 1.2.1.思考并发现问题
+
+弄清楚了SPU和SKU的概念区分，接下来我们一起思考一下该如何设计数据库表。
+
+首先来看SPU，大家一起思考下SPU应该有哪些字段来描述？
+
+```
+id:主键
+title：标题
+description：描述
+specification：规格
+packaging_list：包装
+after_service：售后服务
+comment：评价
+category_id：商品分类
+brand_id：品牌
+```
+
+似乎并不复杂，但是大家仔细思考一下，商品的规格字段你如何填写？
+
+ ![1526086539789](/images/leyou/1526086539789.png)
+
+不同商品的规格不一定相同，数据库中要如何保存？
+
+
+
+
+
+再看下SKU，大家觉得应该有什么字段？
+
+```
+id：主键
+spu_id：关联的spu
+price：价格
+images：图片
+stock：库存
+颜色？
+内存？
+硬盘？
+```
+
+碰到难题了，不同的商品分类，可能属性是不一样的，比如手机有内存，衣服有尺码，我们是全品类的电商网站，这些不同的商品的不同属性，如何设计到一张表中？
+
+
+
+### 1.2.2.分析规格参数
+
+仔细查看每一种商品的规格你会发现：
+
+虽然商品规格千变万化，但是同一类商品（如手机）的规格是统一的，有图为证：
+
+> 华为的规格：
+
+ ![1526087063700](/images/leyou/1526087063700.png)
+
+
+
+> 三星的规格：
+
+ ![1526087142454](/images/leyou/1526087142454.png)
+
+
+
+也就是说，商品的规格参数应该是与分类绑定的。**每一个分类都有统一的规格参数模板，但不同商品其参数值可能不同**。
+
+如下图所示：
+
+ ![1526088168565](/images/leyou/1526088168565.png)
+
+### 1.2.3.SKU的特有属性
+
+SPU中会有一些特殊属性，用来区分不同的SKU，我们称为SKU特有属性。如华为META10的颜色、内存属性。
+
+不同种类的商品，一个手机，一个衣服，其SKU属性不相同。
+
+同一种类的商品，比如都是衣服，SKU属性基本是一样的，都是颜色、尺码等。
+
+这样说起来，似乎SKU的特有属性也是与分类相关的？事实上，仔细观察你会发现，**SKU的特有属性是商品规格参数的一部分**：
+
+![1526088981953](/images/leyou/1526088981953.png)
+
+
+
+也就是说，我们没必要单独对SKU的特有属性进行设计，它可以看做是规格参数中的一部分。这样规格参数中的属性可以标记成两部分：
+
+- 所有sku共享的规格属性（称为全局属性）
+- 每个sku不同的规格属性（称为特有属性）
+
+![1526089506566](/images/leyou/1526089506566.png)
+
+
+
+### 1.2.4.搜索属性
+
+打开一个搜索页，我们来看看过滤的条件：
+
+![1526090072535](/images/leyou/1526090072535.png)
+
+你会发现，过滤条件中的屏幕尺寸、运行内存、网路、机身内存、电池容量、CPU核数等，在规格参数中都能找到：
+
+ ![1526090228171](/images/leyou/1526090228171.png)
+
+也就是说，规格参数中的数据，将来会有一部分作为搜索条件来使用。我们可以在设计时，将这部分属性标记出来，将来做搜索的时候，作为过滤条件。要注意的是，无论是SPU的全局属性，还是SKU的特有属性，都有可能作为搜索过滤条件的，并不冲突，而是有一个交集：
+
+ ![1526091216124](/images/leyou/1526091216124.png)
+
+
+
+
+
+## 1.3.规格参数表
+
+### 1.3.1.表结构
+
+先看下规格参数表：
+
+```mysql
+CREATE TABLE `tb_specification` (
+  `category_id` bigint(20) NOT NULL COMMENT '规格模板所属商品分类id',
+  `specifications` varchar(3000) NOT NULL DEFAULT '' COMMENT '规格参数模板，json格式',
+  PRIMARY KEY (`category_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商品规格参数模板，json格式。';
+```
+
+很奇怪是吧，只有两个字段。特别需要注意的是第二个字段：
+
+- specificatons：规格参数模板，json格式
+
+为什么是一个json？我们看下规格参数的格式：
+
+![1526092179381](/images/leyou/1526092179381.png)
+
+如果按照传统数据库设计，这里至少需要3张表：
+
+- group：代表组，与商品分类关联
+- param_key：属性名，与组关联，一对多
+- param_value：属性备选值，与属性名关联，一对多
+
+这样程序的复杂度大大增加，但是提高了数据的复用性。
+
+我们的解决方案是，采用json来保存整个规格参数模板，不需要额外的表，一个字符串就够了。
+
+### 1.3.2.json结构分析
+
+> 先整体看一下：
+
+ ![1526092693138](/images/leyou/1526092693138.png)
+
+- 因为规格参数分为很多组，所以json最外层是一个数组。
+- 数组中是对象类型，每个对象代表一个组的数据，对象的属性包括：
+  - group：组的名称
+  - params：该组的所有属性
+
+> 接下来是params：
+
+ ![1526093111370](/images/leyou/1526093111370.png)
+
+以`主芯片`这一组为例：
+
+- group：注明，这里是主芯片
+
+- params：该组的所有规格属性，因为不止一个，所以是一个数组。这里包含四个规格属性：CPU品牌，CPU型号，CPU频率，CPU核数。每个规格属性都是一个对象，包含以下信息：
+  - k：属性名称
+  - searchable：是否作为搜索字段，将来在搜索页面使用，boolean类型
+  - global：是否是SPU全局属性，boolean类型。true为全局属性，false为SKU的特有属性
+  - options：属性值的可选项，数组结构。起约束作用，不允许填写可选项以外的值，比如CPU核数，有人添10000核岂不是很扯淡
+  - numerical：是否为数值，boolean类型，true则为数值，false则不是。为空也代表非数值
+  - unit：单位，如：克，毫米。如果是数值类型，那么就需要有单位，否则可以不填。
+
+上面的截图中所有属性都是全局属性，我们来看看内存，应该是特有属性：
+
+  ![1526262641446](/images/leyou/1526262641446.png)
+
+
+
+总结下：
+
+- 规格参数分组，每组有多个参数
+- 参数的 `k`代表属性名称，没有值，具体的SPU才能确定值
+- 参数会有不同的属性：是否可搜索，是否是全局、是否是数值，这些都用boolean值进行标记：
+  - SPU下的多个SKU共享的参数称为全局属性，用`global`标记
+  - SPU下的多个SKU特有的参数称为特有属性
+  - 如果参数是数值类型，用`numerical`标记，并且指定单位`unit`
+  - 如果参数可搜索，用`searchable`标记
+
+
+
+# 2.商品规格参数管理
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 2.1.页面实现
+
+页面比较复杂，这里就不带着大家去实现完整页面效果了，我们一起分析一下即可。
+
+### 2.1.1.整体布局
+
+打开规格参数页面，看到如下内容：
+
+![1526095296462](/images/leyou/1526095296462.png)
+
+因为规格是跟商品分类绑定的，因此首先会展现商品分类树，并且提示你要选择商品分类，才能看到规格参数的模板。一起了解下页面的实现：
+
+![1526095548672](/images/leyou/1526095548672.png)
+
+可以看出页面分成3个部分：
+
+- `v-card-title`：标题部分，这里是提示信息，告诉用户要先选择分类，才能看到模板
+
+- `v-tree`：这里用到的是我们之前讲过的树组件，展示商品分类树，不过现在是假数据，我们只要把`treeData`属性删除，它就会走`url`属性指定的路径去查询真实的商品分类树了。
+
+  ```js
+  <v-tree url="/item/category/list" :isEdit="false"  @handleClick="handleClick" />
+  ```
+
+- `v-dialog`：Vuetify提供的对话框组件，v-model绑定的dialog属性是boolean类型：
+
+  - true则显示弹窗
+  - false则隐藏弹窗
+
+### 2.1.2.data中定义的属性
+
+接下来，看看Vue实例中data定义了哪些属性，对页面会产生怎样的影响：
+
+ ![1526287774316](/images/leyou/1526287774316.png)
+
+- specifications：选中一个商品分类后，需要查询后台获取规格参数信息，保存在这个对象中，Vue会完成页面渲染。
+- oldSpec：当前页兼具了规格的增、改、查等功能，这个对象记录被修改前的规格参数，以防用户撤销修改，用来恢复数据。
+- dialog：是否显示对话框的标记。true则显示，false则不显示
+- currentNode：记录当前选中的商品分类节点
+- isInsert：判断接下来是新增还是修改
+
+
+
+## 2.2.规格参数的查询
+
+点击树节点后要显示规格参数，因此查询功能应该编写在点击事件中。
+
+了解一下：
+
+### 2.2.1.树节点的点击事件
+
+当我们点击树节点时，要将`v-dialog`打开，因此必须绑定一个点击事件：
+
+ ![1526095959539](/images/leyou/1526095959539.png)
+
+我们来看下`handleClick`方法：
+
+```js
+handleClick(node) {
+    // 判断点击的节点是否是父节点（只有点击到叶子节点才会弹窗）
+    if (!node.isParent) {
+        // 如果是叶子节点，那么就发起ajax请求，去后台查询商品规格数据。
+        this.$http.get("/item/spec/" + node.id)
+            .then(resp => {
+            // 查询成功后，把响应结果赋值给specifications属性，Vue会进行自动渲染。
+            this.specifications = resp.data;
+            // 记录下此时的规格数据，当页面撤销修改时，用来恢复原始数据
+            this.oldSpec = resp.data;
+            // 打开弹窗
+            this.dialog = true;
+            // 标记此时要进行修改操作
+            this.isInsert = false;
+        })
+            .catch(() => {
+            // 如果没有查询成功，那么询问是否添加规格
+            this.$message.confirm('该分类还没有规格参数，是否添加?')
+                .then(() => {
+                // 如果要添加，则将specifications初始化为空
+                this.specifications = [{
+                    group: '',
+                    params: []
+                }];
+                // 打开弹窗
+                this.dialog = true;
+                // 标记为新增
+                this.isInsert = true;
+            })
+        })
+    }
+}
+```
+
+
+
+因此，我们接下来要做的事情，就是编写接口，实现规格参数的查询了。
+
+### 2.2.2.后端代码
+
+> 实体类
+
+```java
+@Table(name = "tb_specification")
+public class Specification {
+
+    @Id
+    private Long categoryId;
+    private String specifications;
+
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public String getSpecifications() {
+        return specifications;
+    }
+
+    public void setSpecifications(String specifications) {
+        this.specifications = specifications;
+    }
+}
+```
+
+> mapper
+
+```java
+public interface SpecificationMapper extends Mapper<Specification> {
+}
+```
+
+> controller
+
+先分析下需要的东西，在页面的ajax请求中可以看出：
+
+- 请求方式：查询，肯定是get
+
+- 请求路径：/spec/{cid} ，这里通过路径占位符传递商品分类的id
+
+- 请求参数：商品分类id
+
+- 返回结果：页面是直接把`resp.data`赋值给了specifications：
+
+  ![1526104087329](/images/leyou/1526104087329.png)
+
+  那么我们返回的应该是规格参数的字符串
+
+代码：
+
+```java
+@RestController
+@RequestMapping("spec")
+public class SpecificationController {
+
+    @Autowired
+    private SpecificationService specificationService;
+
+    @GetMapping("{id}")
+    public ResponseEntity<String> querySpecificationByCategoryId(@PathVariable("id") Long id){
+        Specification spec = this.specificationService.queryById(id);
+        if (spec == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(spec.getSpecifications());
+    }
+}
+```
+
+
+
+> service:
+
+```java
+@Service
+public class SpecificationService {
+
+    @Autowired
+    private SpecificationMapper specificationMapper;
+
+    public Specification queryById(Long id) {
+        return this.specificationMapper.selectByPrimaryKey(id);
+    }
+}
+```
+
+
+
+> 页面访问测试：
+
+目前，我们数据库只提供了3条规格参数信息：
+
+ ![1526104551227](/images/leyou/1526104551227.png)
+
+我们访问：http://api.leyou.com/api/item/spec/76
+
+ ![1526104475036](/images/leyou/1526104475036.png)
+
+然后在后台系统中测试：
+
+![1526104599452](/images/leyou/1526104599452.png)
+
+
+
+当我们点击一个还不存在的规格参数的商品分类：
+
+![1526104769276](/images/leyou/1526104769276.png)
+
+
+
+## 2.3.增、删、改（作业）
+
+增删改的作业就留给大家去完成了。页面中接口都已定义，你要做的就是实现后台接口。
+
+
+
+
+
+# 3.SPU和SKU数据结构
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+规格确定以后，就可以添加商品了,先看下数据库表
+
+## 3.1.SPU表
+
+### 3.1.1.表结构
+
+SPU表：
+
+```mysql
+CREATE TABLE `tb_spu` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'spu id',
+  `title` varchar(255) NOT NULL DEFAULT '' COMMENT '标题',
+  `sub_title` varchar(255) DEFAULT '' COMMENT '子标题',
+  `cid1` bigint(20) NOT NULL COMMENT '1级类目id',
+  `cid2` bigint(20) NOT NULL COMMENT '2级类目id',
+  `cid3` bigint(20) NOT NULL COMMENT '3级类目id',
+  `brand_id` bigint(20) NOT NULL COMMENT '商品所属品牌id',
+  `saleable` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否上架，0下架，1上架',
+  `valid` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否有效，0已删除，1有效',
+  `create_time` datetime DEFAULT NULL COMMENT '添加时间',
+  `last_update_time` datetime DEFAULT NULL COMMENT '最后修改时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=208 DEFAULT CHARSET=utf8 COMMENT='spu表，该表描述的是一个抽象的商品，比如 iphone8';
+```
+
+与我们前面分析的基本类似，但是似乎少了一些字段，比如商品描述。
+
+我们做了表的垂直拆分，将SPU的详情放到了另一张表：tb_spu_detail
+
+```mysql
+CREATE TABLE `tb_spu_detail` (
+  `spu_id` bigint(20) NOT NULL,
+  `description` text COMMENT '商品描述信息',
+  `specifications` varchar(3000) NOT NULL DEFAULT '' COMMENT '全部规格参数数据',
+  `spec_template` varchar(1000) NOT NULL COMMENT '特有规格参数及可选值信息，json格式',
+  `packing_list` varchar(1000) DEFAULT '' COMMENT '包装清单',
+  `after_service` varchar(1000) DEFAULT '' COMMENT '售后服务',
+  PRIMARY KEY (`spu_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+```
+
+这张表中的数据都比较大，为了不影响主表的查询效率我们拆分出这张表。
+
+需要注意的是这两个字段：specifications和spec_template。
+
+### 3.1.2.spu中的规格参数
+
+前面讲过规格参数与商品分类绑定，一个分类下的所有SPU具有类似的规格参数。SPU下的SKU可能会有不同的规格参数，因此我们计划是这样：
+
+- SPU中保存全局的规格参数信息。
+- SKU中保存特有规格参数。
+
+以手机为例，品牌、操作系统等肯定是全局属性，内存、颜色等肯定是特有属性。
+
+当你确定了一个SPU，比如小米的：红米4X
+
+全局属性举例：
+
+```
+品牌：小米
+型号：红米4X
+```
+
+特有属性举例：
+
+```
+颜色：[香槟金, 樱花粉, 磨砂黑]
+内存：[2G, 3G]
+机身存储：[16GB, 32GB]
+```
+
+来看下我们的 表如何存储这些信息：
+
+#### 3.1.2.1.specifications字段
+
+首先是specifications，其中保存全部规格参数信息，因此也是一个json格式：
+
+> 整体来看：
+
+ ![1526262279963](/images/leyou/1526262279963.png)
+
+整体看上去与规格参数表中的数据一样，也是一个数组，并且分组，每组下有多个参数
+
+> 展开一组来看
+
+ ![1526262389233](/images/leyou/1526262389233.png)
+
+可以看到，与规格参数表中的模板相比，最大的区别就是，这里指定了具体的值，因为商品确定了，其参数值肯定也确定了。
+
+> 特有属性
+
+刚才看到的是全局属性，那么特有属性在这个字段中如何存储呢？
+
+ ![1526263214087](/images/leyou/1526263214087.png)
+
+我们发现特有属性也是有的，但是，注意看这里是不确定具体值的，因为特有属性只有在SKU中才能确定。这里只是保存了options，所有SKU属性的可选项。
+
+
+
+在哪里会用到这个字段的值呢，商品详情页的规格参数信息中：
+
+ ![1526267700765](/images/leyou/1526267700765.png)
+
+
+
+#### 3.1.2.2.spec_template字段
+
+既然specifications已经包含了所有的规格参数，那么为什么又多出了一个spec_template呢？
+
+里面又有哪些内容呢？
+
+来看数据格式：
+
+ ![1526267952827](/images/leyou/1526267952827.png)
+
+可以看出，里面只保存了规格参数中的特有属性，而且格式进行了大大的简化，只有属性的key，和待选项。
+
+为什么要冗余保存一份？
+
+因为很多场景下我们只需要查询特有规格属性，如果放在一起，每次查询再去分离比较麻烦。
+
+比如，商品详情页展示可选的规格参数时：
+
+   ![1526267828817](/images/leyou/1526267828817.png)
+
+
+
+
+
+## 3.2.SKU表
+
+### 3.2.1.表结构
+
+```mysql
+CREATE TABLE `tb_sku` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'sku id',
+  `spu_id` bigint(20) NOT NULL COMMENT 'spu id',
+  `title` varchar(255) NOT NULL COMMENT '商品标题',
+  `images` varchar(1000) DEFAULT '' COMMENT '商品的图片，多个图片以‘,’分割',
+  `price` bigint(15) NOT NULL DEFAULT '0' COMMENT '销售价格，单位为分',
+  `indexes` varchar(100) COMMENT '特有规格属性在spu属性模板中的对应下标组合',
+  `own_spec` varchar(1000) COMMENT 'sku的特有规格参数，json格式，反序列化时应使用linkedHashMap，保证有序',
+  `enable` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否有效，0无效，1有效',
+  `create_time` datetime NOT NULL COMMENT '添加时间',
+  `last_update_time` datetime NOT NULL COMMENT '最后修改时间',
+  PRIMARY KEY (`id`),
+  KEY `key_spu_id` (`spu_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='sku表,该表表示具体的商品实体,如黑色的64GB的iphone 8';
+```
+
+还有一张表，代表库存：
+
+```mysql
+CREATE TABLE `tb_stock` (
+  `sku_id` bigint(20) NOT NULL COMMENT '库存对应的商品sku id',
+  `seckill_stock` int(9) DEFAULT '0' COMMENT '可秒杀库存',
+  `seckill_total` int(9) DEFAULT '0' COMMENT '秒杀总数量',
+  `stock` int(9) NOT NULL COMMENT '库存数量',
+  PRIMARY KEY (`sku_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='库存表，代表库存，秒杀库存等信息';
+```
+
+问题：为什么要将库存独立一张表？
+
+因为库存字段写频率较高，而SKU的其它字段以读为主，因此我们将两张表分离，读写不会干扰。
+
+
+
+特别需要注意的是sku表中的`indexes`字段和`own_spec`字段。sku中应该保存特有规格参数的值，就在这两个字段中。
+
+
+
+### 3.2.2.sku中的特有规格参数
+
+#### 3.2.2.1.indexes字段
+
+在SPU表中，已经对特有规格参数及可选项进行了保存，结构如下：
+
+```json
+{
+    "机身颜色": [
+        "香槟金",
+        "樱花粉",
+        "磨砂黑"
+    ],
+    "内存": [
+        "2GB",
+        "3GB"
+    ],
+    "机身存储": [
+        "16GB",
+        "32GB"
+    ]
+}
+```
+
+这些特有属性如果排列组合，会产生12个不同的SKU，而不同的SKU，其属性就是上面备选项中的一个。
+
+比如：
+
+- 红米4X，香槟金，2GB内存，16GB存储
+- 红米4X，磨砂黑，2GB内存，32GB存储
+
+你会发现，每一个属性值，对应于SPUoptions数组的一个选项，如果我们记录下角标，就是这样：
+
+- 红米4X，0,0,0
+- 红米4X，2,0,1
+
+既然如此，我们是不是可以将不同角标串联起来，作为SPU下不同SKU的标示。这就是我们的indexes字段。
+
+ ![1526266901335](/images/leyou/1526266901335.png)
+
+这个设计在商品详情页会特别有用：
+
+ ![1526267180997](/images/leyou/1526267180997.png)
+
+当用户点击选中一个特有属性，你就能根据 角标快速定位到sku。
+
+#### 3.2.2.2.own_spec字段
+
+看结构：
+
+```json
+{"机身颜色":"香槟金","内存":"2GB","机身存储":"16GB"}
+```
+
+保存的是特有属性的键值对。
+
+SPU中保存的是可选项，但不确定具体的值，而SKU中的保存的就是具体的键值对了。
+
+这样，在页面展示规格参数信息时，就可以根据key来获取值，用于显示。
+
+
+
+## 3.3.导入图片信息
+
+现在商品表中虽然有数据，但是所有的图片信息都是无法访问的，我们需要把图片导入到虚拟机：
+
+首先，把课前资料提供的数据上传到虚拟机下：`/leyou/static`目录：
+
+![1527823423289](/images/leyou/1527823423289.png)
+
+然后，使用命令解压缩：
+
+```sh
+unzip images.zip
+```
+
+
+
+修改Nginx配置，使nginx反向代理这些图片地址：
+
+```sh
+vim /opt/nginx/config/nginx.conf
+```
+
+修改成如下配置：
+
+```nginx
+server {
+    listen       80;
+    server_name  image.leyou.com;
+
+    # 监听域名中带有group的，交给FastDFS模块处理
+    location ~/group([0-9])/ {
+        ngx_fastdfs_module;
+    }
+    # 将其它图片代理指向本地的/leyou/static目录
+    location / {
+        root   /leyou/static/;
+    }
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   html;
+    }
+
+}
+```
+
+
+
+# 4.商品查询
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 4.1.效果预览
+
+接下来，我们实现商品管理的页面，先看下我们要实现的效果：
+
+![1526268595873](/images/leyou/1526268595873.png)
+
+可以看出整体是一个table，然后有新增按钮。是不是跟昨天写品牌管理很像？
+
+
+
+模板代码在分别在Goods.vue
+
+ ![1526269215532](/images/leyou/1526269215532.png)
+
+## 4.2.从0开始
+
+接下来，我们自己来实现一下，新建两个组件：MyGoods.vue和MyGoodsForm.vue
+
+ ![1526269362233](/images/leyou/1526269362233.png)
+
+内容先随意：
+
+```vue
+<template>
+  <v-card>
+      MyGoods
+  </v-card>
+</template>
+
+<script>
+
+  export default {
+    name: "my-goods",
+    data() {
+      return {
+      }
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>
+```
+
+然后修改menu.js,新建一个菜单：
+
+ ![1526269555118](/images/leyou/1526269555118.png)
+
+修改router/index.js，添加一个路由：
+
+ ![1526269615639](/images/leyou/1526269615639.png)
+
+预览一下：
+
+ ![1526269739468](/images/leyou/1526269739468.png)
+
+
+
+
+
+## 4.3.页面实现
+
+### 4.3.1.页面基本表格
+
+商品列表页与品牌列表页几乎一样，我们可以直接去复制一份过来，然后进行一些修改。
+
+首先，字段不一样，商品列表也展示的SPU信息，包含以下字段：
+
+```
+id：
+title：标题
+cname：商品分类名称
+bname：品牌名称
+```
+
+完整代码：
+
+```html
+<template>
+  <v-card>
+    <v-card-title>
+      <v-btn color="primary" @click="addGoods">新增商品</v-btn>
+      <!--搜索框，与search属性关联-->
+      <v-spacer/>
+      <v-text-field label="输入关键字搜索" v-model.lazy="search" append-icon="search" hide-details/>
+    </v-card-title>
+    <v-divider/>
+    <v-data-table
+      :headers="headers"
+      :items="goodsList"
+      :search="search"
+      :pagination.sync="pagination"
+      :total-items="totalGoods"
+      :loading="loading"
+      class="elevation-1"
+    >
+      <template slot="items" slot-scope="props">
+        <td>{{ props.item.id }}</td>
+        <td class="text-xs-center">{{ props.item.title }}</td>
+        <td class="text-xs-center">{{props.item.cname}}</td>
+        <td class="text-xs-center">{{ props.item.bname }}</td>
+        <td class="justify-center layout">
+          <v-btn color="info" @click="editGoods(props.item)">编辑</v-btn>
+          <v-btn color="warning">删除</v-btn>
+          <v-btn >下架</v-btn>
+        </td>
+      </template>
+    </v-data-table>
+    <!--弹出的对话框-->
+    <v-dialog max-width="500" v-model="show" persistent>
+      <v-card>
+        <!--对话框的标题-->
+        <v-toolbar dense dark color="primary">
+          <v-toolbar-title>{{isEdit ? '修改' : '新增'}}商品</v-toolbar-title>
+          <v-spacer/>
+          <!--关闭窗口的按钮-->
+          <v-btn icon @click="closeWindow"><v-icon>close</v-icon></v-btn>
+        </v-toolbar>
+        <!--对话框的内容，表单-->
+        <v-card-text class="px-5">
+          <my-goods-form :oldGoods="oldGoods" />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+  </v-card>
+</template>
+
+<script>
+  // 导入自定义的表单组件
+  import MyGoodsForm from './MyGoodsForm'
+
+  export default {
+    name: "my-goods",
+    data() {
+      return {
+        search: '', // 搜索过滤字段
+        totalGoods: 0, // 总条数
+        goodsList: [], // 当前页品牌数据
+        loading: true, // 是否在加载中
+        pagination: {}, // 分页信息
+        headers: [
+          {text: 'id', align: 'center', value: 'id'},
+          {text: '标题', align: 'center', sortable: false, value: 'title'},
+          {text: '商品分类', align: 'center', sortable: false, value: 'cname'},
+          {text: '品牌', align: 'center', value: 'bname', sortable: false,},
+          {text: '操作', align: 'center', sortable: false}
+        ],
+        show: false,// 控制对话框的显示
+        oldGoods: {}, // 即将被编辑的商品信息
+        isEdit: false, // 是否是编辑
+      }
+    },
+    mounted() { // 渲染后执行
+      // 查询数据
+      this.getDataFromServer();
+    },
+    watch: {
+      pagination: { // 监视pagination属性的变化
+        deep: true, // deep为true，会监视pagination的属性及属性中的对象属性变化
+        handler() {
+          // 变化后的回调函数，这里我们再次调用getDataFromServer即可
+          this.getDataFromServer();
+        }
+      },
+      search: { // 监视搜索字段
+        handler() {
+          this.getDataFromServer();
+        }
+      }
+    },
+    methods: {
+      getDataFromServer() { // 从服务的加载数的方法。
+        // 发起请求
+        this.$http.get("/item/spu/page", {
+          params: {
+            key: this.search, // 搜索条件
+            page: this.pagination.page,// 当前页
+            rows: this.pagination.rowsPerPage,// 每页大小
+            sortBy: this.pagination.sortBy,// 排序字段
+            desc: this.pagination.descending// 是否降序
+          }
+        }).then(resp => { // 这里使用箭头函数
+          this.goodsList = resp.data.items;
+          this.totalGoods = resp.data.total;
+          // 完成赋值后，把加载状态赋值为false
+          this.loading = false;
+        })
+      },
+      addGoods() {
+        // 修改标记
+        this.isEdit = false;
+        // 控制弹窗可见：
+        this.show = true;
+        // 把oldBrand变为null
+        this.oldBrand = null;
+      },
+      editGoods(oldGoods){
+        // 修改标记
+        this.isEdit = true;
+        // 控制弹窗可见：
+        this.show = true;
+        // 获取要编辑的brand
+        this.oldGoods = oldGoods;
+      },
+      closeWindow(){
+        // 重新加载数据
+        this.getDataFromServer();
+        // 关闭窗口
+        this.show = false;
+      }
+    },
+    components:{
+      MyGoodsForm
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>
+```
+
+主要的改动点：
+
+- 页面的`v-data-table`中的属性绑定修改。items指向goodsList，totalItems指向totalGoods
+
+- 页面渲染的字段名修改：字段改成商品的SPU字段：id、title，cname(商品分类名称),bname（品牌名称）
+
+- data属性修改了以下属性：
+
+  - goodsList：当前页商品数据
+  - totalGoods：商品总数
+  - headers：头信息，需要修改头显示名称
+  - oldGoods：准备要修改的商品
+
+- 加载数据的函数：getDataFromServer，请求的路径进行了修改，另外去除了跟排序相关的查询。SPU查询不排序
+
+- 新增商品的事件函数：清除了一些数据查询接口，只保留弹窗
+
+
+查看效果：
+
+![1526272476614](/images/leyou/1526272476614.png)
+
+因为没有编写查询功能，表格一直处于loading状态。
+
+
+
+接下来看弹窗：
+
+![1526272537552](/images/leyou/1526272537552.png)
+
+
+
+### 4.3.2.上下架状态按钮
+
+另外，似乎页面少了对上下架商品的过滤，在原始效果图中是有的：
+
+ ![1526277614649](/images/leyou/1526277614649.png)
+
+这在Vuetify中是一组按钮，我们查看帮助文档：
+
+ ![1526277713391](/images/leyou/1526277713391.png)
+
+
+
+查看实例得到以下信息：
+
+`v-btn`：一个按钮
+
+`v-btn-toggle`：按钮组，内部可以有多个按钮，点击切换，有以下属性：
+
+- multiple：是否支持多选，默认是false
+- value：选中的按钮的值，如果是多选，结果是一个数组；单选，结果是点击的v-btn中的value值，因此按钮组的每个btn都需要指定value属性
+
+改造页面：
+
+首先在data中定义一个属性，记录按钮的值。
+
+```js
+filter:{
+    saleable: false, // 上架还是下架
+    search: '', // 搜索过滤字段
+}
+```
+
+这里我们的做法是定义一个filter属性，内部在定义search来关联过滤字段，saleable来关联上下架情况。
+
+这样watch就必须监听filter，而不是只监听search了：
+
+```js
+filter: {// 监视搜索字段
+  handler() {
+    this.getDataFromServer();
+  },
+  deep:true
+}
+```
+
+另外，页面中与search有关的所有字段都需要修改成filter.search:
+
+```html
+<!--搜索框，与search属性关联-->
+<v-text-field label="输入关键字搜索" v-model.lazy="filter.search" append-icon="search" hide-details/>
+```
+
+
+
+然后，在页面中添加按钮组：
+
+```html
+ <v-flex xs3>
+     状态：
+     <v-btn-toggle v-model="filter.saleable">
+         <v-btn flat>
+             全部
+         </v-btn>
+         <v-btn flat :value="true">
+             上架
+         </v-btn>
+         <v-btn flat :value="false">
+             下架
+         </v-btn>
+     </v-btn-toggle>
+</v-flex>
+```
+
+最后，不要忘了在查询时，将saleable携带上：
+
+```js
+getDataFromServer() { // 从服务的加载数的方法。
+    // 发起请求
+    this.$http.get("/item/spu/page", {
+        params: {
+            key: this.filter.search, // 搜索条件
+            saleable: this.filter.saleable, // 上下架
+            page: this.pagination.page,// 当前页
+            rows: this.pagination.rowsPerPage,// 每页大小
+        }
+    }).then(resp => { // 这里使用箭头函数
+        this.goodsList = resp.data.items;
+        this.totalGoods = resp.data.total;
+        // 完成赋值后，把加载状态赋值为false
+        this.loading = false;
+    })
+}
+```
+
+
+
+
+
+## 4.4.后台提供接口
+
+页面已经准备好，接下来在后台提供分页查询SPU的功能：
+
+### 4.4.1.实体类
+
+> SPU
+
+```java
+@Table(name = "tb_spu")
+public class Spu {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private Long brandId;
+    private Long cid1;// 1级类目
+    private Long cid2;// 2级类目
+    private Long cid3;// 3级类目
+    private String title;// 标题
+    private String subTitle;// 子标题
+    private Boolean saleable;// 是否上架
+    private Boolean valid;// 是否有效，逻辑删除用
+    private Date createTime;// 创建时间
+    private Date lastUpdateTime;// 最后修改时间
+	// 省略getter和setter
+}
+```
+
+
+
+> SPU详情
+
+```java
+@Table(name="tb_spu_detail")
+public class SpuDetail {
+    @Id
+    private Long spuId;// 对应的SPU的id
+    private String description;// 商品描述
+    private String specTemplate;// 商品特殊规格的名称及可选值模板
+    private String specifications;// 商品的全局规格属性
+    private String packingList;// 包装清单
+    private String afterService;// 售后服务
+    // 省略getter和setter
+}
+```
+
+### 4.4.2.controller
+
+先分析：
+
+- 请求方式：GET
+
+- 请求路径：/spu/page
+
+- 请求参数：
+
+  - page：当前页
+  - rows：每页大小
+  - key：过滤条件
+  - saleable：上架或下架
+
+- 返回结果：商品SPU的分页信息。
+
+  - 要注意，页面展示的是商品分类和品牌名称，而数据库中保存的是id，怎么办？
+
+    我们可以新建一个类，继承SPU，并且拓展cname和bname属性，写到`ly-item-interface`
+
+    ```java
+    public class SpuBo extends Spu {
+    
+        String cname;// 商品分类名称
+        
+        String bname;// 品牌名称
+        
+        // 略 。。
+    }
+    ```
+
+编写controller代码：
+
+我们把与商品相关的一切业务接口都放到一起，起名为GoodsController，业务层也是这样
+
+```java
+@RestController
+public class GoodsController {
+
+    @Autowired
+    private GoodsService goodsService;
+
+    /**
+     * 分页查询SPU
+     * @param page
+     * @param rows
+     * @param key
+     * @return
+     */
+    @GetMapping("/spu/page")
+    public ResponseEntity<PageResult<SpuBo>> querySpuByPage(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "rows", defaultValue = "5") Integer rows,
+            @RequestParam(value = "key", required = false) String key) {
+        // 分页查询spu信息
+        PageResult<SpuBo> result = this.goodsService.querySpuByPageAndSort(page, rows, key);
+        if (result == null || result.getItems().size() == 0) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(result);
+    }
+}
+```
+
+
+
+### 4.4.3.service
+
+所有商品相关的业务（包括SPU和SKU）放到一个业务下：GoodsService。
+
+```java
+@Service
+public class GoodsService {
+
+    @Autowired
+    private SpuMapper spuMapper;
+
+    @Autowired
+    private CategoryService categoryService;
+
+    @Autowired
+    private BrandMapper brandMapper;
+
+    public PageResult<SpuBo> querySpuByPageAndSort(Integer page, Integer rows, Boolean saleable, String key) {
+        // 1、查询SPU
+        // 分页,最多允许查100条
+        PageHelper.startPage(page, Math.min(rows, 100));
+        // 创建查询条件
+        Example example = new Example(Spu.class);
+        Example.Criteria criteria = example.createCriteria();
+        // 是否过滤上下架
+        if (saleable != null) {
+            criteria.orEqualTo("saleable", saleable);
+        }
+        // 是否模糊查询
+        if (StringUtils.isNotBlank(key)) {
+            criteria.andLike("title", "%" + key + "%");
+        }
+        Page<Spu> pageInfo = (Page<Spu>) this.spuMapper.selectByExample(example);
+
+        List<SpuBo> list = pageInfo.getResult().stream().map(spu -> {
+            // 2、把spu变为 spuBo
+            SpuBo spuBo = new SpuBo();
+            // 属性拷贝
+            BeanUtils.copyProperties(spu, spuBo);
+
+            // 3、查询spu的商品分类名称,要查三级分类
+            List<String> names = this.categoryService.queryNameByIds(
+                    Arrays.asList(spu.getCid1(), spu.getCid2(), spu.getCid3()));
+            // 将分类名称拼接后存入
+            spuBo.setCname(StringUtils.join(names, "/"));
+
+            // 4、查询spu的品牌名称
+            Brand brand = this.brandMapper.selectByPrimaryKey(spu.getBrandId());
+            spuBo.setBname(brand.getName());
+            return spuBo;
+        }).collect(Collectors.toList());
+
+        return new PageResult<>(pageInfo.getTotal(), list);
+    }
+}
+```
+
+
+
+### 4.4.4.mapper
+
+```java
+public interface SpuMapper extends Mapper<Spu> {
+}
+```
+
+
+
+### 4.4.5.Category中拓展查询名称的功能
+
+页面需要商品的分类名称需要在这里查询，因此要额外提供查询分类名称的功能，
+
+在CategoryService中添加功能：
+
+```java
+public List<String> queryNameByIds(List<Long> ids) {
+    return this.categoryMapper.selectByIdList(ids).stream().map(Category::getName).collect(Collectors.toList());
+}
+```
+
+mapper的selectByIDList方法是来自于通用mapper。不过需要我们在mapper上继承一个通用mapper接口：
+
+```java
+public interface CategoryMapper extends Mapper<Category>, SelectByIdListMapper<Category, Long> { 
+    // ...coding
+}
+```
+
+## 4.5.测试
+
+刷新页面，查看效果：
+
+ ![1526280777975](/images/leyou/1526280777975.png)
+
+
+
+基本与预览的效果一致，OK！
+
+
+
+# 5.商品新增
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 5.1.效果预览
+
+新增商品窗口：
+
+ ![1526268739827](../../../%E4%B9%90%E4%BC%98%E5%95%86%E5%9F%8E/%E7%AC%94%E8%AE%B0/day08//images/leyou/1526268739827.png)
+
+这个表单比较复杂，因为商品的信息比较多，分成了4个部分来填写：
+
+- 基本信息
+- 商品描述信息
+- 规格参数信息
+- SKU信息
+
+
+
+## 5.2.从0开始
+
+我们刚刚在查询时，已经实现创建了MyGoodsForm.vue，并且已经在MyGoods中引入。
+
+不过目前没有写代码：
+
+```vue
+<template>
+  <v-card>
+    my goods form
+  </v-card>
+</template>
+
+<script>
+  export default {
+    name: "my-goods-form",
+    props: {
+      oldGoods: {
+        type: Object
+      },
+      isEdit: {
+        type: Boolean,
+        default: false
+      }
+    },
+    data() {
+      return {
+
+      }
+    },
+    methods: {
+    }
+  }
+</script>
+
+<style scoped>
+
+</style>
+
+```
+
+然后在MyBrand中，已经引入了MyGoodsForm组件，并且页面中也形成了对话框：
+
+```js
+  // 导入自定义的表单组件
+  import MyGoodsForm from './MyGoodsForm'
+```
+
+```html
+<v-dialog max-width="500" v-model="show" persistent>
+    <v-card>
+        <!--对话框的标题-->
+        <v-toolbar dense dark color="primary">
+            <v-toolbar-title>{{isEdit ? '修改' : '新增'}}商品</v-toolbar-title>
+            <v-spacer/>
+            <!--关闭窗口的按钮-->
+            <v-btn icon @click="closeWindow">
+                <v-icon>close</v-icon>
+            </v-btn>
+        </v-toolbar>
+        <!--对话框的内容，表单-->
+        <v-card-text class="px-5">
+            <my-goods-form :oldGoods="oldGoods"/>
+        </v-card-text>
+    </v-card>
+</v-dialog>
+```
+
+
+
+并且也已经给新增按钮绑定了点击事件：
+
+```html
+<v-btn color="primary" @click="addGoods">新增商品</v-btn>
+```
+
+addGoods方法中，设置对话框的show属性为true：
+
+```js
+addGoods() {
+    // 修改标记
+    this.isEdit = false;
+    // 控制弹窗可见：
+    this.show = true;
+    // 把oldBrand变为null
+    this.oldBrand = null;
+}
+```
+
+
+
+不过弹窗中没有任何数据：
+
+ ![1526281134046](/images/leyou/1526281134046.png)
+
+
+
+## 5.3.新增商品页的基本框架
+
+### 5.3.1.Steppers，步骤线
+
+预览效果图中，分四个步骤显示商品表单的组件，叫做stepper，看下文档：
+
+![1526281659782](/images/leyou/1526281659782.png)
+
+其基本结构如图：
+
+![1526282309386](/images/leyou/1526282309386.png)
+
+一个步骤线（v-stepper）总的分为两部分：
+
+- v-stepper-header：代表步骤的头部进度条，只能有一个
+  - v-stepper-step：代表进度条的每一个步骤，可以有多个
+- v-stepper-items：代表当前步骤下的内容组，只能有一个，内部有stepper-content
+  - v-stepper-content：代表每一步骤的页面内容，可以有多个
+
+
+
+> v-stepper
+
+- value：其值是当前所在的步骤索引，可以用来控制步骤切换
+- dark：是否使用黑暗色调，默认false
+- non-linear：是否启用非线性步骤，用户不用按顺序切换，而是可以调到任意步骤，默认false
+- vertical：是否垂直显示步骤线，默认是false，即水平显示
+
+> v-stepper-header的属性：
+
+- 无
+
+> v-stepper-step的属性
+
+- color：颜色
+- complete：当前步骤是否已经完成，布尔值
+- editable：是否可编辑任意步骤（非线性步骤）
+- step：步骤索引
+
+> v-stepper-items
+
+- 无
+
+> v-stepper-content
+
+- step：步骤索引，需要与v-stepper-step中的对应
+
+### 5.3.2.编写页面
+
+首先我们在data中定义一个变量，记录当前的步骤数：
+
+```js
+data() {
+    return {
+        step: 1, // 当前的步骤数，默认为1
+    }
+},
+```
+
+然后在模板页面中引入步骤线：
+
+```html
+<v-stepper v-model="step">
+    <v-stepper-header>
+      <v-stepper-step :complete="step > 1" step="1">基本信息</v-stepper-step>
+      <v-divider/>
+      <v-stepper-step :complete="step > 2" step="2">商品描述</v-stepper-step>
+      <v-divider/>
+      <v-stepper-step :complete="step > 3" step="3">规格参数</v-stepper-step>
+      <v-divider/>
+      <v-stepper-step step="4">SKU属性</v-stepper-step>
+    </v-stepper-header>
+    <v-stepper-items>
+      <v-stepper-content step="1">
+        基本信息
+      </v-stepper-content>
+      <v-stepper-content step="2">
+        商品描述
+      </v-stepper-content>
+      <v-stepper-content step="3">
+        规格参数
+      </v-stepper-content>
+      <v-stepper-content step="4">
+        SKU属性
+      </v-stepper-content>
+    </v-stepper-items>
+  </v-stepper>
+```
+
+效果：
+
+![1526283729193](/images/leyou/1526283729193.png)
+
+步骤线出现了！
+
+
+
+那么问题来了：该如何让这几个步骤切换呢？
+
+
+
+### 5.3.3.步骤切换按钮
+
+#### 分析
+
+如果改变step的值与指定的步骤索引一致，就可以实现步骤切换了：
+
+![1526283971416](/images/leyou/1526283971416.png)
+
+
+
+因此，我们需要定义两个按钮，点击后修改step的值，让步骤前进或后退。
+
+那么这两个按钮放哪里？
+
+如果放在MyGoodsForm内，当表单内容过多时，按钮会被挤压到屏幕最下方，不够友好。最好是能够悬停状态。
+
+
+
+所以，按钮必须放到MyGoods组件中，也就是父组件。
+
+父组件的对话框是一个card，card组件提供了一个滚动效果，scrollable，如果为true，card的内容滚动时，其头部和底部是可以静止的。
+
+现在card的头部是弹框的标题，card的中间就是表单内容。如果我们把按钮放到底部，就可以实现悬停效果。
+
+#### 页面添加按钮
+
+改造MyGoods的对话框组件：
+
+  ![1526285123845](/images/leyou/1526285123845.png)
+
+查看页面：
+
+![1526285086042](/images/leyou/1526285086042.png)
+
+
+
+#### 添加点击事件
+
+现在这两个按钮点击后没有任何反应。我们需要给他们绑定点击事件，来修改MyGoodsForm中的step的值。
+
+也就是说，父组件要修改子组件的属性状态。想到什么了？
+
+props属性。
+
+我们先在父组件定义一个step属性：
+
+ ![1526285364638](/images/leyou/1526285364638.png)
+
+然后在点击事件中修改它：
+
+```js
+previous(){
+    if(this.step > 1){
+        this.step--
+    }
+},
+next(){
+    if(this.step < 4){
+        this.step++
+    }
+}
+```
+
+页面绑定事件：
+
+```html
+<!--底部按钮，用来操作步骤线-->
+<v-card-actions class="elevation-10">
+    <v-flex class="xs3 mx-auto">
+        <v-btn @click="previous" color="primary" :disabled="step === 1">上一步</v-btn>
+        <v-btn @click="next" color="primary" :disabled="step === 4">下一步</v-btn>
+    </v-flex>
+</v-card-actions>
+```
+
+然后把step属性传递给子组件：
+
+```html
+<!--对话框的内容，表单-->
+<v-card-text class="px-3" style="height: 600px">
+    <my-goods-form :oldGoods="oldGoods" :step="step"/>
+</v-card-text>
+```
+
+子组件中接收属性：
+
+ ![1526285994382](/images/leyou/1526285994382.png)
+
+测试效果：
+
+ ![](/images/leyou/10.gif)
+
+## 5.4.商品基本信息
+
+商品基本信息，主要是一些纯文本比较简单的SPU属性，例如：
+
+商品分类、商品品牌、商品标题、商品卖点（子标题），包装清单，售后服务
+
+接下来，我们一一添加这些表单项。
+
+注：这里为了简化，我们就不进行form表单校验了。之前已经讲过。
+
+### 5.4.1.在data中定义Goods属性
+
+首先，我们需要定义一个goods对象，包括商品的上述属性。
+
+```js
+data() {
+    return {
+        goods:{
+            categories:{}, // 商品3级分类数组信息
+            brandId: 0,// 品牌id信息
+            title: '',// 标题
+            subTitle: '',// 子标题
+            spuDetail: {
+                packingList: '',// 包装列表
+                afterService: '',// 售后服务
+            },
+        }
+    }
+```
+
+注意，这里我们在goods中定义了spuDetail属性，然后把包装列表和售后服务作为它的属性，这样符合数据库的结构。
+
+### 5.4.2.商品分类选框
+
+商品分类选框之前我们已经做过了。是级联选框。直接拿来用：
+
+```html
+<v-cascader
+        url="/item/category/list"
+        required
+        showAllLevels
+        v-model="goods.categories"
+        label="请选择商品分类"/>
+```
+
+跟以前使用有一些区别：
+
+- 一个商品只能有一个分类，所以这里去掉了multiple属性
+- 商品SPU中要保存3级商品分类，因此我们这里需要选择showAllLevels属性，显示所有3级分类
+
+效果：
+
+ ![1526290196168](/images/leyou/1526290196168.png)
+
+查看goods的属性，三级类目都在：
+
+ ![1526290263252](/images/leyou/1526290263252.png)
+
+
+
+### 5.4.3.品牌选择
+
+#### select组件
+
+品牌不分级别，使用普通下拉选框即可。我们查看官方文档的下拉选框说明：
+
+ ![1526287929674](/images/leyou/1526287929674.png)
+
+组件名：v-select
+
+比较重要的一些属性：
+
+- item-text：选项中用来展示的字段名，默认是text
+- item-value：选项中用来作为value值的字段名，默认是value
+- items：待选项的对象数组
+- label：提示文本
+- multiple：是否支持多选，默认是false
+
+其它次要属性：
+
+- autocomplete：是否根据用户输入的文本进行搜索过滤（自动），默认false
+- chips：是否以小纸片方式显示用户选中的项，默认false
+- clearable：是否添加清空选项图标，默认是false
+- color：颜色
+- dense：是否压缩选择框高度，默认false
+- editable：是否可编辑，默认false
+- hide-details：是否隐藏错误提示，默认false
+- hide-selected：是否在菜单中隐藏已选择的项
+- hint：提示文本
+- 其它基本与`v-text-filed`组件类似，不再一一列举
+
+
+
+#### 页面实现
+
+备选项items需要我们去后台查询，而且必须是在用户选择商品分类后去查询。
+
+我们定义一个属性，保存品牌的待选项信息：
+
+ ![1526289926110](/images/leyou/1526289926110.png)
+
+然后编写一个watch，监控goods.categories的变化：
+
+```js
+watch: {
+    'goods.categories': {
+        deep: true,
+            handler(val) {
+            // 判断商品分类是否存在，存在才查询
+            if (val && val.length > 0) {
+                // 根据分类查询品牌
+                this.$http.get("/item/brand/cid/" + this.goods.categories[2].id)
+                    .then(({data}) => {
+                    this.brandOptions = data;
+                })
+            }
+        }
+    }
+}
+```
+
+
+
+我们的品牌对象包含以下字段：id、name、letter、image。显然item-text应该对应name，item-value应该对应id
+
+因此我们添加一个选框，指定item-text和item-value
+
+```html
+<!--品牌-->
+<v-select
+      :items="brandOptions"
+      item-text="name"
+      item-value="id"
+      label="所属品牌"
+      v-model="goods.brandId"
+      required
+      autocomplete
+      clearable
+      dense chips
+      />
+```
+
+
+
+
+
+#### 后台提供接口
+
+页面需要去后台查询品牌信息，我们自然需要提供：
+
+> controller
+
+```java
+/**
+  * 根据分类查询品牌
+  * @param cid
+  * @return
+  */
+@GetMapping("cid/{cid}")
+public ResponseEntity<List<Brand>> queryBrandByCategory(@PathVariable("cid") Long cid) {
+    List<Brand> list = this.brandService.queryBrandByCategory(cid);
+    if(list == null){
+        new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    return ResponseEntity.ok(list);
+}
+```
+
+> service
+
+```java
+public List<Brand> queryBrandByCategory(Long cid) {
+    return this.brandMapper.queryByCategoryId(cid);
+}
+```
+
+
+
+> mapper
+
+根据分类查询品牌有中间表，需要自己编写Sql：
+
+```java
+@Select("SELECT b.* FROM tb_brand b LEFT JOIN tb_category_brand cb ON b.id = cb.brand_id WHERE cb.category_id = #{cid}")
+List<Brand> queryByCategoryId(Long cid);
+```
+
+
+
+#### 测试效果
+
+ ![1526290461916](/images/leyou/1526290461916.png)
+
+### 5.4.4.标题等其它字段
+
+标题等字段都是普通文本，直接使用`v-text-field`即可：
+
+```html
+<v-text-field label="商品标题" v-model="goods.title" :counter="200" required />
+<v-text-field label="商品卖点" v-model="goods.subTitle" :counter="200"/>
+<v-text-field label="包装清单" v-model="goods.spuDetail.packingList" :counter="1000" multi-line :rows="3"/>
+<v-text-field label="售后服务" v-model="goods.spuDetail.afterService" :counter="1000" multi-line :rows="3"/>
+```
+
+一些新的属性：
+
+- counter：计数器，记录当前用户输入的文本字数
+- rows：文本域的行数
+- multi-line：把单行文本变成文本域
+
+![1526290761721](/images/leyou/1526290761721.png)
+
+
+
+## 5.5.商品描述信息
+
+商品描述信息比较复杂，而且图文并茂，甚至包括视频。
+
+这样的内容，一般都会使用富文本编辑器。
+
+### 5.5.1.什么是富文本编辑器
+
+百度百科：
+
+![1526290914491](/images/leyou/1526290914491.png)
+
+通俗来说：富文本，就是比较丰富的文本编辑器。普通的框只能输入文字，而富文本还能给文字加颜色样式等。
+
+富文本编辑器有很多，例如：KindEditor、Ueditor。但并不原生支持vue
+
+但是我们今天要说的，是一款支持Vue的富文本编辑器：`vue-quill-editor`
+
+
+
+### 5.5.2.Vue-Quill-Editor
+
+GitHub的主页：https://github.com/surmon-china/vue-quill-editor
+
+Vue-Quill-Editor是一个基于Quill的富文本编辑器：[Quill的官网](https://quilljs.com/)
+
+![1526291232678](/images/leyou/1526291232678.png)
+
+
+
+### 5.5.3.使用指南
+
+使用非常简单：
+
+第一步：安装，使用npm命令：
+
+```
+npm install vue-quill-editor --save
+```
+
+第二步：加载，在js中引入：
+
+全局使用：
+
+```js
+import Vue from 'vue'
+import VueQuillEditor from 'vue-quill-editor'
+
+const options = {}; /* { default global options } */
+
+Vue.use(VueQuillEditor, options); // options可选
+```
+
+
+
+局部使用：
+
+```js
+import 'quill/dist/quill.core.css'
+import 'quill/dist/quill.snow.css'
+import 'quill/dist/quill.bubble.css'
+
+import {quillEditor} from 'vue-quill-editor'
+
+var vm = new Vue({
+    components:{
+        quillEditor
+    }
+})
+```
+
+
+
+第三步：页面引用：
+
+```html
+<quill-editor v-model="goods.spuDetail.description" :options="editorOption"/>
+```
+
+
+
+### 5.5.4.自定义的富文本编辑器
+
+不过这个组件有个小问题，就是图片上传的无法直接上传到后台，因此我们对其进行了封装，支持了图片的上传。
+
+ ![1526296083605.png](/images/leyou/1526296083605.png)
+
+使用也非常简单：
+
+```html
+<v-stepper-content step="2">
+    <v-editor v-model="goods.spuDetail.description" upload-url="/upload/image"/>
+</v-stepper-content>
+```
+
+- upload-url：是图片上传的路径
+- v-model：双向绑定，将富文本编辑器的内容绑定到goods.spuDetail.description
+
+
+
+### 5.5.5.效果：
+
+![1526297276667](/images/leyou/1526297276667.png)
+
+
+
+## 5.6.规格参数
+
+商品规格参数与商品分类绑定，因此我们需要在用户选择商品分类后，去后台查询对应的规格参数模板。
+
+### 5.6.1.查询商品规格
+
+首先，我们在data中定义变量，记录查询到的规格参数模板：
+
+ ![1526297766476](/images/leyou/1526297766476.png)
+
+然后，我们通过watch监控goods.categories的变化，然后去查询规格：
+
+  ![1526375545366](/images/leyou/1526375545366.png)
+
+查看是否查询到：
+
+ ![1526297980403](/images/leyou/1526297980403.png)
+
+### 5.6.2.页面展示规格属性
+
+获取到了规格参数，还需要把它展示到页面中。
+
+现在查询到的规格参数只有key，并没有值。值需要用户来根据SPU信息填写，因此规格参数最终需要处理为表单。
+
+> 整体结构
+
+整体来看，规格参数是数组，每个元素是一组规格的集合。我们需要分组来展示。比如每组放到一个card中。
+
+> 注意事项：
+
+规格参数中的属性有一些需要我们特殊处理：
+
+ ![1526298277201](/images/leyou/1526298277201.png)
+
+- global：是否是全局属性，规格参数中一部分是SPU共享，属于全局属性，另一部是SKU特有，需要根据SKU来填写。因此，在当前版面中，只展示global为true的，即全局属性。sku特有属性放到最后一个面板
+- numerical：是否是数值类型，如果是，把单位补充在页面表单，不允许用户填写，并且要验证用户输入的数据格式
+- options：是否有可选项，如果有，则使用下拉选框来渲染。
+
+
+
+页面代码：
+
+```html
+<!--3、规格参数-->
+<v-stepper-content step="3">
+    <v-flex class="xs10 mx-auto px-3">
+        <!--遍历整个规格参数，获取每一组-->
+        <v-card v-for="spec in specifications" :key="spec.group" class="my-2">
+            <!--组名称-->
+            <v-card-title class="subheading">{{spec.group}}</v-card-title>
+            <!--遍历组中的每个属性，并判断是否是全局属性，不是则不显示-->
+            <v-card-text v-for="param in spec.params" :key="param.k" v-if="param.global" class="px-5">
+                <!--判断是否有可选项，如果没有，则显示文本框。还要判断是否是数值类型，如果是把unit显示到后缀-->
+                <v-text-field v-if="param.options.length <= 0" 
+                              :label="param.k" v-model="param.v" :suffix="param.unit || ''"/>
+                <!--否则，显示下拉选项-->
+                <v-select v-else :label="param.k" v-model="param.v" :items="param.options"/>
+            </v-card-text>
+        </v-card>
+    </v-flex>
+</v-stepper-content>
+```
+
+
+
+效果：
+
+ ![1526302470344](/images/leyou/1526302470344.png)
+
+
+
+## 5.7.SKU特有属性
+
+sku特有属性也存在与specifications中，但是我们现在只想展示特有属性，而不是从头遍历一次。因此，我们应该从specifications中把特有规格属性拆分出来独立保存。
+
+### 5.7.1.筛选特有规格参数
+
+首先：我们在data中新建一个属性，保存特有的规格参数：
+
+ ![1526306568822](/images/leyou/1526306568822.png)
+
+然后，在查询完成规格模板后，立刻对规格参数进行处理，筛选出特有规格参数，保存到specialSpecs中：
+
+```js
+// 根据分类查询规格参数
+this.$http.get("/item/spec/" + this.goods.categories[2].id)
+    .then(({data}) => {
+        // 保存全部规格
+        this.specifications = data;
+        // 对特有规格进行筛选
+        const temp = [];
+        data.forEach(({params}) => {
+            params.forEach(({k, options, global}) => {
+                if (!global) {
+                    temp.push({
+                        k, options,selected:[]
+                    })
+                }
+            })
+        })
+        this.specialSpecs = temp;
+	})
+```
+
+要注意：我们添加了一个selected属性，用于保存用户填写的信息
+
+查看数据：
+
+ ![1526306826026](/images/leyou/1526306826026.png)
+
+
+
+### 5.7.2.页面渲染SKU属性
+
+接下来，我们把筛选出的特有规格参数，渲染到SKU页面：
+
+我们的目标效果是这样的：
+
+ ![1526307835157](/images/leyou/1526307835157.png)
+
+可以看到，
+
+- 每一个特有属性自成一组，都包含标题和选项。我们可以使用card达到这个效果。
+- 无options选项的特有属性，展示一个文本框，有options选项的，展示多个checkbox，让用户选择
+
+页面代码实现：
+
+```html
+<!--4、SKU属性-->
+<v-stepper-content step="4">
+    <v-flex class="mx-auto">
+        <!--遍历特有规格参数-->
+        <v-card flat v-for="spec in specialSpecs" :key="spec.k">
+            <!--特有参数的标题-->
+            <v-card-title class="subheading">{{spec.k}}:</v-card-title>
+            <!--特有参数的待选项，需要判断是否有options，如果没有，展示文本框，让用户自己输入-->
+            <v-card-text v-if="spec.options.length <= 0" class="px-5">
+                <v-text-field :label="'输入新的' + spec.k" v-model="spec.selected"/>
+            </v-card-text>
+            <!--如果有options，需要展示成多个checkbox-->
+            <v-card-text v-else class="container fluid grid-list-xs">
+                <v-layout row wrap class="px-5">
+                    <v-checkbox color="primary" v-for="o in spec.options" :key="o" class="flex xs3"
+                                :label="o" v-model="spec.selected" :value="o"/>
+                </v-layout>
+            </v-card-text>
+        </v-card>
+    </v-flex>
+</v-stepper-content>
+```
+
+我们的实现效果：
+
+![1526308151513](/images/leyou/1526308151513.png)
+
+
+
+测试下，勾选checkbox或填写文本会发生什么：
+
+ ![1526308483766](/images/leyou/1526308483766.png)
+
+看下规格模板的值：
+
+ ![1526308513342](/images/leyou/1526308513342.png)
+
+
+
+### 5.7.3.自由添加或删除文本框
+
+刚才的实现中，普通文本项只有一个，如果用户想添加更多值就不行。我们需要让用户能够自由添加新的文本框，而且还能删除。
+
+这里有个取巧的方法：
+
+还记得我们初始化 特有规格参数时，新增了一个selected属性吗，用来保存用户填写的值，是一个数组。每当用户新加一个值，该数组的长度就会加1，而初始长度为0
+
+另外，v-for指令有个特殊之处，就在于它可以遍历数字。比如 v-for="i in 10"，你会得到1~10
+
+因此，我们可以遍历selected的长度，每当我们输入1个文本，selected长度会加1，自然会多出一个文本框。
+
+代码如下：
+
+![1526309463115](/images/leyou/1526309463115.png)
+
+```html
+<v-card flat v-for="spec in specialSpecs" :key="spec.k">
+    <!--特有参数的标题-->
+    <v-card-title class="subheading">{{spec.k}}:</v-card-title>
+    <!--特有参数的待选项，需要判断是否有options，如果没有，展示文本框，让用户自己输入-->
+    <v-card-text v-if="spec.options.length <= 0" class="px-5">
+        <div v-for="i in spec.selected.length+1" :key="i">
+            <v-text-field :label="'输入新的' + spec.k" v-model="spec.selected[i-1]" v-bind:value="i"/>
+        </div>
+    </v-card-text>
+    <!--如果有options，需要展示成多个checkbox-->
+    <v-card-text v-else class="container fluid grid-list-xs">
+        <v-layout row wrap class="px-5">
+            <v-checkbox color="primary" v-for="o in spec.options" :key="o" class="flex xs3"
+                        :label="o" v-model="spec.selected" :value="o"/>
+        </v-layout>
+    </v-card-text>
+</v-card>
+```
+
+效果：
+
+ ![](/images/leyou/11.gif)
+
+
+
+而删除文本框相对就比较简单了，只要在文本框末尾添加一个按钮，添加点击事件即可，代码：
+
+ ![1526310720065](/images/leyou/1526310720065.png)
+
+添加了一些布局样式，以及一个按钮，在点击事件中删除一个值。
+
+
+
+## 5.8.展示SKU列表
+
+### 5.8.1.效果预览
+
+当我们选定SKU的特有属性时，就会对应出不同排列组合的SKU。
+
+举例：
+
+![1526311110498](/images/leyou/1526311110498.png)
+
+当你选择了上图中的这些选项时：
+
+- 颜色共2种：土豪金，绚丽红
+- 内存共2种：2GB，4GB
+- 机身存储1种：64GB
+
+此时会产生多少种SKU呢？ 应该是 2 * 2 * 1 = 4种。
+
+因此，接下来应该由用户来对这4种sku的信息进行详细填写，比如库存和价格等。而多种sku的最佳展示方式，是表格（淘宝、京东都是这么做的），如图：
+
+![1526311330409](/images/leyou/1526311330409.png)
+
+而且这个表格应该随着用户选择的不同而动态变化。如何实现？
+
+
+
+### 5.8.2.算法：求数组笛卡尔积
+
+大家看这个结果就能发现，这其实是在求多个数组的笛卡尔积。作为一个程序员，这应该是基本功了吧。
+
+> 两个数组笛卡尔积
+
+假如有两个数组，求笛卡尔积，其基本思路是这样的：
+
+- 在遍历一个数组的同时，遍历另一个数组，然后把元素拼接，放到新数组。
+
+示例1：
+
+```js
+const arr1 = ['1','2','3'];
+const arr2 = ['a','b','c'];
+
+const result = [];
+
+arr1.forEach(e1 => {
+    arr2.forEach(e2 => {
+        result.push(e1 + "_" + e2)
+    })
+})
+
+console.log(result);
+```
+
+结果：
+
+ ![1526354069684](/images/leyou/1526354069684.png)
+
+完美实现。
+
+
+
+> N个数组的笛卡尔积
+
+如果是N个数组怎么办？
+
+不确定数组数量，代码没有办法写死。该如何处理？
+
+思路：
+
+- 先拿其中两个数组求笛卡尔积
+- 然后把前面运算的结果作为新数组，与第三个数组求笛卡尔积
+
+把前两次运算的结果作为第三次运算的参数。大家想到什么了？
+
+
+
+没错，之前讲过的一个数组功能：Reduce
+
+reduce函数的声明：
+
+```
+reduce(callback,initvalue)
+```
+
+callback：是一个回调函数。这个callback可以接收2个参数：arg1,arg2
+
+- arg1代表的上次运算得到的结果
+- arg2是数组中正要处理的元素
+
+initvalue，初始化值。第一次调用callback时把initvalue作为第一个参数，把数组的第一个元素作为第二个参数运算。如果未指定，则第一次运算会把数组的前两个元素作为参数。
+
+
+
+reduce会把数组中的元素逐个用这个函数处理，然后把结果作为下一次回调函数的第一个参数，数组下个元素作为第二个参数，以此类推。
+
+因此，我们可以把想要求笛卡尔积的多个数组先放到一个大数组中。形成二维数组。然后再来运算：
+
+示例2：
+
+```js
+const arr1 = ['1', '2', '3'];
+const arr2 = ['a', 'b'];
+// 用来作为运算的二维数组
+const arr3 = [arr1, arr2, ['x', 'y']]
+
+const result = arr3.reduce((last, el) => {
+    const arr = [];
+    // last：上次运算结果
+    // el：数组中的当前元素
+    last.forEach(e1 => {
+        el.forEach(e2 => {
+            arr.push(e1 + "_" + e2)
+        })
+    })
+    return arr
+});
+
+console.log(result);
+```
+
+结果：
+
+ ![1526355132141](/images/leyou/1526355132141.png)
+
+### 5.8.3.算法结合业务
+
+来看我们的业务逻辑：
+
+首先，我们已经有了一个特有参数的规格模板：
+
+```js
+[
+  {
+    "k": "机身颜色",
+    "selected": ["红色","黑色"]
+  },
+  {
+    "k": "内存",
+    "selected": ["8GB","6GB"]
+  },
+  {
+    "k": "机身存储",
+    "selected": ["64GB","256GB"]
+  }
+]
+```
+
+可以看做是一个二维数组。
+
+一维是参数对象。
+
+二维是参数中的selected选项。
+
+我们想要的结果：
+
+```js
+[
+    {"机身颜色":"红色","内存":"6GB","机身存储":"64GB"},
+    {"机身颜色":"红色","内存":"6GB","机身存储":"256GB"},
+    {"机身颜色":"红色","内存":"8GB","机身存储":"64GB"},
+    {"机身颜色":"红色","内存":"8GB","机身存储":"256GB"},
+    {"机身颜色":"黑色","内存":"6GB","机身存储":"64GB"},
+    {"机身颜色":"黑色","内存":"6GB","机身存储":"256GB"},
+    {"机身颜色":"黑色","内存":"8GB","机身存储":"64GB"},
+    {"机身颜色":"黑色","内存":"8GB","机身存储":"256GB"},
+]
+```
+
+思路是这样：
+
+- 我们的启点是一个空的对象数组：`[{}]`，
+- 然后先与第一个规格求笛卡尔积
+- 然后再把结果与下一个规格求笛卡尔积，依次类推
+
+如果：
+
+![skus.](/images/leyou/skus.png)
+
+
+
+
+
+代码：
+
+我们在Vue中新增一个计算属性，按照上面所讲的逻辑，计算所有规格参数的笛卡尔积
+
+```js
+computed: {
+    skus() {
+        // 过滤掉用户没有填写数据的规格参数
+        const arr = this.specialSpecs.filter(s => s.selected.length > 0);
+        // 通过reduce进行累加笛卡尔积
+        return arr.reduce((last, spec) => {
+            const result = [];
+            last.forEach(o => {
+                spec.selected.forEach(option => {
+                    const obj = {};
+                    Object.assign(obj, o);
+                    obj[spec.k] = option;
+                    result.push(obj);
+                })
+            })
+            return result
+        }, [{}])
+    }
+}
+```
+
+
+
+结果：
+
+ ![1526356312119](/images/leyou/1526356312119.png)
+
+
+
+优化：这里生成的是SKU的数组。因此只包含SKU的规格参数是不够的。结合数据库知道，还需要有下面的字段：
+
+- price：价格
+- stock：库存
+- enable：是否启用。虽然笛卡尔积对应了9个SKU，但用户不一定会需要所有的组合，用这个字段进行标记。
+- images：商品的图片
+- indexes：特有属性的索引拼接得到的字符串
+
+我们需要给生成的每个sku对象添加上述字段，代码修改如下：
+
+```js
+computed:{
+    skus(){
+        // 过滤掉用户没有填写数据的规格参数
+        const arr = this.specialSpecs.filter(s => s.selected.length > 0);
+        // 通过reduce进行累加笛卡尔积
+        return  arr.reduce((last, spec, index) => {
+            const result = [];
+            last.forEach(o => {
+                for(let i = 0; i < spec.selected.length; i++){
+                    const option = spec.selected[i];
+                    const obj = {};
+                    Object.assign(obj, o);
+                    obj[spec.k] = option;
+                    // 拼接当前这个特有属性的索引
+                    obj.indexes = (o.indexes||'') + '_'+ i
+                    if(index === arr.length - 1){
+                        // 如果发现是最后一组，则添加价格、库存等字段
+                        Object.assign(obj, { price:0, stock:0,enable:false, images:[]})
+                        // 去掉索引字符串开头的下划线
+                        obj.indexes = obj.indexes.substring(1);
+                    }
+                    result.push(obj);
+                }
+            })
+            return result
+        },[{}])
+    }
+}
+```
+
+
+
+查看生成的数据：
+
+ ![1526363824808](/images/leyou/1526363824808.png)
+
+
+
+### 5.8.4.页面展现
+
+页面展现是一个表格。我们之前已经用过。表格需要以下信息：
+
+- items：表格内的数据
+- headers：表头信息
+
+刚才我们的计算属性skus得到的就是表格数据了。我们还差头：headers
+
+头部信息也是动态的，用户选择了一个属性，就会多出一个表头。与skus是关联的。
+
+既然如此，我们再次编写一个计算属性，来计算得出header数组：
+
+```js
+headers(){
+    if(this.skus.length <= 0){
+        return []
+    }
+    const headers = [];
+    // 获取skus中的任意一个，获取key，然后遍历其属性
+    Object.keys(this.skus[0]).forEach(k => {
+        let value = k;
+        if(k === 'price'){
+            // enable，表头要翻译成“价格”
+            k = '价格'
+        }else if(k === 'stock'){
+            // enable，表头要翻译成“库存”
+            k = '库存';
+        }else if(k === 'enable'){
+            // enable，表头要翻译成“是否启用”
+            k = '是否启用'
+        } else if(k === 'indexes' || k === 'images'){
+            // 图片和索引不在表格中展示
+            return;
+        }
+        headers.push({
+            text: k,
+            align: 'center',
+            sortable: false,
+            value
+        })
+    })
+    return headers;
+}
+```
+
+
+
+接下来编写页面，实现table。
+
+需要注意的是，price、stock字段需要用户填写数值，不能直接展示。enable要展示为checkbox，让用户选择，如图：
+
+![1526364758744](/images/leyou/1526364758744.png)
+
+
+
+代码：
+
+```html
+<v-card>
+    <!--标题-->
+    <v-card-title class="subheading">SKU列表</v-card-title>
+    <!--SKU表格，hide-actions因此分页等工具条-->
+    <v-data-table :items="skus" :headers="headers" hide-actions item-key="indexes">
+        <template slot="items" slot-scope="props">
+            <!--价格和库存展示为文本框-->
+            <td v-for="(v,k) in props.item" :key="k" v-if="['price', 'stock'].includes(k)"
+                class="text-xs-center">
+                <v-text-field single-line v-model.number="props.item[k]"/>
+            </td>
+            <!--enable展示为checkbox-->
+            <td class="text-xs-center" v-else-if="k === 'enable'">
+                <v-checkbox v-model="props.item[k]"/>
+            </td>
+            <!--indexes和images不展示，其它展示为普通文本-->
+            <td class="text-xs-center" v-else-if="!['indexes','images'].includes(k)">{{v}}</td>
+        </template>
+    </v-data-table>
+</v-card>
+```
+
+
+
+
+
+
+
+效果：
+
+![1526365039421](/images/leyou/1526365039421.png)
+
+
+
+### 5.8.5.图片上传列表
+
+这个表格中只展示了基本信息，当用户需要上传图片时，该怎么做呢？
+
+Vuetify的table有一个展开功能，可以提供额外的展示空间：
+
+![1526366340741](/images/leyou/1526366340741.png)
+
+用法也非常简单，添加一个template，把其slot属性指定为expand即可：
+
+![1526366667064](/images/leyou/1526366667064.png)
+
+效果：
+
+![1526366997943](/images/leyou/1526366997943.png)
+
+
+
+接下来就是我们的图片上传组件：v-upload
+
+![1526367719809](/images/leyou/1526367719809.png)
+
+
+
+
+
+## 5.9.表单提交
+
+### 5.9.1.添加提交按钮
+
+我们在step=4，也就是SKU属性列表页面， 添加一个提交按钮。
+
+```html
+<!--提交按钮-->
+<v-flex xs3 offset-xs9>
+    <v-btn color="info">保存商品信息</v-btn>
+</v-flex>
+```
+
+效果：
+
+![1526366187195](/images/leyou/1526366187195.png)
+
+
+
+### 5.9.2点击事件
+
+当用户点击保存，我们就需要对页面的数据进行整理，然后提交到后台服务。
+
+现在我们页面包含了哪些信息呢？我们与数据库对比，看看少什么
+
+- goods：里面包含了SPU的几乎所有信息
+  - title：标题
+  - subtitle：子标题，卖点
+  - categories：分类对象数组，需要进行整理 **
+  - brandId：品牌id
+  - spuDetail：商品详情
+    - packingList：包装清单
+    - afterService：售后服务
+    - description：商品描述
+    - 缺少全局规格属性specifications **
+    - 缺少特有规格属性模板spec_template **
+- skus：包含了sku列表的几乎所有信息
+  - price：价格，需要处理为以分为单位
+  - stock：库存
+  - enable：是否启用
+  - indexes：索引
+  - images：图片，数组，需要处理为字符串**
+  - 缺少其它特有规格，ows_spec **
+  - 缺少标题：需要根据spu的标题结合特有属性生成 ** 
+- specifications：全局规格参数的键值对信息
+- specialSpec：特有规格参数信息
+
+在页面绑定点击事件：
+
+```html
+<!--提交按钮-->
+<v-flex xs3 offset-xs9>
+    <v-btn color="info" @click="submit">保存商品信息</v-btn>
+</v-flex>
+```
+
+
+
+
+
+编写代码，整理数据：
+
+```js
+submit(){
+    // 表单校验。 略
+    // 先处理goods，用结构表达式接收,除了categories外，都接收到goodsParams中
+    const {categories: [{id:cid1},{id:cid2},{id:cid3}], ...goodsParams} = this.goods;
+    // 处理规格参数
+    const specs = this.specifications.map(({group,params}) => {
+        const newParams = params.map(({options,...rest}) => {
+            return rest;
+        })
+        return {group,params:newParams};
+    });
+    // 处理特有规格参数模板
+    const specTemplate = {};
+    this.specialSpecs.forEach(({k, selected}) => {
+        specTemplate[k] = selected;
+    });
+    // 处理sku
+    const skus = this.skus.filter(s => s.enable).map(({price,stock,enable,images,indexes, ...rest}) => {
+        // 标题，在spu的title基础上，拼接特有规格属性值
+        const title = goodsParams.title + " " + Object.values(rest).join(" ");
+        return {
+            price: this.$format(price+""),stock,enable,indexes,title,// 基本属性
+            images: !images ? '' : images.join(","), // 图片
+            ownSpec: JSON.stringify(rest), // 特有规格参数
+        }
+    });
+    Object.assign(goodsParams, {
+        cid1,cid2,cid3, // 商品分类
+        skus, // sku列表
+    })
+    goodsParams.spuDetail.specifications= JSON.stringify(specs);
+    goodsParams.spuDetail.specTemplate = JSON.stringify(specTemplate);
+
+    console.log(goodsParams)
+}
+```
+
+
+
+点击测试，看效果：
+
+![1526391630336](/images/leyou/1526391630336.png)
+
+
+
+向后台发起请求，因为请求体复杂，我们直接发起Json请求：
+
+```js
+this.$http.post("/item/goods",goodsParams)
+    .then(() => {
+    // 成功，关闭窗口
+    this.$emit('close');
+    // 提示成功
+    this.$message.success("新增成功了")
+    })
+    .catch(() => {
+        this.$message.error("保存失败！");
+    });
+})
+```
+
+
+
+### 5.9.3.后台编写接口
+
+#### 实体类
+
+> Spu
+
+```java
+@Table(name = "tb_spu")
+public class Spu {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private Long brandId;
+    private Long cid1;// 1级类目
+    private Long cid2;// 2级类目
+    private Long cid3;// 3级类目
+    private String title;// 标题
+    private String subTitle;// 子标题
+    private Boolean saleable;// 是否上架
+    private Boolean valid;// 是否有效，逻辑删除用
+    private Date createTime;// 创建时间
+    private Date lastUpdateTime;// 最后修改时间
+}
+```
+
+> SpuDetail
+
+```java
+@Table(name="tb_spu_detail")
+public class SpuDetail {
+    @Id
+    private Long spuId;// 对应的SPU的id
+    private String description;// 商品描述
+    private String specTemplate;// 商品特殊规格的名称及可选值模板
+    private String specifications;// 商品的全局规格属性
+    private String packingList;// 包装清单
+    private String afterService;// 售后服务
+}
+```
+
+> Sku
+
+```java
+@Table(name = "tb_sku")
+public class Sku {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private Long spuId;
+    private String title;
+    private String images;
+    private Long price;
+    private String ownSpec;// 商品特殊规格的键值对
+    private String indexes;// 商品特殊规格的下标
+    private Boolean enable;// 是否有效，逻辑删除用
+    private Date createTime;// 创建时间
+    private Date lastUpdateTime;// 最后修改时间
+    @Transient
+    private Long stock;// 库存
+}
+```
+
+注意：这里保存了一个库存字段，在数据库中是另外一张表保存的，方便查询。
+
+> Stock
+
+```java
+@Table(name = "tb_stock")
+public class Stock {
+
+    @Id
+    private Long skuId;
+    private Integer seckillStock;// 秒杀可用库存
+    private Integer seckillTotal;// 已秒杀数量
+    private Integer stock;// 正常库存
+}
+```
+
+
+
+#### Controller
+
+四个问题：
+
+- 请求方式：POST
+
+- 请求路径：/goods
+
+- 请求参数：Spu的json格式的对象，spu中包含spuDetail和Sku集合。这里我们该怎么接收？我们之前定义了一个SpuBo对象，作为业务对象。这里也可以用它，不过需要再扩展spuDetail和skus字段：
+
+  ```java
+  public class SpuBo extends Spu {
+  
+      @Transient
+      String cname;// 商品分类名称
+      @Transient
+      String bname;// 品牌名称
+      @Transient
+      SpuDetail spuDetail;// 商品详情
+      @Transient
+      List<Sku> skus;// sku列表
+  }
+  ```
+
+- 返回类型：无
+
+
+
+代码：
+
+```java
+/**
+ * 新增商品
+ * @param spu
+ * @return
+ */
+@PostMapping
+public ResponseEntity<Void> saveGoods(@RequestBody Spu spu) {
+    try {
+        this.goodsService.save(spu);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+```
+
+注意：通过@RequestBody注解来接收Json请求
+
+> Service
+
+这里的逻辑比较复杂，我们除了要对SPU新增以外，还要对SpuDetail、Sku、Stock进行保存
+
+```java
+@Transactional
+public void save(SpuBo spu) {
+    // 保存spu
+    spu.setSaleable(true);
+    spu.setValid(true);
+    spu.setCreateTime(new Date());
+    spu.setLastUpdateTime(spu.getCreateTime());
+    this.spuMapper.insert(spu);
+    // 保存spu详情
+    spu.getSpuDetail().setSpuId(spu.getId());
+    this.spuDetailMapper.insert(spu.getSpuDetail());
+
+    // 保存sku和库存信息
+    saveSkuAndStock(spu.getSkus(), spu.getId());
+}
+
+private void saveSkuAndStock(List<Sku> skus, Long spuId) {
+    for (Sku sku : skus) {
+        if (!sku.getEnable()) {
+            continue;
+        }
+        // 保存sku
+        sku.setSpuId(spuId);
+        // 默认不参与任何促销
+        sku.setCreateTime(new Date());
+        sku.setLastUpdateTime(sku.getCreateTime());
+        this.skuMapper.insert(sku);
+
+        // 保存库存信息
+        Stock stock = new Stock();
+        stock.setSkuId(sku.getId());
+        stock.setStock(sku.getStock());
+        this.stockMapper.insert(stock);
+    }
+}
+```
+
+
+
+#### Mapper
+
+都是通用Mapper，略
+---
+layout: post
+title:  商品管理
+categories: 乐优
+description: 商品管理
+keywords: 乐优
+---
+# 0.学习目标
+
+- 独立实现商品新增后台
+- 独立实现商品编辑后台
+- 独立搭建前台系统页面
+
+
+
+# 1.商品新增
+
+当我们点击新增商品按钮：
+
+![1528450695946](/images/leyou/1528450695946.png)
+
+就会出现一个弹窗：
+
+![1528450773322](/images/leyou/1528450773322.png)
+
+里面把商品的数据分为了4部分来填写：
+
+- 基本信息：主要是一些简单的文本数据，包含了SPU和SpuDetail的部分数据，如
+  - 商品分类：是SPU中的`cid1`，`cid2`，`cid3`属性
+  - 品牌：是spu中的`brandId`属性
+  - 标题：是spu中的`title`属性
+  - 子标题：是spu中的`subTitle`属性
+  - 售后服务：是SpuDetail中的`afterService`属性
+  - 包装列表：是SpuDetail中的`packingList`属性
+- 商品描述：是SpuDetail中的`description`属性，数据较多，所以单独放一个页面
+- 规格参数：商品规格信息，对应SpuDetail中的`genericSpec`属性
+- SKU属性：spu下的所有Sku信息
+
+对应到页面中的四个`stepper-content`：
+
+![1528457410198](/images/leyou/1528457410198.png)
+
+
+
+## 1.1.弹窗事件
+
+弹窗是一个独立组件：
+
+ ![1528084394245](/images/leyou/1528084394245.png)
+
+并且在Goods组件中已经引用它：
+
+![1528457758806](/images/leyou/1528457758806.png)
+
+并且在页面中渲染：
+
+![1528457859739](/images/leyou/1528457859739.png)
+
+在`新增商品`按钮的点击事件中，改变这个`dialog`的`show`属性：
+
+![1528457992959](/images/leyou/1528457992959.png)
+
+![1528458037693](/images/leyou/1528458037693.png)
+
+
+
+## 1.2.基本数据
+
+我们先来看下基本数据：
+
+![1528086595597](H:/%E4%B9%90%E4%BC%98/7%E6%9C%881%E5%8F%B7%E6%9B%B4%E6%96%B0/day10-%E5%95%86%E5%93%81%E7%AE%A1%E7%90%86//images/leyou/1528086595597.png)
+
+### 1.2.1.商品分类
+
+商品分类信息查询我们之前已经做过，所以这里的级联选框已经实现完成：
+
+![1528459846644](/images/leyou/1528459846644.png)
+
+刷新页面，可以看到请求已经发出：
+
+![1528460001803](/images/leyou/1528460001803.png)
+
+![1528460054188](/images/leyou/1528460054188.png)
+
+效果：
+
+![1528460159541](/images/leyou/1528460159541.png)
+
+
+
+### 1.2.2.品牌选择
+
+#### 1.2.2.1页面
+
+品牌也是一个下拉选框，不过其选项是不确定的，只有当用户选择了商品分类，才会把这个分类下的所有品牌展示出来。
+
+所以页面编写了watch函数，监控商品分类的变化，每当商品分类值有变化，就会发起请求，查询品牌列表：
+
+![1528460401582](/images/leyou/1528460401582.png)
+
+选择商品分类后，可以看到请求发起：
+
+![1528460607735](/images/leyou/1528460607735.png)
+
+接下来，我们只要编写后台接口，根据商品分类id，查询对应品牌即可。
+
+#### 1.2.2.2后台接口
+
+页面需要去后台查询品牌信息，我们自然需要提供：
+
+请求方式：GET
+
+请求路径：/brand/cid/{cid}
+
+请求参数：cid
+
+响应数据：品牌集合
+
+> BrandController
+
+```java
+/**
+     * 根据分类查询品牌
+     * @param cid
+     * @return
+     */
+@GetMapping("cid/{cid}")
+public ResponseEntity<List<Brand>> queryBrandListByCid(@PathVariable("cid")Long cid){
+
+    List<Brand> brandList = this.brandService.queryByCid(cid);
+    if(CollectionUtils.isEmpty(brandList)){
+        // 响应404
+        return ResponseEntity.badRequest().build();
+    }
+    // 响应200
+    return ResponseEntity.ok(brandList);
+}
+```
+
+> BrandService
+
+```java
+public List<Brand> queryBrandByCategory(Long cid) {
+    return this.brandMapper.queryByCategoryId(cid);
+}
+```
+
+
+
+> BrandMapper
+
+根据分类查询品牌有中间表，需要自己编写Sql：
+
+```java
+@Select("SELECT b.* FROM tb_brand b LEFT JOIN tb_category_brand cb ON b.id = cb.brand_id WHERE cb.category_id = #{cid}")
+List<Brand> queryByCategoryId(Long cid);
+```
+
+
+
+效果：
+
+![1528462393536](/images/leyou/1528462393536.png)
+
+
+
+### 1.2.3.其它文本框
+
+剩余的几个属性：标题、子标题等都是普通文本框，我们直接填写即可，没有需要特别注意的。
+
+![1528462474512](/images/leyou/1528462474512.png)
+
+
+
+## 1.3.商品描述
+
+商品描述信息比较复杂，而且图文并茂，甚至包括视频。
+
+这样的内容，一般都会使用富文本编辑器。
+
+### 1.3.1.什么是富文本编辑器
+
+百度百科：
+
+![1526290914491](/images/leyou/1526290914491.png)
+
+通俗来说：富文本，就是比较丰富的文本编辑器。普通的框只能输入文字，而富文本还能给文字加颜色样式等。
+
+富文本编辑器有很多，例如：KindEditor、Ueditor。但并不原生支持vue
+
+但是我们今天要说的，是一款支持Vue的富文本编辑器：`vue-quill-editor`
+
+
+
+### 1.3.2.Vue-Quill-Editor
+
+GitHub的主页：https://github.com/surmon-china/vue-quill-editor
+
+Vue-Quill-Editor是一个基于Quill的富文本编辑器：[Quill的官网](https://quilljs.com/)
+
+![1526291232678](/images/leyou/1526291232678.png)
+
+
+
+### 1.3.3.使用指南
+
+使用非常简单：
+
+第一步：安装，使用npm命令：
+
+```
+npm install vue-quill-editor --save
+```
+
+第二步：加载，在js中引入：
+
+全局引入：
+
+```js
+import Vue from 'vue'
+import VueQuillEditor from 'vue-quill-editor'
+
+const options = {}; /* { default global options } */
+
+Vue.use(VueQuillEditor, options); // options可选
+```
+
+
+
+局部引入：
+
+```js
+import 'quill/dist/quill.core.css'
+import 'quill/dist/quill.snow.css'
+import 'quill/dist/quill.bubble.css'
+
+import {quillEditor} from 'vue-quill-editor'
+
+var vm = new Vue({
+    components:{
+        quillEditor
+    }
+})
+```
+
+
+
+我们这里采用局部引用：
+
+![1528465859061](/images/leyou/1528465859061.png)
+
+
+
+第三步：页面使用：
+
+```html
+<quill-editor v-model="goods.spuDetail.description" :options="editorOption"/>
+```
+
+
+
+### 1.3.4.自定义的富文本编辑器
+
+不过这个组件有个小问题，就是图片上传的无法直接上传到后台，因此我们对其进行了封装，支持了图片的上传。
+
+ ![1526296083605.png](/images/leyou/1526296083605.png)
+
+使用也非常简单：
+
+```html
+<v-stepper-content step="2">
+    <v-editor v-model="goods.spuDetail.description" upload-url="/upload/image"/>
+</v-stepper-content>
+```
+
+- upload-url：是图片上传的路径
+- v-model：双向绑定，将富文本编辑器的内容绑定到goods.spuDetail.description
+
+
+
+### 1.3.5.效果
+
+![1528469209005](/images/leyou/1528469209005.png)
+
+
+
+## 1.4.商品规格参数
+
+规格参数的查询我们之前也已经编写过接口，因为商品规格参数也是与商品分类绑定，所以需要在商品分类变化后去查询，我们也是通过watch监控来实现：
+
+![1528469560330](/images/leyou/1528469560330.png)
+
+可以看到这里是根据商品分类id查询规格参数：SpecParam。我们之前写过一个根据gid（分组id）来查询规格参数的接口，我们接下来完成根据分类id查询规格参数。
+
+> ### 改造查询规格参数接口
+
+我们在原来的根据 gid（规格组id)查询规格参数的接口上，添加一个参数：cid，即商品分类id。
+
+等一下， 考虑到以后可能还会根据是否搜索、是否为通用属性等条件过滤，我们多添加几个过滤条件：
+
+```java
+@GetMapping("/params")
+public ResponseEntity<List<SpecParam>> querySpecParam(
+    @RequestParam(value="gid", required = false) Long gid,
+    @RequestParam(value="cid", required = false) Long cid,
+    @RequestParam(value="searching", required = false) Boolean searching,
+    @RequestParam(value="generic", required = false) Boolean generic
+    ){
+        List<SpecParam> list =
+                this.specificationService.querySpecParams(gid,cid,searching,generic);
+        if(list == null || list.size() == 0){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(list);
+    }
+```
+
+改造service：
+
+```java
+public List<SpecParam> querySpecParams(Long gid, Long cid, Boolean searching, Boolean generic) {
+    SpecParam param = new SpecParam();
+    param.setGroupId(gid);
+    param.setCid(cid);
+    param.setSearching(searching);
+    param.setGeneric(generic);
+    return this.specParamMapper.select(param);
+}
+```
+
+如果param中有属性为null，则不会吧属性作为查询条件，因此该方法具备通用性，即可根据gid查询，也可根据cid查询。
+
+测试：
+
+![1528470181643](/images/leyou/1528470181643.png)
+
+
+
+刷新页面测试：
+
+![1528470221970](/images/leyou/1528470221970.png)
+
+
+
+## 1.5.SKU信息
+
+Sku属性是SPU下的每个商品的不同特征，如图：
+
+![1528470828296](/images/leyou/1528470828296.png)
+
+当我们填写一些属性后，会在页面下方生成一个sku表格，大家可以计算下会生成多少个不同属性的Sku呢？
+
+当你选择了上图中的这些选项时：
+
+- 颜色共2种：迷夜黑，勃艮第红，绚丽蓝
+- 内存共2种：4GB，6GB
+- 机身存储1种：64GB，128GB
+
+此时会产生多少种SKU呢？ 应该是 3 * 2 * 2 = 12种，这其实就是在求笛卡尔积。
+
+我们会在页面下方生成一个sku的表格：
+
+![1528470876872](/images/leyou/1528470876872.png)
+
+
+
+## 1.6.页面表单提交
+
+在sku列表的下方，有一个提交按钮：
+
+![1528470945475](/images/leyou/1528470945475.png)
+
+并且绑定了点击事件：
+
+![1528471079383](/images/leyou/1528471079383.png)
+
+点击后会组织数据并向后台提交：
+
+```js
+    submit() {
+      // 表单校验。
+      if(!this.$refs.basic.validate){
+        this.$message.error("请先完成表单内容！");
+      }
+      // 先处理goods，用结构表达式接收,除了categories外，都接收到goodsParams中
+      const {
+        categories: [{ id: cid1 }, { id: cid2 }, { id: cid3 }],
+        ...goodsParams
+      } = this.goods;
+      // 处理规格参数
+      const specs = {};
+      this.specs.forEach(({ id,v }) => {
+        specs[id] = v;
+      });
+      // 处理特有规格参数模板
+      const specTemplate = {};
+      this.specialSpecs.forEach(({ id, options }) => {
+        specTemplate[id] = options;
+      });
+      // 处理sku
+      const skus = this.skus
+        .filter(s => s.enable)
+        .map(({ price, stock, enable, images, indexes, ...rest }) => {
+          // 标题，在spu的title基础上，拼接特有规格属性值
+          const title = goodsParams.title + " " + Object.values(rest).map(v => v.v).join(" ");
+          const obj = {};
+          Object.values(rest).forEach(v => {
+            obj[v.id] = v.v;
+          });
+          return {
+            price: this.$format(price), // 价格需要格式化
+            stock,
+            indexes,
+            enable,
+            title, // 基本属性
+            images: images ? images.join(",") : '', // 图片
+            ownSpec: JSON.stringify(obj) // 特有规格参数
+          };
+        });
+      Object.assign(goodsParams, {
+        cid1,
+        cid2,
+        cid3, // 商品分类
+        skus // sku列表
+      });
+      goodsParams.spuDetail.genericSpec = JSON.stringify(specs);
+      goodsParams.spuDetail.specialSpec = JSON.stringify(specTemplate);
+
+      // 提交到后台
+      this.$http({
+        method: this.isEdit ? "put" : "post",
+        url: "/item/goods",
+        data: goodsParams
+      })
+        .then(() => {
+          // 成功，关闭窗口
+          this.$emit("close");
+          // 提示成功
+          this.$message.success("保存成功了");
+        })
+        .catch(() => {
+          this.$message.error("保存失败！");
+        });
+    }
+```
+
+
+
+点击提交，查看控制台提交的数据格式：
+
+![1528472289831](/images/leyou/1528472289831.png)
+
+整体是一个json格式数据，包含Spu表所有数据：
+
+- brandId：品牌id
+- cid1、cid2、cid3：商品分类id
+- subTitle：副标题
+- title：标题
+- spuDetail：是一个json对象，代表商品详情表数据
+  - afterService：售后服务
+  - description：商品描述
+  - packingList：包装列表
+  - specialSpec：sku规格属性模板
+  - genericSpec：通用规格参数
+- skus：spu下的所有sku数组，元素是每个sku对象：
+  - title：标题
+  - images：图片
+  - price：价格
+  - stock：库存
+  - ownSpec：特有规格参数
+  - indexes：特有规格参数的下标
+
+
+
+## 1.7.后台实现
+
+### 1.7.1.实体类
+
+SPU和SpuDetail实体类已经添加过，添加Sku和Stock对象：
+
+ ![1528472531490](/images/leyou/1528472531490.png)
+
+> Sku
+
+```java
+@Table(name = "tb_sku")
+public class Sku {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private Long spuId;
+    private String title;
+    private String images;
+    private Long price;
+    private String ownSpec;// 商品特殊规格的键值对
+    private String indexes;// 商品特殊规格的下标
+    private Boolean enable;// 是否有效，逻辑删除用
+    private Date createTime;// 创建时间
+    private Date lastUpdateTime;// 最后修改时间
+    @Transient
+    private Integer stock;// 库存
+}
+```
+
+注意：这里保存了一个库存字段，在数据库中是另外一张表保存的，方便查询。
+
+> Stock
+
+```java
+@Table(name = "tb_stock")
+public class Stock {
+    @Id
+    private Long skuId;
+    private Integer seckillStock;// 秒杀可用库存
+    private Integer seckillTotal;// 已秒杀数量
+    private Integer stock;// 正常库存
+}
+```
+
+
+
+### 1.7.2.GoodsController
+
+请求方式：POST
+
+请求路径：/goods
+
+请求参数：Spu的json格式的对象，spu中包含spuDetail和Sku集合。这里我们该怎么接收？我们之前定义了一个SpuBo对象，作为业务对象。这里也可以用它，不过需要再扩展spuDetail和skus字段：
+
+```java
+public class SpuBo extends Spu {
+
+    @Transient
+    String cname;// 商品分类名称
+    @Transient
+    String bname;// 品牌名称
+    @Transient
+    SpuDetail spuDetail;// 商品详情
+    @Transient
+    List<Sku> skus;// sku列表
+}
+```
+
+- 返回类型：无
+
+
+
+代码：
+
+```java
+/**
+ * 新增商品
+ * @param spu
+ * @return
+ */
+@PostMapping
+public ResponseEntity<Void> saveGoods(@RequestBody SpuBo spuBo) {
+    try {
+        this.goodsService.save(spu);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+```
+
+注意：通过@RequestBody注解来接收Json请求
+
+### 1.7.3.GoodsService
+
+这里的逻辑比较复杂，我们除了要对SPU新增以外，还要对SpuDetail、Sku、Stock进行保存
+
+```java
+@Transactional
+public void save(SpuBo spu) {
+    // 保存spu
+    spu.setSaleable(true);
+    spu.setValid(true);
+    spu.setCreateTime(new Date());
+    spu.setLastUpdateTime(spu.getCreateTime());
+    this.spuMapper.insert(spu);
+    // 保存spu详情
+    spu.getSpuDetail().setSpuId(spu.getId());
+    this.spuDetailMapper.insert(spu.getSpuDetail());
+
+    // 保存sku和库存信息
+    saveSkuAndStock(spu.getSkus(), spu.getId());
+}
+
+private void saveSkuAndStock(List<Sku> skus, Long spuId) {
+    for (Sku sku : skus) {
+        if (!sku.getEnable()) {
+            continue;
+        }
+        // 保存sku
+        sku.setSpuId(spuId);
+        // 初始化时间
+        sku.setCreateTime(new Date());
+        sku.setLastUpdateTime(sku.getCreateTime());
+        this.skuMapper.insert(sku);
+
+        // 保存库存信息
+        Stock stock = new Stock();
+        stock.setSkuId(sku.getId());
+        stock.setStock(sku.getStock());
+        this.stockMapper.insert(stock);
+    }
+}
+```
+
+
+
+### 1.7.4.Mapper
+
+都是通用Mapper，略
+
+目录结构：
+
+ ![1528473533815](/images/leyou/1528473533815.png)
+
+
+
+# 2.商品修改
+
+## 2.1.编辑按钮点击事件
+
+在商品详情页，每一个商品后面，都会有一个编辑按钮：
+
+![1528476387213](/images/leyou/1528476387213.png)
+
+点击这个按钮，就会打开一个商品编辑窗口，我们看下它所绑定的点击事件：
+
+![1528476530008](/images/leyou/1528476530008.png)
+
+对应的方法：
+
+![1528476579123](/images/leyou/1528476579123.png)
+
+可以看到这里发起了两个请求，在查询商品详情和sku信息。
+
+因为在商品列表页面，只有spu的基本信息：id、标题、品牌、商品分类等。比较复杂的商品详情（spuDetail)和sku信息都没有，编辑页面要回显数据，就需要查询这些内容。
+
+因此，接下来我们就编写后台接口，提供查询服务接口。
+
+## 2.2.查询SpuDetail接口
+
+> GoodsController
+
+需要分析的内容：
+
+- 请求方式：GET
+- 请求路径：/spu/detail/{id}
+- 请求参数：id，应该是spu的id
+- 返回结果：SpuDetail对象
+
+```java
+@GetMapping("/spu/detail/{id}")
+public ResponseEntity<SpuDetail> querySpuDetailById(@PathVariable("id") Long id) {
+    SpuDetail detail = this.goodsService.querySpuDetailById(id);
+    if (detail == null) {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    return ResponseEntity.ok(detail);
+}
+```
+
+> GoodsService
+
+```java
+public SpuDetail querySpuDetailById(Long id) {
+    return this.spuDetailMapper.selectByPrimaryKey(id);
+}
+```
+
+> 测试
+
+![1528477123640](/images/leyou/1528477123640.png)
+
+
+
+## 2.3.查询sku
+
+> 分析
+
+- 请求方式：Get
+- 请求路径：/sku/list
+- 请求参数：id，应该是spu的id
+- 返回结果：sku的集合
+
+> GoodsController
+
+```java
+@GetMapping("sku/list")
+public ResponseEntity<List<Sku>> querySkuBySpuId(@RequestParam("id") Long id) {
+    List<Sku> skus = this.goodsService.querySkuBySpuId(id);
+    if (skus == null || skus.size() == 0) {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    return ResponseEntity.ok(skus);
+}
+```
+
+
+
+> GoodsService
+
+需要注意的是，为了页面回显方便，我们一并把sku的库存stock也查询出来
+
+```java
+public List<Sku> querySkuBySpuId(Long spuId) {
+    // 查询sku
+    Sku record = new Sku();
+    record.setSpuId(spuId);
+    List<Sku> skus = this.skuMapper.select(record);
+    for (Sku sku : skus) {
+        // 同时查询出库存
+        sku.setStock(this.stockMapper.selectByPrimaryKey(sku.getId()).getStock());
+    }
+    return skus;
+}
+```
+
+> 测试：
+
+![1528477189379](/images/leyou/1528477189379.png)
+
+
+
+## 2.4.页面回显
+
+随便点击一个编辑按钮，发现数据回显完成：
+
+![1528477890801](/images/leyou/1528477890801.png)
+
+![1528477928748](/images/leyou/1528477928748.png)
+
+![1528477970912](/images/leyou/1528477970912.png)
+
+![1528478019100](/images/leyou/1528478019100.png)
+
+
+
+## 2.5.页面提交
+
+这里的保存按钮与新增其实是同一个，因此提交的逻辑也是一样的，这里不再赘述。
+
+随便修改点数据，然后点击保存，可以看到浏览器已经发出请求：
+
+![1528478194128](/images/leyou/1528478194128.png)
+
+
+
+## 2.6.后台实现
+
+接下来，我们编写后台，实现修改商品接口。
+
+### 2.6.1.Controller
+
+- 请求方式：PUT
+- 请求路径：/
+- 请求参数：Spu对象
+- 返回结果：无
+
+```java
+/**
+ * 新增商品
+ * @param spu
+ * @return
+ */
+@PutMapping
+public ResponseEntity<Void> updateGoods(@RequestBody SpuBo spu) {
+    try {
+        this.goodsService.update(spu);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+```
+
+
+
+### 2.6.2.Service
+
+spu数据可以修改，但是SKU数据无法修改，因为有可能之前存在的SKU现在已经不存在了，或者以前的sku属性都不存在了。比如以前内存有4G，现在没了。
+
+因此这里直接删除以前的SKU，然后新增即可。
+
+代码：
+
+```java
+@Transactional
+public void update(SpuBo spu) {
+    // 查询以前sku
+    List<Sku> skus = this.querySkuBySpuId(spu.getId());
+    // 如果以前存在，则删除
+    if(!CollectionUtils.isEmpty(skus)) {
+        List<Long> ids = skus.stream().map(s -> s.getId()).collect(Collectors.toList());
+        // 删除以前库存
+        Example example = new Example(Stock.class);
+        example.createCriteria().andIn("skuId", ids);
+        this.stockMapper.deleteByExample(example);
+
+        // 删除以前的sku
+        Sku record = new Sku();
+        record.setSpuId(spu.getId());
+        this.skuMapper.delete(record);
+
+    }
+    // 新增sku和库存
+    saveSkuAndStock(spu.getSkus(), spu.getId());
+
+    // 更新spu
+    spu.setLastUpdateTime(new Date());
+    spu.setCreateTime(null);
+    spu.setValid(null);
+    spu.setSaleable(null);
+    this.spuMapper.updateByPrimaryKeySelective(spu);
+
+    // 更新spu详情
+    this.spuDetailMapper.updateByPrimaryKeySelective(spu.getSpuDetail());
+}
+```
+
+
+
+### 2.6.3.mapper
+
+与以前一样。
+
+
+
+## 2.7.其它
+
+商品的删除、上下架大家自行实现。
+
+
+
+
+
+# 3.搭建前台系统
+
+后台系统的内容暂时告一段落，有了商品，接下来我们就要在页面展示商品，给用户提供浏览和购买的入口，那就是我们的门户系统。
+
+门户系统面向的是用户，安全性很重要，而且搜索引擎对于单页应用并不友好。因此我们的门户系统不再采用与后台系统类似的SPA（单页应用）。
+
+依然是前后端分离，不过前端的页面会使用独立的html，在每个页面中使用vue来做页面渲染。
+
+## 3.1.静态资源
+
+webpack打包多页应用配置比较繁琐，项目结构也相对复杂。这里为了简化开发（毕竟我们不是专业的前端人员），我们不再使用webpack，而是直接编写原生的静态HTML。
+
+
+
+### 3.1.1.创建工程
+
+创建一个新的工程：
+
+![1528479807646](/images/leyou/1528479807646.png)
+
+![1528479863567](/images/leyou/1528479863567.png)
+
+
+
+### 3.1.2.导入静态资源
+
+将课前资料中的leyou-portal解压，并复制到这个项目下
+
+![1528479930705](/images/leyou/1528479930705.png)
+
+解压缩：
+
+![1528479984188](/images/leyou/1528479984188.png)
+
+项目结构：
+
+ ![1528480139441](/images/leyou/1528480139441.png)
+
+
+
+## 3.2.live-server
+
+没有webpack，我们就无法使用webpack-dev-server运行这个项目，实现热部署。
+
+所以，这里我们使用另外一种热部署方式：live-server，
+
+### 3.2.1.简介
+
+地址；https://www.npmjs.com/package/live-server
+
+ ![1526460917348](/images/leyou/1526460917348.png)
+
+这是一款带有热加载功能的小型开发服务器。用它来展示你的HTML / JavaScript / CSS，但不能用于部署最终的网站。 
+
+
+
+### 3.2.2.安装和运行参数
+
+安装，使用npm命令即可，这里建议全局安装，以后任意位置可用
+
+```
+npm install -g live-server
+```
+
+
+
+运行时，直接输入命令：
+
+```
+live-server
+```
+
+另外，你可以在运行命令后，跟上一些参数以配置：
+
+- `--port=NUMBER` - 选择要使用的端口，默认值：PORT env var或8080
+- `--host=ADDRESS` - 选择要绑定的主机地址，默认值：IP env var或0.0.0.0（“任意地址”）
+- `--no-browser` - 禁止自动Web浏览器启动
+- `--browser=BROWSER` - 指定使用浏览器而不是系统默认值
+- `--quiet | -q` - 禁止记录
+- `--verbose | -V` - 更多日志记录（记录所有请求，显示所有侦听的IPv4接口等）
+- `--open=PATH` - 启动浏览器到PATH而不是服务器root
+- `--watch=PATH` - 用逗号分隔的路径来专门监视变化（默认值：观看所有内容）
+- `--ignore=PATH`- 要忽略的逗号分隔的路径字符串（[anymatch](https://github.com/es128/anymatch) -compatible definition）
+- `--ignorePattern=RGXP`-文件的正则表达式忽略（即`.*\.jade`）（**不推荐使用**赞成`--ignore`）
+- `--middleware=PATH` - 导出要添加的中间件功能的.js文件的路径; 可以是没有路径的名称，也可以是引用`middleware`文件夹中捆绑的中间件的扩展名
+- `--entry-file=PATH` - 提供此文件（服务器根目录）代替丢失的文件（对单页应用程序有用）
+- `--mount=ROUTE:PATH` - 在定义的路线下提供路径内容（可能有多个定义）
+- `--spa` - 将请求从/ abc转换为/＃/ abc（方便单页应用）
+- `--wait=MILLISECONDS` - （默认100ms）等待所有更改，然后重新加载
+- `--htpasswd=PATH` - 启用期待位于PATH的htpasswd文件的http-auth
+- `--cors` - 为任何来源启用CORS（反映请求源，支持凭证的请求）
+- `--https=PATH` - 到HTTPS配置模块的路径
+- `--proxy=ROUTE:URL` - 代理ROUTE到URL的所有请求
+- `--help | -h` - 显示简洁的使用提示并退出
+- `--version | -v` - 显示版本并退出
+
+
+
+### 3.2.3.测试
+
+我们进入leyou-portal目录，输入命令：
+
+```
+live-server --port=9002
+```
+
+![1528480541193](/images/leyou/1528480541193.png)
+
+
+
+## 3.3.域名访问
+
+现在我们访问只能通过：http://127.0.0.1:9002
+
+我们希望用域名访问：http://www.leyou.com
+
+第一步，修改hosts文件，添加一行配置：
+
+```
+127.0.0.1 www.leyou.com
+```
+
+第二步，修改nginx配置，将www.leyou.com反向代理到127.0.0.1:9002
+
+```nginx
+server {
+    listen       80;
+    server_name  www.leyou.com;
+
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Server $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+    location / {
+        proxy_pass http://127.0.0.1:9002;
+        proxy_connect_timeout 600;
+        proxy_read_timeout 600;
+    }
+}
+```
+
+重新加载nginx配置：`nginx.exe -s reload`
+
+![1526462774092](/images/leyou/1526462774092.png)
+
+
+
+## 3.4.common.js
+
+为了方便后续的开发，我们在前台系统中定义了一些工具，放在了common.js中：
+
+ ![1526643361038](/images/leyou/1526643361038.png)
+
+
+
+部分代码截图：
+
+ ![1526643526973](H:/%E4%B9%90%E4%BC%98/7%E6%9C%881%E5%8F%B7%E6%9B%B4%E6%96%B0/day10-%E5%95%86%E5%93%81%E7%AE%A1%E7%90%86//images/leyou/1526643526973.png)
+
+首先对axios进行了一些全局配置，请求超时时间，请求的基础路径，是否允许跨域操作cookie等
+
+定义了对象 ly ，也叫leyou，包含了下面的属性：
+
+- getUrlParam(key)：获取url路径中的参数
+- http：axios对象的别名。以后发起ajax请求，可以用ly.http.get()
+- store：localstorage便捷操作，后面用到再详细说明
+- formatPrice：格式化价格，如果传入的是字符串，则扩大100被并转为数字，如果传入是数字，则缩小100倍并转为字符串
+- formatDate(val, pattern)：对日期对象val按照指定的pattern模板进行格式化
+- stringify：将对象转为参数字符串
+- parse：将参数字符串变为js对象
+---
+layout: post
+title:  elasticsearch
+categories: 乐优
+description: elasticsearch
+keywords: 乐优
+---
+# 0.学习目标
+
+- 独立安装Elasticsearch
+- 会使用Rest的API操作索引
+- 会使用Rest的API查询数据
+- 会使用Rest的API聚合数据
+- 掌握Spring Data Elasticsearch使用
+
+
+
+# 1.Elasticsearch介绍和安装
+
+用户访问我们的首页，一般都会直接搜索来寻找自己想要购买的商品。
+
+而商品的数量非常多，而且分类繁杂。如果能正确的显示出用户想要的商品，并进行合理的过滤，尽快促成交易，是搜索系统要研究的核心。
+
+面对这样复杂的搜索业务和数据量，使用传统数据库搜索就显得力不从心，一般我们都会使用全文检索技术，比如之前大家学习过的Solr。
+
+不过今天，我们要讲的是另一个全文检索技术：Elasticsearch。
+
+## 1.1.简介
+
+### 1.1.1.Elastic
+
+Elastic官网：https://www.elastic.co/cn/
+
+![1528546351055](/images/leyou/1528546351055.png)
+
+
+
+Elastic有一条完整的产品线及解决方案：Elasticsearch、Kibana、Logstash等，前面说的三个就是大家常说的ELK技术栈。
+
+![1528546493105](/images/leyou/1528546493105.png)
+
+
+
+### 1.1.2.Elasticsearch
+
+Elasticsearch官网：https://www.elastic.co/cn/products/elasticsearch
+
+![1528547087016](/images/leyou/1528547087016.png)
+
+如上所述，Elasticsearch具备以下特点：
+
+- 分布式，无需人工搭建集群（solr就需要人为配置，使用Zookeeper作为注册中心）
+- Restful风格，一切API都遵循Rest原则，容易上手
+- 近实时搜索，数据更新在Elasticsearch中几乎是完全同步的。
+
+
+
+### 1.1.3.版本
+
+目前Elasticsearch最新的版本是6.3.1，我们就使用6.3.0
+
+![1528547283102](/images/leyou/1528547283102.png)
+
+需要虚拟机JDK1.8及以上
+
+
+
+## 1.2.安装和配置
+
+为了模拟真实场景，我们将在linux下安装Elasticsearch。
+
+### 1.2.1.新建一个用户leyou
+
+出于安全考虑，elasticsearch默认不允许以root账号运行。
+
+创建用户：
+
+```sh
+useradd leyou
+```
+
+设置密码：
+
+```
+passwd leyou
+```
+
+切换用户：
+
+```
+su - leyou
+```
+
+
+
+### 1.2.2.上传安装包,并解压
+
+我们将安装包上传到：/home/leyou目录
+
+![1528610258461](/images/leyou/1528610258461.png)
+
+![1528551162835](/images/leyou/1528551162835.png)
+
+解压缩：
+
+```
+tar -zxvf elasticsearch-6.2.4.tar.gz
+```
+
+
+
+我们把目录重命名：
+
+```
+mv elasticsearch-6.2.4/ elasticsearch
+```
+
+![1528610397414](/images/leyou/1528610397414.png)
+
+进入，查看目录结构：
+
+![1528551465373](/images/leyou/1528551465373.png)
+
+
+
+### 1.2.3.修改配置
+
+我们进入config目录：`cd config`
+
+需要修改的配置文件有两个：
+
+![1528551598931](/images/leyou/1528551598931.png)
+
+1. **jvm.options**
+
+Elasticsearch基于Lucene的，而Lucene底层是java实现，因此我们需要配置jvm参数。
+
+编辑jvm.options：
+
+```
+vim jvm.options
+```
+
+默认配置如下：
+
+```
+-Xms1g
+-Xmx1g
+```
+
+内存占用太多了，我们调小一些：
+
+```
+-Xms512m
+-Xmx512m
+```
+
+1. **elasticsearch.yml**
+
+```
+vim elasticsearch.yml
+```
+
+- 修改数据和日志目录：
+
+
+```yml
+path.data: /home/leyou/elasticsearch/data # 数据目录位置
+path.logs: /home/leyou/elasticsearch/logs # 日志目录位置
+```
+
+我们把data和logs目录修改指向了elasticsearch的安装目录。但是这两个目录并不存在，因此我们需要创建出来。
+
+进入elasticsearch的根目录，然后创建：
+
+```
+mkdir data
+mkdir logs
+```
+
+![1528552839032](/images/leyou/1528552839032.png)
+
+
+
+- 修改绑定的ip：
+
+```
+network.host: 0.0.0.0 # 绑定到0.0.0.0，允许任何ip来访问
+```
+
+默认只允许本机访问，修改为0.0.0.0后则可以远程访问
+
+
+
+目前我们是做的单机安装，如果要做集群，只需要在这个配置文件中添加其它节点信息即可。
+
+> elasticsearch.yml的其它可配置信息：
+
+| 属性名                                | 说明                                       |
+| ---------------------------------- | ---------------------------------------- |
+| cluster.name                       | 配置elasticsearch的集群名称，默认是elasticsearch。建议修改成一个有意义的名称。 |
+| node.name                          | 节点名，es会默认随机指定一个名字，建议指定一个有意义的名称，方便管理      |
+| path.conf                          | 设置配置文件的存储路径，tar或zip包安装默认在es根目录下的config文件夹，rpm安装默认在/etc/ elasticsearch |
+| path.data                          | 设置索引数据的存储路径，默认是es根目录下的data文件夹，可以设置多个存储路径，用逗号隔开 |
+| path.logs                          | 设置日志文件的存储路径，默认是es根目录下的logs文件夹            |
+| path.plugins                       | 设置插件的存放路径，默认是es根目录下的plugins文件夹           |
+| bootstrap.memory_lock              | 设置为true可以锁住ES使用的内存，避免内存进行swap            |
+| network.host                       | 设置bind_host和publish_host，设置为0.0.0.0允许外网访问 |
+| http.port                          | 设置对外服务的http端口，默认为9200。                   |
+| transport.tcp.port                 | 集群结点之间通信端口                               |
+| discovery.zen.ping.timeout         | 设置ES自动发现节点连接超时的时间，默认为3秒，如果网络延迟高可设置大些     |
+| discovery.zen.minimum_master_nodes | 主结点数量的最少值 ,此值的公式为：(master_eligible_nodes / 2) + 1 ，比如：有3个符合要求的主结点，那么这里要设置为2 |
+|                                    |                                          |
+
+
+
+## 1.3.运行
+
+进入elasticsearch/bin目录，可以看到下面的执行文件：
+
+![1528553103468](/images/leyou/1528553103468.png)
+
+然后输入命令：
+
+```
+./elasticsearch
+```
+
+发现报错了，启动失败：
+
+### 1.3.1.错误1：内核过低
+
+![1528598315714](/images/leyou/1528598315714.png)
+
+我们使用的是centos6，其linux内核版本为2.6。而Elasticsearch的插件要求至少3.5以上版本。不过没关系，我们禁用这个插件即可。
+
+修改elasticsearch.yml文件，在最下面添加如下配置：
+
+```
+bootstrap.system_call_filter: false
+```
+
+然后重启
+
+
+
+### 1.3.2.错误2：文件权限不足
+
+再次启动，又出错了：
+
+![1528599116836](/images/leyou/1528599116836.png)
+
+```
+[1]: max file descriptors [4096] for elasticsearch process likely too low, increase to at least [65536]
+```
+
+我们用的是leyou用户，而不是root，所以文件权限不足。
+
+**首先用root用户登录。**
+
+然后修改配置文件:
+
+```
+vim /etc/security/limits.conf
+```
+
+添加下面的内容：
+
+```
+* soft nofile 65536
+
+* hard nofile 131072
+
+* soft nproc 4096
+
+* hard nproc 4096
+```
+
+
+
+### 1.3.3.错误3：线程数不够
+
+刚才报错中，还有一行：
+
+```
+[1]: max number of threads [1024] for user [leyou] is too low, increase to at least [4096]
+```
+
+这是线程数不够。
+
+继续修改配置：
+
+```
+vim /etc/security/limits.d/90-nproc.conf 
+```
+
+修改下面的内容：
+
+```
+* soft nproc 1024
+```
+
+改为：
+
+```
+* soft nproc 4096
+```
+
+
+
+### 1.3.4.错误4：进程虚拟内存
+
+```
+[3]: max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]
+```
+
+vm.max_map_count：限制一个进程可以拥有的VMA(虚拟内存区域)的数量，继续修改配置文件， ：
+
+```
+vim /etc/sysctl.conf 
+```
+
+添加下面内容：
+
+```
+vm.max_map_count=655360
+```
+
+然后执行命令：
+
+```
+sysctl -p
+```
+
+
+
+### 1.3.5.重启终端窗口
+
+所有错误修改完毕，一定要重启你的 Xshell终端，否则配置无效。
+
+
+
+### 1.3.6.启动
+
+再次启动，终于成功了！
+
+![1528603044862](/images/leyou/1528603044862.png)
+
+可以看到绑定了两个端口:
+
+- 9300：集群节点间通讯接口
+- 9200：客户端访问接口
+
+我们在浏览器中访问：http://192.168.56.101:9200
+
+![1528611090621](/images/leyou/1528611090621.png)
+
+
+
+## 1.4.安装kibana
+
+### 1.4.1.什么是Kibana？
+
+![1528603530298](/images/leyou/1528603530298.png)
+
+Kibana是一个基于Node.js的Elasticsearch索引库数据统计工具，可以利用Elasticsearch的聚合功能，生成各种图表，如柱形图，线状图，饼图等。
+
+而且还提供了操作Elasticsearch索引数据的控制台，并且提供了一定的API提示，非常有利于我们学习Elasticsearch的语法。
+
+
+
+### 1.4.2.安装
+
+因为Kibana依赖于node，我们的虚拟机没有安装node，而window中安装过。所以我们选择在window下使用kibana。
+
+最新版本与elasticsearch保持一致，也是6.3.0
+
+![1528611218599](/images/leyou/1528611218599.png)
+
+解压到特定目录即可
+
+
+
+### 1.4.3.配置运行
+
+> 配置
+
+进入安装目录下的config目录，修改kibana.yml文件：
+
+修改elasticsearch服务器的地址：
+
+```
+elasticsearch.url: "http://192.168.56.101:9200"
+```
+
+> 运行
+
+进入安装目录下的bin目录：
+
+![1528612108406](/images/leyou/1528612108406.png)
+
+双击运行：
+
+![1528612216033](/images/leyou/1528612216033.png)
+
+发现kibana的监听端口是5601
+
+我们访问：http://127.0.0.1:5601
+
+![1528612265677](/images/leyou/1528612265677.png)
+
+
+
+### 1.4.4.控制台
+
+选择左侧的DevTools菜单，即可进入控制台页面：
+
+![1528612350020](/images/leyou/1528612350020.png)
+
+
+
+在页面右侧，我们就可以输入请求，访问Elasticsearch了。
+
+![1528612514556](/images/leyou/1528612514556.png)
+
+
+
+## 1.5.安装ik分词器
+
+Lucene的IK分词器早在2012年已经没有维护了，现在我们要使用的是在其基础上维护升级的版本，并且开发为ElasticSearch的集成插件了，与Elasticsearch一起维护升级，版本也保持一致，最新版本：6.3.0
+
+### 1.5.1.安装
+
+上传课前资料中的zip包，解压到Elasticsearch目录的plugins目录中：
+
+![1526482432181](/images/leyou/1528612654570.png)
+
+使用unzip命令解压：
+
+```
+unzip elasticsearch-analysis-ik-6.3.0.zip -d ik-analyzer
+```
+
+然后重启elasticsearch：
+
+![1528612928524](/images/leyou/1528612928524.png)
+
+
+
+### 1.5.2.测试
+
+大家先不管语法，我们先测试一波。
+
+在kibana控制台输入下面的请求：
+
+```
+POST _analyze
+{
+  "analyzer": "ik_max_word",
+  "text":     "我是中国人"
+}
+```
+
+运行得到结果：
+
+```
+{
+  "tokens": [
+    {
+      "token": "我",
+      "start_offset": 0,
+      "end_offset": 1,
+      "type": "CN_CHAR",
+      "position": 0
+    },
+    {
+      "token": "是",
+      "start_offset": 1,
+      "end_offset": 2,
+      "type": "CN_CHAR",
+      "position": 1
+    },
+    {
+      "token": "中国人",
+      "start_offset": 2,
+      "end_offset": 5,
+      "type": "CN_WORD",
+      "position": 2
+    },
+    {
+      "token": "中国",
+      "start_offset": 2,
+      "end_offset": 4,
+      "type": "CN_WORD",
+      "position": 3
+    },
+    {
+      "token": "国人",
+      "start_offset": 3,
+      "end_offset": 5,
+      "type": "CN_WORD",
+      "position": 4
+    }
+  ]
+}
+```
+
+
+
+## 1.7.API
+
+Elasticsearch提供了Rest风格的API，即http请求接口，而且也提供了各种语言的客户端API
+
+### 1.7.1.Rest风格API
+
+文档地址：https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html
+
+![1526518410240](H:/%E4%B9%90%E4%BC%98/7%E6%9C%881%E5%8F%B7%E6%9B%B4%E6%96%B0/day11-elasticsearch//images/leyou/1526518410240.png)
+
+
+
+### 1.7.2.客户端API
+
+Elasticsearch支持的客户端非常多：https://www.elastic.co/guide/en/elasticsearch/client/index.html
+
+![1528613714338](/images/leyou/1528613714338.png)
+
+点击Java Rest Client后，你会发现又有两个：
+
+![1528613788606](/images/leyou/1528613788606.png)
+
+
+
+Low Level Rest Client是低级别封装，提供一些基础功能，但更灵活
+
+High Level Rest Client，是在Low  Level Rest Client基础上进行的高级别封装，功能更丰富和完善，而且API会变的简单
+
+ ![1526518875072](/images/leyou/1526518875072.png)
+
+
+
+### 1.7.3.如何学习
+
+建议先学习Rest风格API，了解发起请求的底层实现，请求体格式等。
+
+
+
+# 2.操作索引
+
+## 2.1.基本概念
+
+Elasticsearch也是基于Lucene的全文检索库，本质也是存储数据，很多概念与MySQL类似的。
+
+对比关系：
+
+索引（indices）--------------------------------Databases 数据库
+
+​	类型（type）-----------------------------Table 数据表
+
+​	     文档（Document）----------------Row 行
+
+​		   字段（Field）-------------------Columns 列 
+
+
+
+详细说明：
+
+| 概念             | 说明                                       |
+| -------------- | ---------------------------------------- |
+| 索引库（indices)   | indices是index的复数，代表许多的索引，                |
+| 类型（type）       | 类型是模拟mysql中的table概念，一个索引库下可以有不同类型的索引，比如商品索引，订单索引，其数据格式不同。不过这会导致索引库混乱，因此未来版本中会移除这个概念 |
+| 文档（document）   | 存入索引库原始的数据。比如每一条商品信息，就是一个文档              |
+| 字段（field）      | 文档中的属性                                   |
+| 映射配置（mappings） | 字段的数据类型、属性、是否索引、是否存储等特性                  |
+
+是不是与Lucene和solr中的概念类似。
+
+另外，在SolrCloud中，有一些集群相关的概念，在Elasticsearch也有类似的：
+
+- 索引集（Indices，index的复数）：逻辑上的完整索引
+- 分片（shard）：数据拆分后的各个部分
+- 副本（replica）：每个分片的复制
+
+
+
+要注意的是：Elasticsearch本身就是分布式的，因此即便你只有一个节点，Elasticsearch默认也会对你的数据进行分片和副本操作，当你向集群添加新数据时，数据也会在新加入的节点中进行平衡。
+
+
+
+## 2.2.创建索引
+
+### 2.2.1.语法
+
+Elasticsearch采用Rest风格API，因此其API就是一次http请求，你可以用任何工具发起http请求
+
+创建索引的请求格式：
+
+- 请求方式：PUT
+
+- 请求路径：/索引库名
+
+- 请求参数：json格式：
+
+  ```json
+  {
+      "settings": {
+          "number_of_shards": 3,
+          "number_of_replicas": 2
+        }
+  }
+  ```
+
+  - settings：索引库的设置
+    - number_of_shards：分片数量
+    - number_of_replicas：副本数量
+
+
+
+### 2.2.2.测试
+
+我们先用RestClient来试试
+
+![1528615921930](/images/leyou/1528615921930.png)
+
+响应：
+
+![1528615945473](/images/leyou/1528615945473.png)
+
+可以看到索引创建成功了。
+
+### 2.2.3.使用kibana创建
+
+kibana的控制台，可以对http请求进行简化，示例：
+
+![1528616088691](/images/leyou/1528616088691.png)
+
+相当于是省去了elasticsearch的服务器地址
+
+而且还有语法提示，非常舒服。
+
+
+
+## 2.3.查看索引设置
+
+> 语法
+
+Get请求可以帮我们查看索引信息，格式：
+
+```
+GET /索引库名
+```
+
+![1528616233409](/images/leyou/1528616233409.png)
+
+
+
+或者，我们可以使用*来查询所有索引库配置：
+
+![1528616305800](/images/leyou/1528616305800.png)
+
+
+
+## 2.4.删除索引
+
+删除索引使用DELETE请求
+
+> 语法
+
+```
+DELETE /索引库名
+```
+
+> 示例
+
+![1528616383952](/images/leyou/1528616383952.png)
+
+再次查看heima2：
+
+![1528616452713](/images/leyou/1528616452713.png)
+
+当然，我们也可以用HEAD请求，查看索引是否存在：
+
+![1528616489638](/images/leyou/1528616489638.png)
+
+
+
+## 2.5.映射配置
+
+索引有了，接下来肯定是添加数据。但是，在添加数据之前必须定义映射。
+
+什么是映射？
+
+​	映射是定义文档的过程，文档包含哪些字段，这些字段是否保存，是否索引，是否分词等
+
+只有配置清楚，Elasticsearch才会帮我们进行索引库的创建（不一定）
+
+
+
+### 2.5.1.创建映射字段
+
+> 语法
+
+请求方式依然是PUT
+
+```
+PUT /索引库名/_mapping/类型名称
+{
+  "properties": {
+    "字段名": {
+      "type": "类型",
+      "index": true，
+      "store": true，
+      "analyzer": "分词器"
+    }
+  }
+}
+```
+
+- 类型名称：就是前面将的type的概念，类似于数据库中的不同表
+  字段名：任意填写	，可以指定许多属性，例如：
+- type：类型，可以是text、long、short、date、integer、object等
+- index：是否索引，默认为true
+- store：是否存储，默认为false
+- analyzer：分词器，这里的`ik_max_word`即使用ik分词器
+
+> 示例
+
+发起请求：
+
+```json
+PUT heima/_mapping/goods
+{
+  "properties": {
+    "title": {
+      "type": "text",
+      "analyzer": "ik_max_word"
+    },
+    "images": {
+      "type": "keyword",
+      "index": "false"
+    },
+    "price": {
+      "type": "float"
+    }
+  }
+}
+
+```
+
+响应结果：
+
+```
+{
+  "acknowledged": true
+}
+
+```
+
+
+
+### 2.5.2.查看映射关系
+
+> 语法：
+
+```
+GET /索引库名/_mapping
+```
+
+> 示例：
+
+```
+GET /heima/_mapping
+```
+
+> 响应：
+
+```json
+{
+  "heima": {
+    "mappings": {
+      "goods": {
+        "properties": {
+          "images": {
+            "type": "keyword",
+            "index": false
+          },
+          "price": {
+            "type": "float"
+          },
+          "title": {
+            "type": "text",
+            "analyzer": "ik_max_word"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+
+
+### 2.5.3.字段属性详解
+
+#### 2.5.3.1.type
+
+Elasticsearch中支持的数据类型非常丰富：
+
+![1531712631982](/images/leyou/1531712631982.png)
+
+我们说几个关键的：
+
+- String类型，又分两种：
+
+  - text：可分词，不可参与聚合
+  - keyword：不可分词，数据会作为完整字段进行匹配，可以参与聚合
+
+- Numerical：数值类型，分两类
+
+  - 基本数据类型：long、interger、short、byte、double、float、half_float
+  - 浮点数的高精度类型：scaled_float
+    - 需要指定一个精度因子，比如10或100。elasticsearch会把真实值乘以这个因子后存储，取出时再还原。
+
+- Date：日期类型
+
+  elasticsearch可以对日期格式化为字符串存储，但是建议我们存储为毫秒值，存储为long，节省空间。
+
+
+
+#### 2.5.3.2.index
+
+index影响字段的索引情况。
+
+- true：字段会被索引，则可以用来进行搜索。默认值就是true
+- false：字段不会被索引，不能用来搜索
+
+index的默认值就是true，也就是说你不进行任何配置，所有字段都会被索引。
+
+但是有些字段是我们不希望被索引的，比如商品的图片信息，就需要手动设置index为false。
+
+
+
+#### 2.5.3.3.store
+
+是否将数据进行额外存储。
+
+在学习lucene和solr时，我们知道如果一个字段的store设置为false，那么在文档列表中就不会有这个字段的值，用户的搜索结果中不会显示出来。
+
+但是在Elasticsearch中，即便store设置为false，也可以搜索到结果。
+
+原因是Elasticsearch在创建文档索引时，会将文档中的原始数据备份，保存到一个叫做`_source`的属性中。而且我们可以通过过滤`_source`来选择哪些要显示，哪些不显示。
+
+而如果设置store为true，就会在`_source`以外额外存储一份数据，多余，因此一般我们都会将store设置为false，事实上，**store的默认值就是false。**
+
+
+
+#### 2.5.3.4.boost
+
+激励因子，这个与lucene中一样
+
+其它的不再一一讲解，用的不多，大家参考官方文档：
+
+![1531713176079](/images/leyou/1531713176079.png)
+
+
+
+## 2.6.新增数据
+
+### 2.6.1.随机生成id
+
+通过POST请求，可以向一个已经存在的索引库中添加数据。
+
+> 语法：
+
+```
+POST /索引库名/类型名
+{
+    "key":"value"
+}
+```
+
+> 示例：
+
+```json
+POST /heima/goods/
+{
+    "title":"小米手机",
+    "images":"http://image.leyou.com/12479122.jpg",
+    "price":2699.00
+}
+```
+
+响应：
+
+```json
+{
+  "_index": "heima",
+  "_type": "goods",
+  "_id": "r9c1KGMBIhaxtY5rlRKv",
+  "_version": 1,
+  "result": "created",
+  "_shards": {
+    "total": 3,
+    "successful": 1,
+    "failed": 0
+  },
+  "_seq_no": 0,
+  "_primary_term": 2
+}
+```
+
+
+
+通过kibana查看数据：
+
+```js
+get _search
+{
+    "query":{
+        "match_all":{}
+    }
+}
+```
+
+
+
+```json
+{
+  "_index": "heima",
+  "_type": "goods",
+  "_id": "r9c1KGMBIhaxtY5rlRKv",
+  "_version": 1,
+  "_score": 1,
+  "_source": {
+    "title": "小米手机",
+    "images": "http://image.leyou.com/12479122.jpg",
+    "price": 2699
+  }
+}
+```
+
+- `_source`：源文档信息，所有的数据都在里面。
+- `_id`：这条文档的唯一标示，与文档自己的id字段没有关联
+
+
+
+### 2.6.2.自定义id
+
+如果我们想要自己新增的时候指定id，可以这么做：
+
+```
+POST /索引库名/类型/id值
+{
+    ...
+}
+
+```
+
+示例：
+
+```json
+POST /heima/goods/2
+{
+    "title":"大米手机",
+    "images":"http://image.leyou.com/12479122.jpg",
+    "price":2899.00
+}
+```
+
+得到的数据：
+
+```json
+{
+  "_index": "heima",
+  "_type": "goods",
+  "_id": "2",
+  "_score": 1,
+  "_source": {
+    "title": "大米手机",
+    "images": "http://image.leyou.com/12479122.jpg",
+    "price": 2899
+  }
+}
+```
+
+
+
+### 2.6.3.智能判断
+
+在学习Solr时我们发现，我们在新增数据时，只能使用提前配置好映射属性的字段，否则就会报错。
+
+不过在Elasticsearch中并没有这样的规定。
+
+事实上Elasticsearch非常智能，你不需要给索引库设置任何mapping映射，它也可以根据你输入的数据来判断类型，动态添加数据映射。
+
+测试一下：
+
+```json
+POST /heima/goods/3
+{
+    "title":"超米手机",
+    "images":"http://image.leyou.com/12479122.jpg",
+    "price":2899.00,
+    "stock": 200,
+    "saleable":true
+}
+```
+
+我们额外添加了stock库存，和saleable是否上架两个字段。
+
+来看结果：
+
+```json
+{
+  "_index": "heima",
+  "_type": "goods",
+  "_id": "3",
+  "_version": 1,
+  "_score": 1,
+  "_source": {
+    "title": "超米手机",
+    "images": "http://image.leyou.com/12479122.jpg",
+    "price": 2899,
+    "stock": 200,
+    "saleable": true
+  }
+}
+```
+
+在看下索引库的映射关系:
+
+```json
+{
+  "heima": {
+    "mappings": {
+      "goods": {
+        "properties": {
+          "images": {
+            "type": "keyword",
+            "index": false
+          },
+          "price": {
+            "type": "float"
+          },
+          "saleable": {
+            "type": "boolean"
+          },
+          "stock": {
+            "type": "long"
+          },
+          "title": {
+            "type": "text",
+            "analyzer": "ik_max_word"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+stock和saleable都被成功映射了。
+
+## 2.7.修改数据
+
+把刚才新增的请求方式改为PUT，就是修改了。不过修改必须指定id，
+
+- id对应文档存在，则修改
+- id对应文档不存在，则新增
+
+比如，我们把id为3的数据进行修改：
+
+```json
+PUT /heima/goods/3
+{
+    "title":"超大米手机",
+    "images":"http://image.leyou.com/12479122.jpg",
+    "price":3899.00,
+    "stock": 100,
+    "saleable":true
+}
+```
+
+结果：
+
+```json
+{
+  "took": 17,
+  "timed_out": false,
+  "_shards": {
+    "total": 9,
+    "successful": 9,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 1,
+    "max_score": 1,
+    "hits": [
+      {
+        "_index": "heima",
+        "_type": "goods",
+        "_id": "3",
+        "_score": 1,
+        "_source": {
+          "title": "超大米手机",
+          "images": "http://image.leyou.com/12479122.jpg",
+          "price": 3899,
+          "stock": 100,
+          "saleable": true
+        }
+      }
+    ]
+  }
+}
+```
+
+
+
+## 2.8.删除数据
+
+删除使用DELETE请求，同样，需要根据id进行删除：
+
+> 语法
+
+```
+DELETE /索引库名/类型名/id值
+```
+
+> 示例：
+
+![1531727693743](/images/leyou/1531727693743.png)
+
+
+
+# 3.查询
+
+我们从4块来讲查询：
+
+- 基本查询
+- `_source`过滤
+- 结果过滤
+- 高级查询
+- 排序
+
+
+
+## 3.1.基本查询：
+
+> 基本语法
+
+```json
+GET /索引库名/_search
+{
+    "query":{
+        "查询类型":{
+            "查询条件":"查询条件值"
+        }
+    }
+}
+```
+
+这里的query代表一个查询对象，里面可以有不同的查询属性
+
+- 查询类型：
+  - 例如：`match_all`， `match`，`term` ， `range` 等等
+- 查询条件：查询条件会根据类型的不同，写法也有差异，后面详细讲解
+
+
+
+### 3.1.1 查询所有（match_all)
+
+> 示例：
+
+```json
+GET /heima/_search
+{
+    "query":{
+        "match_all": {}
+    }
+}
+```
+
+- `query`：代表查询对象
+- `match_all`：代表查询所有
+
+> 结果：
+
+```json
+{
+  "took": 2,
+  "timed_out": false,
+  "_shards": {
+    "total": 3,
+    "successful": 3,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 2,
+    "max_score": 1,
+    "hits": [
+      {
+        "_index": "heima",
+        "_type": "goods",
+        "_id": "2",
+        "_score": 1,
+        "_source": {
+          "title": "大米手机",
+          "images": "http://image.leyou.com/12479122.jpg",
+          "price": 2899
+        }
+      },
+      {
+        "_index": "heima",
+        "_type": "goods",
+        "_id": "r9c1KGMBIhaxtY5rlRKv",
+        "_score": 1,
+        "_source": {
+          "title": "小米手机",
+          "images": "http://image.leyou.com/12479122.jpg",
+          "price": 2699
+        }
+      }
+    ]
+  }
+}
+```
+
+- took：查询花费时间，单位是毫秒
+- time_out：是否超时
+- _shards：分片信息
+- hits：搜索结果总览对象
+  - total：搜索到的总条数
+  - max_score：所有结果中文档得分的最高分
+  - hits：搜索结果的文档对象数组，每个元素是一条搜索到的文档信息
+    - _index：索引库
+    - _type：文档类型
+    - _id：文档id
+    - _score：文档得分
+    - _source：文档的源数据
+
+
+
+### 3.1.2 匹配查询（match）
+
+我们先加入一条数据，便于测试：
+
+```json
+PUT /heima/goods/3
+{
+    "title":"小米电视4A",
+    "images":"http://image.leyou.com/12479122.jpg",
+    "price":3899.00
+}
+```
+
+现在，索引库中有2部手机，1台电视：
+
+ ![1531728628406](/images/leyou/1531728628406.png)
+
+- or关系
+
+`match`类型查询，会把查询条件进行分词，然后进行查询,多个词条之间是or的关系
+
+```json
+GET /heima/_search
+{
+    "query":{
+        "match":{
+            "title":"小米电视"
+        }
+    }
+}
+```
+
+结果：
+
+```json
+"hits": {
+    "total": 2,
+    "max_score": 0.6931472,
+    "hits": [
+        {
+            "_index": "heima",
+            "_type": "goods",
+            "_id": "tmUBomQB_mwm6wH_EC1-",
+            "_score": 0.6931472,
+            "_source": {
+                "title": "小米手机",
+                "images": "http://image.leyou.com/12479122.jpg",
+                "price": 2699
+            }
+        },
+        {
+            "_index": "heima",
+            "_type": "goods",
+            "_id": "3",
+            "_score": 0.5753642,
+            "_source": {
+                "title": "小米电视4A",
+                "images": "http://image.leyou.com/12479122.jpg",
+                "price": 3899
+            }
+        }
+    ]
+}
+```
+
+
+
+在上面的案例中，不仅会查询到电视，而且与小米相关的都会查询到，多个词之间是`or`的关系。
+
+
+
+- and关系
+
+某些情况下，我们需要更精确查找，我们希望这个关系变成`and`，可以这样做：
+
+```json
+GET /heima/_search
+{
+    "query":{
+        "match": {
+          "title": {
+            "query": "小米电视",
+            "operator": "and"
+          }
+        }
+    }
+}
+```
+
+结果：
+
+```json
+{
+  "took": 2,
+  "timed_out": false,
+  "_shards": {
+    "total": 3,
+    "successful": 3,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 1,
+    "max_score": 0.5753642,
+    "hits": [
+      {
+        "_index": "heima",
+        "_type": "goods",
+        "_id": "3",
+        "_score": 0.5753642,
+        "_source": {
+          "title": "小米电视4A",
+          "images": "http://image.leyou.com/12479122.jpg",
+          "price": 3899
+        }
+      }
+    ]
+  }
+}
+```
+
+本例中，只有同时包含`小米`和`电视`的词条才会被搜索到。
+
+
+
+- or和and之间？
+
+在 `or` 与 `and` 间二选一有点过于非黑即白。 如果用户给定的条件分词后有 5 个查询词项，想查找只包含其中 4 个词的文档，该如何处理？将 operator 操作符参数设置成 `and` 只会将此文档排除。
+
+有时候这正是我们期望的，但在全文搜索的大多数应用场景下，我们既想包含那些可能相关的文档，同时又排除那些不太相关的。换句话说，我们想要处于中间某种结果。
+
+`match` 查询支持 `minimum_should_match` 最小匹配参数， 这让我们可以指定必须匹配的词项数用来表示一个文档是否相关。我们可以将其设置为某个具体数字，更常用的做法是将其设置为一个`百分数`，因为我们无法控制用户搜索时输入的单词数量：
+
+```json
+GET /heima/_search
+{
+    "query":{
+        "match":{
+            "title":{
+            	"query":"小米曲面电视",
+            	"minimum_should_match": "75%"
+            }
+        }
+    }
+}
+```
+
+本例中，搜索语句可以分为3个词，如果使用and关系，需要同时满足3个词才会被搜索到。这里我们采用最小品牌数：75%，那么也就是说只要匹配到总词条数量的75%即可，这里3*75% 约等于2。所以只要包含2个词条就算满足条件了。
+
+结果：
+
+![1531730367614](/images/leyou/1531730367614.png)
+
+
+
+### 3.1.3 多字段查询（multi_match）
+
+`multi_match`与`match`类似，不同的是它可以在多个字段中查询
+
+```json
+GET /heima/_search
+{
+    "query":{
+        "multi_match": {
+            "query":    "小米",
+            "fields":   [ "title", "subTitle" ]
+        }
+	}
+}
+```
+
+本例中，我们会在title字段和subtitle字段中查询`小米`这个词
+
+
+
+### 3.1.4 词条匹配(term)
+
+`term` 查询被用于精确值 匹配，这些精确值可能是数字、时间、布尔或者那些**未分词**的字符串
+
+```json
+GET /heima/_search
+{
+    "query":{
+        "term":{
+            "price":2699.00
+        }
+    }
+}
+```
+
+结果：
+
+```json
+{
+  "took": 2,
+  "timed_out": false,
+  "_shards": {
+    "total": 3,
+    "successful": 3,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 1,
+    "max_score": 1,
+    "hits": [
+      {
+        "_index": "heima",
+        "_type": "goods",
+        "_id": "r9c1KGMBIhaxtY5rlRKv",
+        "_score": 1,
+        "_source": {
+          "title": "小米手机",
+          "images": "http://image.leyou.com/12479122.jpg",
+          "price": 2699
+        }
+      }
+    ]
+  }
+}
+```
+
+
+
+### 3.1.5 多词条精确匹配(terms)
+
+`terms` 查询和 term 查询一样，但它允许你指定多值进行匹配。如果这个字段包含了指定值中的任何一个值，那么这个文档满足条件：
+
+```json
+GET /heima/_search
+{
+    "query":{
+        "terms":{
+            "price":[2699.00,2899.00,3899.00]
+        }
+    }
+}
+```
+
+结果：
+
+```json
+{
+  "took": 4,
+  "timed_out": false,
+  "_shards": {
+    "total": 3,
+    "successful": 3,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 3,
+    "max_score": 1,
+    "hits": [
+      {
+        "_index": "heima",
+        "_type": "goods",
+        "_id": "2",
+        "_score": 1,
+        "_source": {
+          "title": "大米手机",
+          "images": "http://image.leyou.com/12479122.jpg",
+          "price": 2899
+        }
+      },
+      {
+        "_index": "heima",
+        "_type": "goods",
+        "_id": "r9c1KGMBIhaxtY5rlRKv",
+        "_score": 1,
+        "_source": {
+          "title": "小米手机",
+          "images": "http://image.leyou.com/12479122.jpg",
+          "price": 2699
+        }
+      },
+      {
+        "_index": "heima",
+        "_type": "goods",
+        "_id": "3",
+        "_score": 1,
+        "_source": {
+          "title": "小米电视4A",
+          "images": "http://image.leyou.com/12479122.jpg",
+          "price": 3899
+        }
+      }
+    ]
+  }
+}
+```
+
+
+
+## 3.2.结果过滤
+
+默认情况下，elasticsearch在搜索的结果中，会把文档中保存在`_source`的所有字段都返回。
+
+如果我们只想获取其中的部分字段，我们可以添加`_source`的过滤
+
+### 3.2.1.直接指定字段
+
+示例：
+
+```json
+GET /heima/_search
+{
+  "_source": ["title","price"],
+  "query": {
+    "term": {
+      "price": 2699
+    }
+  }
+}
+```
+
+返回的结果：
+
+```json
+{
+  "took": 12,
+  "timed_out": false,
+  "_shards": {
+    "total": 3,
+    "successful": 3,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 1,
+    "max_score": 1,
+    "hits": [
+      {
+        "_index": "heima",
+        "_type": "goods",
+        "_id": "r9c1KGMBIhaxtY5rlRKv",
+        "_score": 1,
+        "_source": {
+          "price": 2699,
+          "title": "小米手机"
+        }
+      }
+    ]
+  }
+}
+```
+
+
+
+### 3.2.2.指定includes和excludes
+
+我们也可以通过：
+
+- includes：来指定想要显示的字段
+- excludes：来指定不想要显示的字段
+
+二者都是可选的。
+
+示例：
+
+```json
+GET /heima/_search
+{
+  "_source": {
+    "includes":["title","price"]
+  },
+  "query": {
+    "term": {
+      "price": 2699
+    }
+  }
+}
+```
+
+与下面的结果将是一样的：
+
+```json
+GET /heima/_search
+{
+  "_source": {
+     "excludes": ["images"]
+  },
+  "query": {
+    "term": {
+      "price": 2699
+    }
+  }
+}
+```
+
+
+
+## 3.3 高级查询
+
+### 3.3.1 布尔组合（bool)
+
+`bool`把各种其它查询通过`must`（与）、`must_not`（非）、`should`（或）的方式进行组合
+
+```json
+GET /heima/_search
+{
+    "query":{
+        "bool":{
+        	"must":     { "match": { "title": "大米" }},
+        	"must_not": { "match": { "title":  "电视" }},
+        	"should":   { "match": { "title": "手机" }}
+        }
+    }
+}
+```
+
+结果：
+
+```json
+{
+  "took": 10,
+  "timed_out": false,
+  "_shards": {
+    "total": 3,
+    "successful": 3,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 1,
+    "max_score": 0.5753642,
+    "hits": [
+      {
+        "_index": "heima",
+        "_type": "goods",
+        "_id": "2",
+        "_score": 0.5753642,
+        "_source": {
+          "title": "大米手机",
+          "images": "http://image.leyou.com/12479122.jpg",
+          "price": 2899
+        }
+      }
+    ]
+  }
+}
+```
+
+
+
+### 3.3.2 范围查询(range)
+
+`range` 查询找出那些落在指定区间内的数字或者时间
+
+```json
+GET /heima/_search
+{
+    "query":{
+        "range": {
+            "price": {
+                "gte":  1000.0,
+                "lt":   2800.00
+            }
+    	}
+    }
+}
+```
+
+`range`查询允许以下字符：
+
+| 操作符  |  说明  |
+| :--: | :--: |
+|  gt  |  大于  |
+| gte  | 大于等于 |
+|  lt  |  小于  |
+| lte  | 小于等于 |
+
+
+
+### 3.3.3 模糊查询(fuzzy)
+
+我们新增一个商品：
+
+```json
+POST /heima/goods/4
+{
+    "title":"apple手机",
+    "images":"http://image.leyou.com/12479122.jpg",
+    "price":6899.00
+}
+```
+
+
+
+`fuzzy` 查询是 `term` 查询的模糊等价。它允许用户搜索词条与实际词条的拼写出现偏差，但是偏差的编辑距离不得超过2：
+
+```json
+GET /heima/_search
+{
+  "query": {
+    "fuzzy": {
+      "title": "appla"
+    }
+  }
+}
+```
+
+上面的查询，也能查询到apple手机
+
+我们可以通过`fuzziness`来指定允许的编辑距离：
+
+```json
+GET /heima/_search
+{
+  "query": {
+    "fuzzy": {
+        "title": {
+            "value":"appla",
+            "fuzziness":1
+        }
+    }
+  }
+}
+```
+
+
+
+## 3.4 过滤(filter)
+
+> **条件查询中进行过滤**
+
+所有的查询都会影响到文档的评分及排名。如果我们需要在查询结果中进行过滤，并且不希望过滤条件影响评分，那么就不要把过滤条件作为查询条件来用。而是使用`filter`方式：
+
+```json
+GET /heima/_search
+{
+    "query":{
+        "bool":{
+        	"must":{ "match": { "title": "小米手机" }},
+        	"filter":{
+                "range":{"price":{"gt":2000.00,"lt":3800.00}}
+        	}
+        }
+    }
+}
+```
+
+注意：`filter`中还可以再次进行`bool`组合条件过滤。
+
+
+
+> **无查询条件，直接过滤**
+
+如果一次查询只有过滤，没有查询条件，不希望进行评分，我们可以使用`constant_score`取代只有 filter 语句的 bool 查询。在性能上是完全相同的，但对于提高查询简洁性和清晰度有很大帮助。
+
+```json
+GET /heima/_search
+{
+    "query":{
+        "constant_score":   {
+            "filter": {
+            	 "range":{"price":{"gt":2000.00,"lt":3000.00}}
+            }
+        }
+}
+```
+
+
+
+## 3.5 排序
+
+### 3.4.1 单字段排序
+
+`sort` 可以让我们按照不同的字段进行排序，并且通过`order`指定排序的方式
+
+```json
+GET /heima/_search
+{
+  "query": {
+    "match": {
+      "title": "小米手机"
+    }
+  },
+  "sort": [
+    {
+      "price": {
+        "order": "desc"
+      }
+    }
+  ]
+}
+```
+
+
+
+### 3.4.2 多字段排序
+
+假定我们想要结合使用 price和 _score（得分） 进行查询，并且匹配的结果首先按照价格排序，然后按照相关性得分排序：
+
+```json
+GET /goods/_search
+{
+    "query":{
+        "bool":{
+        	"must":{ "match": { "title": "小米手机" }},
+        	"filter":{
+                "range":{"price":{"gt":200000,"lt":300000}}
+        	}
+        }
+    },
+    "sort": [
+      { "price": { "order": "desc" }},
+      { "_score": { "order": "desc" }}
+    ]
+}
+```
+
+
+
+# 4. 聚合aggregations
+
+聚合可以让我们极其方便的实现对数据的统计、分析。例如：
+
+- 什么品牌的手机最受欢迎？
+- 这些手机的平均价格、最高价格、最低价格？
+- 这些手机每月的销售情况如何？
+
+实现这些统计功能的比数据库的sql要方便的多，而且查询速度非常快，可以实现实时搜索效果。
+
+
+
+## 4.1 基本概念
+
+Elasticsearch中的聚合，包含多种类型，最常用的两种，一个叫`桶`，一个叫`度量`：
+
+> **桶（bucket）**
+
+桶的作用，是按照某种方式对数据进行分组，每一组数据在ES中称为一个`桶`，例如我们根据国籍对人划分，可以得到`中国桶`、`英国桶`，`日本桶`……或者我们按照年龄段对人进行划分：0~10,10~20,20~30,30~40等。
+
+Elasticsearch中提供的划分桶的方式有很多：
+
+- Date Histogram Aggregation：根据日期阶梯分组，例如给定阶梯为周，会自动每周分为一组
+- Histogram Aggregation：根据数值阶梯分组，与日期类似
+- Terms Aggregation：根据词条内容分组，词条内容完全匹配的为一组
+- Range Aggregation：数值和日期的范围分组，指定开始和结束，然后按段分组
+- ……
+
+
+
+综上所述，我们发现bucket aggregations 只负责对数据进行分组，并不进行计算，因此往往bucket中往往会嵌套另一种聚合：metrics aggregations即度量
+
+
+
+> **度量（metrics）**
+
+分组完成以后，我们一般会对组中的数据进行聚合运算，例如求平均值、最大、最小、求和等，这些在ES中称为`度量`
+
+比较常用的一些度量聚合方式：
+
+- Avg Aggregation：求平均值
+- Max Aggregation：求最大值
+- Min Aggregation：求最小值
+- Percentiles Aggregation：求百分比
+- Stats Aggregation：同时返回avg、max、min、sum、count等
+- Sum Aggregation：求和
+- Top hits Aggregation：求前几
+- Value Count Aggregation：求总数
+- ……
+
+
+
+为了测试聚合，我们先批量导入一些数据
+
+创建索引：
+
+```json
+PUT /cars
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0
+  },
+  "mappings": {
+    "transactions": {
+      "properties": {
+        "color": {
+          "type": "keyword"
+        },
+        "make": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}
+```
+
+**注意**：在ES中，需要进行聚合、排序、过滤的字段其处理方式比较特殊，因此不能被分词。这里我们将color和make这两个文字类型的字段设置为keyword类型，这个类型不会被分词，将来就可以参与聚合
+
+
+
+导入数据
+
+```json
+POST /cars/transactions/_bulk
+{ "index": {}}
+{ "price" : 10000, "color" : "red", "make" : "honda", "sold" : "2014-10-28" }
+{ "index": {}}
+{ "price" : 20000, "color" : "red", "make" : "honda", "sold" : "2014-11-05" }
+{ "index": {}}
+{ "price" : 30000, "color" : "green", "make" : "ford", "sold" : "2014-05-18" }
+{ "index": {}}
+{ "price" : 15000, "color" : "blue", "make" : "toyota", "sold" : "2014-07-02" }
+{ "index": {}}
+{ "price" : 12000, "color" : "green", "make" : "toyota", "sold" : "2014-08-19" }
+{ "index": {}}
+{ "price" : 20000, "color" : "red", "make" : "honda", "sold" : "2014-11-05" }
+{ "index": {}}
+{ "price" : 80000, "color" : "red", "make" : "bmw", "sold" : "2014-01-01" }
+{ "index": {}}
+{ "price" : 25000, "color" : "blue", "make" : "ford", "sold" : "2014-02-12" }
+```
+
+
+
+## 4.2 聚合为桶
+
+首先，我们按照 汽车的颜色`color`来划分`桶`
+
+```json
+GET /cars/_search
+{
+    "size" : 0,
+    "aggs" : { 
+        "popular_colors" : { 
+            "terms" : { 
+              "field" : "color"
+            }
+        }
+    }
+}
+```
+
+- size： 查询条数，这里设置为0，因为我们不关心搜索到的数据，只关心聚合结果，提高效率
+- aggs：声明这是一个聚合查询，是aggregations的缩写
+  - popular_colors：给这次聚合起一个名字，任意。
+    - terms：划分桶的方式，这里是根据词条划分
+      - field：划分桶的字段
+
+结果：
+
+```json
+{
+  "took": 1,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 8,
+    "max_score": 0,
+    "hits": []
+  },
+  "aggregations": {
+    "popular_colors": {
+      "doc_count_error_upper_bound": 0,
+      "sum_other_doc_count": 0,
+      "buckets": [
+        {
+          "key": "red",
+          "doc_count": 4
+        },
+        {
+          "key": "blue",
+          "doc_count": 2
+        },
+        {
+          "key": "green",
+          "doc_count": 2
+        }
+      ]
+    }
+  }
+}
+```
+
+- hits：查询结果为空，因为我们设置了size为0
+- aggregations：聚合的结果
+- popular_colors：我们定义的聚合名称
+- buckets：查找到的桶，每个不同的color字段值都会形成一个桶
+  - key：这个桶对应的color字段的值
+  - doc_count：这个桶中的文档数量
+
+通过聚合的结果我们发现，目前红色的小车比较畅销！
+
+
+
+## 4.3 桶内度量
+
+前面的例子告诉我们每个桶里面的文档数量，这很有用。 但通常，我们的应用需要提供更复杂的文档度量。 例如，每种颜色汽车的平均价格是多少？
+
+因此，我们需要告诉Elasticsearch`使用哪个字段`，`使用何种度量方式`进行运算，这些信息要嵌套在`桶`内，`度量`的运算会基于`桶`内的文档进行
+
+现在，我们为刚刚的聚合结果添加 求价格平均值的度量：
+
+```json
+GET /cars/_search
+{
+    "size" : 0,
+    "aggs" : { 
+        "popular_colors" : { 
+            "terms" : { 
+              "field" : "color"
+            },
+            "aggs":{
+                "avg_price": { 
+                   "avg": {
+                      "field": "price" 
+                   }
+                }
+            }
+        }
+    }
+}
+```
+
+- aggs：我们在上一个aggs(popular_colors)中添加新的aggs。可见`度量`也是一个聚合,度量是在桶内的聚合
+- avg_price：聚合的名称
+- avg：度量的类型，这里是求平均值
+- field：度量运算的字段
+
+
+
+结果：
+
+```json
+...
+  "aggregations": {
+    "popular_colors": {
+      "doc_count_error_upper_bound": 0,
+      "sum_other_doc_count": 0,
+      "buckets": [
+        {
+          "key": "red",
+          "doc_count": 4,
+          "avg_price": {
+            "value": 32500
+          }
+        },
+        {
+          "key": "blue",
+          "doc_count": 2,
+          "avg_price": {
+            "value": 20000
+          }
+        },
+        {
+          "key": "green",
+          "doc_count": 2,
+          "avg_price": {
+            "value": 21000
+          }
+        }
+      ]
+    }
+  }
+...
+```
+
+可以看到每个桶中都有自己的`avg_price`字段，这是度量聚合的结果
+
+
+
+## 4.4 桶内嵌套桶
+
+刚刚的案例中，我们在桶内嵌套度量运算。事实上桶不仅可以嵌套运算， 还可以再嵌套其它桶。也就是说在每个分组中，再分更多组。
+
+比如：我们想统计每种颜色的汽车中，分别属于哪个制造商，按照`make`字段再进行分桶
+
+```json
+GET /cars/_search
+{
+    "size" : 0,
+    "aggs" : { 
+        "popular_colors" : { 
+            "terms" : { 
+              "field" : "color"
+            },
+            "aggs":{
+                "avg_price": { 
+                   "avg": {
+                      "field": "price" 
+                   }
+                },
+                "maker":{
+                    "terms":{
+                        "field":"make"
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+- 原来的color桶和avg计算我们不变
+- maker：在嵌套的aggs下新添一个桶，叫做maker
+- terms：桶的划分类型依然是词条
+- filed：这里根据make字段进行划分
+
+
+
+部分结果：
+
+```json
+...
+{"aggregations": {
+    "popular_colors": {
+      "doc_count_error_upper_bound": 0,
+      "sum_other_doc_count": 0,
+      "buckets": [
+        {
+          "key": "red",
+          "doc_count": 4,
+          "maker": {
+            "doc_count_error_upper_bound": 0,
+            "sum_other_doc_count": 0,
+            "buckets": [
+              {
+                "key": "honda",
+                "doc_count": 3
+              },
+              {
+                "key": "bmw",
+                "doc_count": 1
+              }
+            ]
+          },
+          "avg_price": {
+            "value": 32500
+          }
+        },
+        {
+          "key": "blue",
+          "doc_count": 2,
+          "maker": {
+            "doc_count_error_upper_bound": 0,
+            "sum_other_doc_count": 0,
+            "buckets": [
+              {
+                "key": "ford",
+                "doc_count": 1
+              },
+              {
+                "key": "toyota",
+                "doc_count": 1
+              }
+            ]
+          },
+          "avg_price": {
+            "value": 20000
+          }
+        },
+        {
+          "key": "green",
+          "doc_count": 2,
+          "maker": {
+            "doc_count_error_upper_bound": 0,
+            "sum_other_doc_count": 0,
+            "buckets": [
+              {
+                "key": "ford",
+                "doc_count": 1
+              },
+              {
+                "key": "toyota",
+                "doc_count": 1
+              }
+            ]
+          },
+          "avg_price": {
+            "value": 21000
+          }
+        }
+      ]
+    }
+  }
+}
+...
+```
+
+- 我们可以看到，新的聚合`maker`被嵌套在原来每一个`color`的桶中。
+- 每个颜色下面都根据 `make`字段进行了分组
+- 我们能读取到的信息：
+  - 红色车共有4辆
+  - 红色车的平均售价是 $32，500 美元。
+  - 其中3辆是 Honda 本田制造，1辆是 BMW 宝马制造。
+
+
+
+## 4.5.划分桶的其它方式
+
+前面讲了，划分桶的方式有很多，例如：
+
+- Date Histogram Aggregation：根据日期阶梯分组，例如给定阶梯为周，会自动每周分为一组
+- Histogram Aggregation：根据数值阶梯分组，与日期类似
+- Terms Aggregation：根据词条内容分组，词条内容完全匹配的为一组
+- Range Aggregation：数值和日期的范围分组，指定开始和结束，然后按段分组
+
+刚刚的案例中，我们采用的是Terms Aggregation，即根据词条划分桶。
+
+接下来，我们再学习几个比较实用的：
+
+### 4.5.1.阶梯分桶Histogram
+
+> 原理：
+
+histogram是把数值类型的字段，按照一定的阶梯大小进行分组。你需要指定一个阶梯值（interval）来划分阶梯大小。
+
+举例：
+
+比如你有价格字段，如果你设定interval的值为200，那么阶梯就会是这样的：
+
+0，200，400，600，...
+
+上面列出的是每个阶梯的key，也是区间的启点。
+
+如果一件商品的价格是450，会落入哪个阶梯区间呢？计算公式如下：
+
+```
+bucket_key = Math.floor((value - offset) / interval) * interval + offset
+```
+
+value：就是当前数据的值，本例中是450
+
+offset：起始偏移量，默认为0
+
+interval：阶梯间隔，比如200
+
+因此你得到的key = Math.floor((450 - 0) / 200) * 200 + 0 = 400
+
+> 操作一下：
+
+比如，我们对汽车的价格进行分组，指定间隔interval为5000：
+
+```json
+GET /cars/_search
+{
+  "size":0,
+  "aggs":{
+    "price":{
+      "histogram": {
+        "field": "price",
+        "interval": 5000
+      }
+    }
+  }
+}
+```
+
+结果：
+
+```json
+{
+  "took": 21,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 8,
+    "max_score": 0,
+    "hits": []
+  },
+  "aggregations": {
+    "price": {
+      "buckets": [
+        {
+          "key": 10000,
+          "doc_count": 2
+        },
+        {
+          "key": 15000,
+          "doc_count": 1
+        },
+        {
+          "key": 20000,
+          "doc_count": 2
+        },
+        {
+          "key": 25000,
+          "doc_count": 1
+        },
+        {
+          "key": 30000,
+          "doc_count": 1
+        },
+        {
+          "key": 35000,
+          "doc_count": 0
+        },
+        {
+          "key": 40000,
+          "doc_count": 0
+        },
+        {
+          "key": 45000,
+          "doc_count": 0
+        },
+        {
+          "key": 50000,
+          "doc_count": 0
+        },
+        {
+          "key": 55000,
+          "doc_count": 0
+        },
+        {
+          "key": 60000,
+          "doc_count": 0
+        },
+        {
+          "key": 65000,
+          "doc_count": 0
+        },
+        {
+          "key": 70000,
+          "doc_count": 0
+        },
+        {
+          "key": 75000,
+          "doc_count": 0
+        },
+        {
+          "key": 80000,
+          "doc_count": 1
+        }
+      ]
+    }
+  }
+}
+```
+
+你会发现，中间有大量的文档数量为0 的桶，看起来很丑。
+
+我们可以增加一个参数min_doc_count为1，来约束最少文档数量为1，这样文档数量为0的桶会被过滤
+
+示例：
+
+```json
+GET /cars/_search
+{
+  "size":0,
+  "aggs":{
+    "price":{
+      "histogram": {
+        "field": "price",
+        "interval": 5000,
+        "min_doc_count": 1
+      }
+    }
+  }
+}
+```
+
+结果：
+
+```json
+{
+  "took": 15,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 8,
+    "max_score": 0,
+    "hits": []
+  },
+  "aggregations": {
+    "price": {
+      "buckets": [
+        {
+          "key": 10000,
+          "doc_count": 2
+        },
+        {
+          "key": 15000,
+          "doc_count": 1
+        },
+        {
+          "key": 20000,
+          "doc_count": 2
+        },
+        {
+          "key": 25000,
+          "doc_count": 1
+        },
+        {
+          "key": 30000,
+          "doc_count": 1
+        },
+        {
+          "key": 80000,
+          "doc_count": 1
+        }
+      ]
+    }
+  }
+}
+```
+
+完美，！
+
+如果你用kibana将结果变为柱形图，会更好看：
+
+![1531752558505](/images/leyou/1531752558505.png)
+
+
+
+### 4.5.2.范围分桶range
+
+范围分桶与阶梯分桶类似，也是把数字按照阶段进行分组，只不过range方式需要你自己指定每一组的起始和结束大小。
+
+
+
+
+
+# 5.Spring Data Elasticsearch
+
+Elasticsearch提供的Java客户端有一些不太方便的地方：
+
+- 很多地方需要拼接Json字符串，在java中拼接字符串有多恐怖你应该懂的
+- 需要自己把对象序列化为json存储
+- 查询到结果也需要自己反序列化为对象
+
+因此，我们这里就不讲解原生的Elasticsearch客户端API了。
+
+而是学习Spring提供的套件：Spring Data Elasticsearch。
+
+
+
+## 5.1.简介
+
+Spring Data Elasticsearch是Spring Data项目下的一个子模块。
+
+查看 Spring Data的官网：http://projects.spring.io/spring-data/
+
+![1531753066475](/images/leyou/1531753066475.png)
+
+> Spring Data的使命是为数据访问提供熟悉且一致的基于Spring的编程模型，同时仍保留底层数据存储的特殊特性。
+>
+> 它使得使用数据访问技术，关系数据库和非关系数据库，map-reduce框架和基于云的数据服务变得容易。这是一个总括项目，其中包含许多特定于给定数据库的子项目。这些令人兴奋的技术项目背后，是由许多公司和开发人员合作开发的。
+
+Spring Data 的使命是给各种数据访问提供统一的编程接口，不管是关系型数据库（如MySQL），还是非关系数据库（如Redis），或者类似Elasticsearch这样的索引数据库。从而简化开发人员的代码，提高开发效率。
+
+包含很多不同数据操作的模块：
+
+![1531753715580](/images/leyou/1531753715580.png)
+
+
+
+Spring Data Elasticsearch的页面：https://projects.spring.io/spring-data-elasticsearch/
+
+ ![1531754111583](/images/leyou/1531754111583.png)
+
+特征：
+
+- 支持Spring的基于`@Configuration`的java配置方式，或者XML配置方式
+- 提供了用于操作ES的便捷工具类**`ElasticsearchTemplate`**。包括实现文档到POJO之间的自动智能映射。
+- 利用Spring的数据转换服务实现的功能丰富的对象映射
+- 基于注解的元数据映射方式，而且可扩展以支持更多不同的数据格式
+- 根据持久层接口自动生成对应实现方法，无需人工编写基本操作代码（类似mybatis，根据接口自动得到实现）。当然，也支持人工定制查询
+
+
+
+## 5.2.创建Demo工程
+
+我们新建一个demo，学习Elasticsearch
+
+![1531973082475](/images/leyou/1531973082475.png)
+
+![1531974312212](/images/leyou/1531974312212.png)
+
+pom依赖：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.leyou.demo</groupId>
+	<artifactId>elasticsearch</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>elasticsearch</name>
+	<description>Demo project for Spring Boot</description>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.0.2.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+</project>
+```
+
+application.yml文件配置：
+
+```yaml
+spring:
+  data:
+    elasticsearch:
+      cluster-name: elasticsearch
+      cluster-nodes: 192.168.56.101:9300
+```
+
+
+
+## 5.3.实体类及注解
+
+首先我们准备好实体类：
+
+```java
+public class Item {
+    Long id;
+    String title; //标题
+    String category;// 分类
+    String brand; // 品牌
+    Double price; // 价格
+    String images; // 图片地址
+}
+```
+
+> 映射
+
+Spring Data通过注解来声明字段的映射属性，有下面的三个注解：
+
+- `@Document` 作用在类，标记实体类为文档对象，一般有两个属性
+  - indexName：对应索引库名称
+  - type：对应在索引库中的类型
+  - shards：分片数量，默认5
+  - replicas：副本数量，默认1
+- `@Id` 作用在成员变量，标记一个字段作为id主键
+- `@Field` 作用在成员变量，标记为文档的字段，并指定字段映射属性：
+  - type：字段类型，取值是枚举：FieldType
+  - index：是否索引，布尔类型，默认是true
+  - store：是否存储，布尔类型，默认是false
+  - analyzer：分词器名称
+
+示例：
+
+```java
+@Document(indexName = "item",type = "docs", shards = 1, replicas = 0)
+public class Item {
+    @Id
+    private Long id;
+    
+    @Field(type = FieldType.Text, analyzer = "ik_max_word")
+    private String title; //标题
+    
+    @Field(type = FieldType.Keyword)
+    private String category;// 分类
+    
+    @Field(type = FieldType.Keyword)
+    private String brand; // 品牌
+    
+    @Field(type = FieldType.Double)
+    private Double price; // 价格
+    
+    @Field(index = false, type = FieldType.Keyword)
+    private String images; // 图片地址
+}
+```
+
+
+
+## 5.4.Template索引操作
+
+### 5.4.1.创建索引和映射
+
+> 创建索引
+
+ ![1531985485904](/images/leyou/1531985485904.png)
+
+ElasticsearchTemplate中提供了创建索引的API：
+
+![1531984923727](/images/leyou/1531984923727.png)
+
+可以根据类的信息自动生成，也可以手动指定indexName和Settings
+
+> 映射
+
+映射相关的API：
+
+![1531985337698](/images/leyou/1531985337698.png)
+
+可以根据类的字节码信息（注解配置）来生成映射，或者手动编写映射
+
+
+
+我们这里采用类的字节码信息创建索引并映射：
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = ItcastElasticsearchApplication.class)
+public class IndexTest {
+
+    @Autowired
+    private ElasticsearchTemplate elasticsearchTemplate;
+
+    @Test
+    public void testCreate(){
+        // 创建索引，会根据Item类的@Document注解信息来创建
+        elasticsearchTemplate.createIndex(Item.class);
+        // 配置映射，会根据Item类中的id、Field等字段来自动完成映射
+        elasticsearchTemplate.putMapping(Item.class);
+    }
+}
+```
+
+结果：
+
+```json
+GET /item
+{
+  "item": {
+    "aliases": {},
+    "mappings": {
+      "docs": {
+        "properties": {
+          "brand": {
+            "type": "keyword"
+          },
+          "category": {
+            "type": "keyword"
+          },
+          "images": {
+            "type": "keyword",
+            "index": false
+          },
+          "price": {
+            "type": "double"
+          },
+          "title": {
+            "type": "text",
+            "analyzer": "ik_max_word"
+          }
+        }
+      }
+    },
+    "settings": {
+      "index": {
+        "refresh_interval": "1s",
+        "number_of_shards": "1",
+        "provided_name": "item",
+        "creation_date": "1525405022589",
+        "store": {
+          "type": "fs"
+        },
+        "number_of_replicas": "0",
+        "uuid": "4sE9SAw3Sqq1aAPz5F6OEg",
+        "version": {
+          "created": "6020499"
+        }
+      }
+    }
+  }
+}
+```
+
+
+
+### 5.3.2.删除索引
+
+删除索引的API：
+
+![1526544759120](/images/leyou/1531986474606.png)
+
+可以根据类名或索引名删除。
+
+示例：
+
+```java
+@Test
+public void deleteIndex() {
+    esTemplate.deleteIndex("heima");
+}
+```
+
+结果：
+
+ ![1531986618059](/images/leyou/1531986618059.png)
+
+
+
+## 5.4.Repository文档操作
+
+Spring Data 的强大之处，就在于你不用写任何DAO处理，自动根据方法名或类的信息进行CRUD操作。只要你定义一个接口，然后继承Repository提供的一些子接口，就能具备各种基本的CRUD功能。
+
+我们只需要定义接口，然后继承它就OK了。
+
+ ![1531987244855](../../../../%E6%95%99%E5%AD%A6/leyou1/day11/%E7%AC%94%E8%AE%B0//images/leyou/1531987244855.png)
+
+```java
+public interface ItemRepository extends ElasticsearchRepository<Item,Long> {
+}
+```
+
+![](G:\SSM\ssm\乐优\乐优商城《项目笔记》\day11笔记\/images/leyou\1531987244855.png)
+
+来看下Repository的继承关系：
+
+ ![1531986965570](/images/leyou/1531986965570.png)
+
+我们看到有一个ElasticsearchRepository接口：
+
+![1531987044693](/images/leyou/1531987044693.png)
+
+
+
+### 5.4.1.新增文档
+
+```java
+@Autowired
+private ItemRepository itemRepository;
+
+@Test
+public void index() {
+    Item item = new Item(1L, "小米手机7", " 手机",
+                         "小米", 3499.00, "http://image.leyou.com/13123.jpg");
+    itemRepository.save(item);
+}
+```
+
+去页面查询看看：
+
+```
+GET /item/_search
+```
+
+结果：
+
+```json
+{
+  "took": 14,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 1,
+    "max_score": 1,
+    "hits": [
+      {
+        "_index": "item",
+        "_type": "docs",
+        "_id": "1",
+        "_score": 1,
+        "_source": {
+          "id": 1,
+          "title": "小米手机7",
+          "category": " 手机",
+          "brand": "小米",
+          "price": 3499,
+          "images": "http://image.leyou.com/13123.jpg"
+        }
+      }
+    ]
+  }
+}
+```
+
+
+
+### 5.4.2.批量新增
+
+代码：
+
+```java
+@Test
+public void indexList() {
+    List<Item> list = new ArrayList<>();
+    list.add(new Item(2L, "坚果手机R1", " 手机", "锤子", 3699.00, "http://image.leyou.com/123.jpg"));
+    list.add(new Item(3L, "华为META10", " 手机", "华为", 4499.00, "http://image.leyou.com/3.jpg"));
+    // 接收对象集合，实现批量新增
+    itemRepository.saveAll(list);
+}
+```
+
+再次去页面查询：
+
+```json
+{
+  "took": 5,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 3,
+    "max_score": 1,
+    "hits": [
+      {
+        "_index": "item",
+        "_type": "docs",
+        "_id": "2",
+        "_score": 1,
+        "_source": {
+          "id": 2,
+          "title": "坚果手机R1",
+          "category": " 手机",
+          "brand": "锤子",
+          "price": 3699,
+          "images": "http://image.leyou.com/13123.jpg"
+        }
+      },
+      {
+        "_index": "item",
+        "_type": "docs",
+        "_id": "3",
+        "_score": 1,
+        "_source": {
+          "id": 3,
+          "title": "华为META10",
+          "category": " 手机",
+          "brand": "华为",
+          "price": 4499,
+          "images": "http://image.leyou.com/13123.jpg"
+        }
+      },
+      {
+        "_index": "item",
+        "_type": "docs",
+        "_id": "1",
+        "_score": 1,
+        "_source": {
+          "id": 1,
+          "title": "小米手机7",
+          "category": " 手机",
+          "brand": "小米",
+          "price": 3499,
+          "images": "http://image.leyou.com/13123.jpg"
+        }
+      }
+    ]
+  }
+}
+```
+
+### 5.4.3.修改文档
+
+修改和新增是同一个接口，区分的依据就是id，这一点跟我们在页面发起PUT请求是类似的。
+
+
+
+### 5.4.4.基本查询
+
+ElasticsearchRepository提供了一些基本的查询方法：
+
+![1531989728869](/images/leyou/1531989728869.png)
+
+我们来试试查询所有：
+
+```java
+@Test
+public void testFind(){
+    // 查询全部，并安装价格降序排序
+    Iterable<Item> items = this.itemRepository.findAll(Sort.by(Sort.Direction.DESC, "price"));
+    items.forEach(item-> System.out.println(item));
+}
+```
+
+结果：
+
+![1531990510740](/images/leyou/1531990510740.png)
+
+
+
+### 5.4.5.自定义方法
+
+Spring Data 的另一个强大功能，是根据方法名称自动实现功能。
+
+比如：你的方法名叫做：findByTitle，那么它就知道你是根据title查询，然后自动帮你完成，无需写实现类。
+
+当然，方法名称要符合一定的约定：
+
+| Keyword               | Sample                                   | Elasticsearch Query String               |
+| --------------------- | ---------------------------------------- | ---------------------------------------- |
+| `And`                 | `findByNameAndPrice`                     | `{"bool" : {"must" : [ {"field" : {"name" : "?"}}, {"field" : {"price" : "?"}} ]}}` |
+| `Or`                  | `findByNameOrPrice`                      | `{"bool" : {"should" : [ {"field" : {"name" : "?"}}, {"field" : {"price" : "?"}} ]}}` |
+| `Is`                  | `findByName`                             | `{"bool" : {"must" : {"field" : {"name" : "?"}}}}` |
+| `Not`                 | `findByNameNot`                          | `{"bool" : {"must_not" : {"field" : {"name" : "?"}}}}` |
+| `Between`             | `findByPriceBetween`                     | `{"bool" : {"must" : {"range" : {"price" : {"from" : ?,"to" : ?,"include_lower" : true,"include_upper" : true}}}}}` |
+| `LessThanEqual`       | `findByPriceLessThan`                    | `{"bool" : {"must" : {"range" : {"price" : {"from" : null,"to" : ?,"include_lower" : true,"include_upper" : true}}}}}` |
+| `GreaterThanEqual`    | `findByPriceGreaterThan`                 | `{"bool" : {"must" : {"range" : {"price" : {"from" : ?,"to" : null,"include_lower" : true,"include_upper" : true}}}}}` |
+| `Before`              | `findByPriceBefore`                      | `{"bool" : {"must" : {"range" : {"price" : {"from" : null,"to" : ?,"include_lower" : true,"include_upper" : true}}}}}` |
+| `After`               | `findByPriceAfter`                       | `{"bool" : {"must" : {"range" : {"price" : {"from" : ?,"to" : null,"include_lower" : true,"include_upper" : true}}}}}` |
+| `Like`                | `findByNameLike`                         | `{"bool" : {"must" : {"field" : {"name" : {"query" : "?*","analyze_wildcard" : true}}}}}` |
+| `StartingWith`        | `findByNameStartingWith`                 | `{"bool" : {"must" : {"field" : {"name" : {"query" : "?*","analyze_wildcard" : true}}}}}` |
+| `EndingWith`          | `findByNameEndingWith`                   | `{"bool" : {"must" : {"field" : {"name" : {"query" : "*?","analyze_wildcard" : true}}}}}` |
+| `Contains/Containing` | `findByNameContaining`                   | `{"bool" : {"must" : {"field" : {"name" : {"query" : "**?**","analyze_wildcard" : true}}}}}` |
+| `In`                  | `findByNameIn(Collection<String>names)`  | `{"bool" : {"must" : {"bool" : {"should" : [ {"field" : {"name" : "?"}}, {"field" : {"name" : "?"}} ]}}}}` |
+| `NotIn`               | `findByNameNotIn(Collection<String>names)` | `{"bool" : {"must_not" : {"bool" : {"should" : {"field" : {"name" : "?"}}}}}}` |
+| `Near`                | `findByStoreNear`                        | `Not Supported Yet !`                    |
+| `True`                | `findByAvailableTrue`                    | `{"bool" : {"must" : {"field" : {"available" : true}}}}` |
+| `False`               | `findByAvailableFalse`                   | `{"bool" : {"must" : {"field" : {"available" : false}}}}` |
+| `OrderBy`             | `findByAvailableTrueOrderByNameDesc`     | `{"sort" : [{ "name" : {"order" : "desc"} }],"bool" : {"must" : {"field" : {"available" : true}}}}` |
+
+例如，我们来按照价格区间查询，定义这样的一个方法：
+
+```java
+public interface ItemRepository extends ElasticsearchRepository<Item,Long> {
+
+    /**
+     * 根据价格区间查询
+     * @param price1
+     * @param price2
+     * @return
+     */
+    List<Item> findByPriceBetween(double price1, double price2);
+}
+```
+
+然后添加一些测试数据：
+
+```java
+@Test
+public void indexList() {
+    List<Item> list = new ArrayList<>();
+    list.add(new Item(1L, "小米手机7", "手机", "小米", 3299.00, "http://image.leyou.com/13123.jpg"));
+    list.add(new Item(2L, "坚果手机R1", "手机", "锤子", 3699.00, "http://image.leyou.com/13123.jpg"));
+    list.add(new Item(3L, "华为META10", "手机", "华为", 4499.00, "http://image.leyou.com/13123.jpg"));
+    list.add(new Item(4L, "小米Mix2S", "手机", "小米", 4299.00, "http://image.leyou.com/13123.jpg"));
+    list.add(new Item(5L, "荣耀V10", "手机", "华为", 2799.00, "http://image.leyou.com/13123.jpg"));
+    // 接收对象集合，实现批量新增
+    itemRepository.saveAll(list);
+}
+```
+
+
+
+不需要写实现类，然后我们直接去运行：
+
+```java
+@Test
+public void queryByPriceBetween(){
+    List<Item> list = this.itemRepository.findByPriceBetween(2000.00, 3500.00);
+    for (Item item : list) {
+        System.out.println("item = " + item);
+    }
+}
+```
+
+结果：
+
+![1531993518230](/images/leyou/1531993518230.png)
+
+虽然基本查询和自定义方法已经很强大了，但是如果是复杂查询（模糊、通配符、词条查询等）就显得力不从心了。此时，我们只能使用原生查询。
+
+
+
+## 5.5.高级查询
+
+### 5.5.1.基本查询
+
+先看看基本玩法
+
+```java
+@Test
+public void testQuery(){
+    // 词条查询
+    MatchQueryBuilder queryBuilder = QueryBuilders.matchQuery("title", "小米");
+    // 执行查询
+    Iterable<Item> items = this.itemRepository.search(queryBuilder);
+    items.forEach(System.out::println);
+}
+```
+
+Repository的search方法需要QueryBuilder参数，elasticSearch为我们提供了一个对象QueryBuilders：
+
+ ![1532008212626](/images/leyou/1532008212626.png)
+
+QueryBuilders提供了大量的静态方法，用于生成各种不同类型的查询对象，例如：词条、模糊、通配符等QueryBuilder对象。
+
+结果：
+
+![1532008415257](/images/leyou/1532008415257.png)
+
+
+
+elasticsearch提供很多可用的查询方式，但是不够灵活。如果想玩过滤或者聚合查询等就很难了。
+
+
+
+### 5.5.2.自定义查询
+
+先来看最基本的match query：
+
+```java
+@Test
+public void testNativeQuery(){
+    // 构建查询条件
+    NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
+    // 添加基本的分词查询
+    queryBuilder.withQuery(QueryBuilders.matchQuery("title", "小米"));
+    // 执行搜索，获取结果
+    Page<Item> items = this.itemRepository.search(queryBuilder.build());
+    // 打印总条数
+    System.out.println(items.getTotalElements());
+    // 打印总页数
+    System.out.println(items.getTotalPages());
+    items.forEach(System.out::println);
+}
+```
+
+NativeSearchQueryBuilder：Spring提供的一个查询条件构建器，帮助构建json格式的请求体
+
+`Page<item>`：默认是分页查询，因此返回的是一个分页的结果对象，包含属性：
+
+- totalElements：总条数
+- totalPages：总页数
+- Iterator：迭代器，本身实现了Iterator接口，因此可直接迭代得到当前页的数据
+- 其它属性：
+
+![1532009679148](/images/leyou/1532009679148.png)
+
+结果：![1532009717623](/images/leyou/1532009717623.png)
+
+
+
+### 5.5.4.分页查询
+
+利用`NativeSearchQueryBuilder`可以方便的实现分页：
+
+```java
+@Test
+public void testNativeQuery(){
+    // 构建查询条件
+    NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
+    // 添加基本的分词查询
+    queryBuilder.withQuery(QueryBuilders.termQuery("category", "手机"));
+
+    // 初始化分页参数
+    int page = 0;
+    int size = 3;
+    // 设置分页参数
+    queryBuilder.withPageable(PageRequest.of(page, size));
+
+    // 执行搜索，获取结果
+    Page<Item> items = this.itemRepository.search(queryBuilder.build());
+    // 打印总条数
+    System.out.println(items.getTotalElements());
+    // 打印总页数
+    System.out.println(items.getTotalPages());
+    // 每页大小
+    System.out.println(items.getSize());
+    // 当前页
+    System.out.println(items.getNumber());
+    items.forEach(System.out::println);
+}
+```
+
+结果：
+
+![1532011610028](/images/leyou/1532011610028.png)
+
+可以发现，**Elasticsearch中的分页是从第0页开始**。
+
+
+
+### 5.5.5.排序
+
+排序也通用通过`NativeSearchQueryBuilder`完成：
+
+```java
+@Test
+public void testSort(){
+    // 构建查询条件
+    NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
+    // 添加基本的分词查询
+    queryBuilder.withQuery(QueryBuilders.termQuery("category", "手机"));
+
+    // 排序
+    queryBuilder.withSort(SortBuilders.fieldSort("price").order(SortOrder.DESC));
+
+    // 执行搜索，获取结果
+    Page<Item> items = this.itemRepository.search(queryBuilder.build());
+    // 打印总条数
+    System.out.println(items.getTotalElements());
+    items.forEach(System.out::println);
+}
+```
+
+
+
+结果：
+
+![1532012155435](/images/leyou/1532012155435.png)
+
+
+
+## 5.6.聚合
+
+### 5.6.1.聚合为桶
+
+桶就是分组，比如这里我们按照品牌brand进行分组：
+
+```java
+@Test
+public void testAgg(){
+    NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
+    // 不查询任何结果
+    queryBuilder.withSourceFilter(new FetchSourceFilter(new String[]{""}, null));
+    // 1、添加一个新的聚合，聚合类型为terms，聚合名称为brands，聚合字段为brand
+    queryBuilder.addAggregation(
+        AggregationBuilders.terms("brands").field("brand"));
+    // 2、查询,需要把结果强转为AggregatedPage类型
+    AggregatedPage<Item> aggPage = (AggregatedPage<Item>) this.itemRepository.search(queryBuilder.build());
+    // 3、解析
+    // 3.1、从结果中取出名为brands的那个聚合，
+    // 因为是利用String类型字段来进行的term聚合，所以结果要强转为StringTerm类型
+    StringTerms agg = (StringTerms) aggPage.getAggregation("brands");
+    // 3.2、获取桶
+    List<StringTerms.Bucket> buckets = agg.getBuckets();
+    // 3.3、遍历
+    for (StringTerms.Bucket bucket : buckets) {
+        // 3.4、获取桶中的key，即品牌名称
+        System.out.println(bucket.getKeyAsString());
+        // 3.5、获取桶中的文档数量
+        System.out.println(bucket.getDocCount());
+    }
+
+}
+```
+
+
+
+显示的结果：
+
+![1532012598213](/images/leyou/1532012598213.png)
+
+
+
+关键API：
+
+- `AggregationBuilders`：聚合的构建工厂类。所有聚合都由这个类来构建，看看他的静态方法：
+
+  ![1526567597724](/images/leyou/1526567597724.png)
+
+- `AggregatedPage`：聚合查询的结果类。它是`Page<T>`的子接口：
+
+   ![1526567748355](/images/leyou/1526567748355.png)
+
+  `AggregatedPage`在`Page`功能的基础上，拓展了与聚合相关的功能，它其实就是对聚合结果的一种封装，大家可以对照聚合结果的JSON结构来看。
+
+   ![1526567889455](/images/leyou/1526567889455.png)
+
+  而返回的结果都是Aggregation类型对象，不过根据字段类型不同，又有不同的子类表示
+
+   ![1526568128210](/images/leyou/1526568128210.png)
+
+
+
+我们看下页面的查询的JSON结果与Java类的对照关系：
+
+ ![1526571200130](/images/leyou/1526571200130.png)
+
+
+
+### 5.6.2.嵌套聚合，求平均值
+
+代码：
+
+```java
+@Test
+public void testSubAgg(){
+    NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
+    // 不查询任何结果
+    queryBuilder.withSourceFilter(new FetchSourceFilter(new String[]{""}, null));
+    // 1、添加一个新的聚合，聚合类型为terms，聚合名称为brands，聚合字段为brand
+    queryBuilder.addAggregation(
+        AggregationBuilders.terms("brands").field("brand")
+        .subAggregation(AggregationBuilders.avg("priceAvg").field("price")) // 在品牌聚合桶内进行嵌套聚合，求平均值
+    );
+    // 2、查询,需要把结果强转为AggregatedPage类型
+    AggregatedPage<Item> aggPage = (AggregatedPage<Item>) this.itemRepository.search(queryBuilder.build());
+    // 3、解析
+    // 3.1、从结果中取出名为brands的那个聚合，
+    // 因为是利用String类型字段来进行的term聚合，所以结果要强转为StringTerm类型
+    StringTerms agg = (StringTerms) aggPage.getAggregation("brands");
+    // 3.2、获取桶
+    List<StringTerms.Bucket> buckets = agg.getBuckets();
+    // 3.3、遍历
+    for (StringTerms.Bucket bucket : buckets) {
+        // 3.4、获取桶中的key，即品牌名称  3.5、获取桶中的文档数量
+        System.out.println(bucket.getKeyAsString() + "，共" + bucket.getDocCount() + "台");
+
+        // 3.6.获取子聚合结果：
+        InternalAvg avg = (InternalAvg) bucket.getAggregations().asMap().get("priceAvg");
+        System.out.println("平均售价：" + avg.getValue());
+    }
+
+}
+```
+
+结果：
+
+ ![1526572198447](/images/leyou/1526572198447.png)
+
+---
+layout: post
+title:  elasticsearch2
+categories: 乐优
+description: elasticsearch2
+keywords: 乐优
+---
+# 0.学习目标
+
+- 独立编写数据导入功能
+- 独立实现基本搜索
+- 独立实现页面分页
+- 独立实现结果排序
+
+
+
+# 1.索引库数据导入
+
+昨天我们学习了Elasticsearch的基本应用。今天就学以致用，搭建搜索微服务，实现搜索功能。
+
+## 1.1.创建搜索服务
+
+创建module：
+
+![1532178218793](/images/leyou/1532178218793.png)
+
+![1532178276070](/images/leyou/1532178276070.png)
+
+Pom文件：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>leyou</artifactId>
+        <groupId>com.leyou.parent</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leyou.search</groupId>
+    <artifactId>leyou-search</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <dependencies>
+        <!-- web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- elasticsearch -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+        </dependency>
+        <!-- eureka -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <!-- feign -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+application.yml：
+
+```yaml
+server:
+  port: 8083
+spring:
+  application:
+    name: search-service
+  data:
+    elasticsearch:
+      cluster-name: elasticsearch
+      cluster-nodes: 192.168.56.101:9300
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+  instance:
+    lease-renewal-interval-in-seconds: 5 # 每隔5秒发送一次心跳
+    lease-expiration-duration-in-seconds: 10 # 10秒不发送就过期
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+    instance-id: ${spring.application.name}:${server.port}
+```
+
+启动类：
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+@EnableFeignClients
+public class LySearchService {
+
+    public static void main(String[] args) {
+        SpringApplication.run(LySearchService.class, args);
+    }
+}
+```
+
+
+
+## 1.2.索引库数据格式分析
+
+接下来，我们需要商品数据导入索引库，便于用户搜索。
+
+那么问题来了，我们有SPU和SKU，到底如何保存到索引库？
+
+### 1.2.1.以结果为导向
+
+大家来看下搜索结果页：
+
+![1532180648745](/images/leyou/1532180648745.png)
+
+可以看到，每一个搜索结果都有至少1个商品，当我们选择大图下方的小图，商品会跟着变化。
+
+因此，**搜索的结果是SPU，即多个SKU的集合**。
+
+既然搜索的结果是SPU，那么我们索引库中存储的应该也是SPU，但是却需要包含SKU的信息。
+
+
+
+### 1.2.2.需要什么数据
+
+再来看看页面中有什么数据：
+
+ ![1526607712207](/images/leyou/1526607712207.png) 
+
+直观能看到的：图片、价格、标题、副标题
+
+暗藏的数据：spu的id，sku的id
+
+
+
+另外，页面还有过滤条件：
+
+ ![1526608095471](/images/leyou/1526608095471.png)
+
+这些过滤条件也都需要存储到索引库中，包括：
+
+商品分类、品牌、可用来搜索的规格参数等
+
+综上所述，我们需要的数据格式有：
+
+spuId、SkuId、商品分类id、品牌id、图片、价格、商品的创建时间、sku信息集、可搜索的规格参数
+
+
+
+### 1.2.3.最终的数据结构
+
+我们创建一个类，封装要保存到索引库的数据，并设置映射属性：
+
+```java
+@Document(indexName = "goods", type = "docs", shards = 1, replicas = 0)
+public class Goods {
+    @Id
+    private Long id; // spuId
+    @Field(type = FieldType.Text, analyzer = "ik_max_word")
+    private String all; // 所有需要被搜索的信息，包含标题，分类，甚至品牌
+    @Field(type = FieldType.Keyword, index = false)
+    private String subTitle;// 卖点
+    private Long brandId;// 品牌id
+    private Long cid1;// 1级分类id
+    private Long cid2;// 2级分类id
+    private Long cid3;// 3级分类id
+    private Date createTime;// 创建时间
+    private List<Long> price;// 价格
+    @Field(type = FieldType.Keyword, index = false)
+    private String skus;// sku信息的json结构
+    private Map<String, Object> specs;// 可搜索的规格参数，key是参数名，值是参数值
+}
+```
+
+一些特殊字段解释：
+
+- all：用来进行全文检索的字段，里面包含标题、商品分类信息
+
+- price：价格数组，是所有sku的价格集合。方便根据价格进行筛选过滤
+
+- skus：用于页面展示的sku信息，不索引，不搜索。包含skuId、image、price、title字段
+
+- specs：所有规格参数的集合。key是参数名，值是参数值。
+
+  例如：我们在specs中存储 内存：4G,6G，颜色为红色，转为json就是：
+
+  ```json
+  {
+      "specs":{
+          "内存":[4G,6G],
+          "颜色":"红色"
+      }
+  }
+  ```
+
+  当存储到索引库时，elasticsearch会处理为两个字段：
+
+  - specs.内存：[4G,6G]
+  - specs.颜色：红色
+
+  另外， 对于字符串类型，还会额外存储一个字段，这个字段不会分词，用作聚合。
+
+  - specs.颜色.keyword：红色
+
+
+
+## 1.3.商品微服务提供接口
+
+索引库中的数据来自于数据库，我们不能直接去查询商品的数据库，因为真实开发中，每个微服务都是相互独立的，包括数据库也是一样。所以我们只能调用商品微服务提供的接口服务。
+
+先思考我们需要的数据：
+
+- SPU信息
+
+- SKU信息
+
+- SPU的详情
+
+- 商品分类名称（拼接all字段）
+
+
+再思考我们需要哪些服务：
+
+- 第一：分批查询spu的服务，已经写过。
+- 第二：根据spuId查询sku的服务，已经写过
+- 第三：根据spuId查询SpuDetail的服务，已经写过
+- 第四：根据商品分类id，查询商品分类名称，没写过
+- 第五：根据商品品牌id，查询商品的品牌，没写过
+
+因此我们需要额外提供一个查询商品分类名称的接口。
+
+
+
+### 1.3.1.商品分类名称查询
+
+controller：
+
+```java
+/**
+ * 根据商品分类id查询名称
+ * @param ids 要查询的分类id集合
+ * @return 多个名称的集合
+ */
+@GetMapping("names")
+public ResponseEntity<List<String>> queryNameByIds(@RequestParam("ids") List<Long> ids){
+    List<String > list = this.categoryService.queryNameByIds(ids);
+    if (list == null || list.size() < 1) {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    return ResponseEntity.ok(list);
+}
+```
+
+测试：
+
+![1532213731039](/images/leyou/1532213731039.png)
+
+
+
+### 1.3.2.编写FeignClient
+
+#### 1.3.2.1.问题展现
+
+操作leyou-search工程
+
+现在，我们要在搜索微服务调用商品微服务的接口。
+
+第一步要引入商品微服务依赖：`leyou-item-interface`。
+
+```xml
+<!--商品微服务-->
+<dependency>
+    <groupId>com.leyou.service</groupId>
+    <artifactId>ly-item-interface</artifactId>
+    <version>${leyou.latest.version}</version>
+</dependency>
+```
+
+第二步，编写FeignClient
+
+```java
+@FeignClient(value = "item-service")
+@RequestMapping("/goods")
+public interface GoodsClient {
+
+    /**
+     * 分页查询商品
+     * @param page
+     * @param rows
+     * @param saleable
+     * @param key
+     * @return
+     */
+    @GetMapping("/spu/page")
+    ResponseEntity<PageResult<SpuBo>> querySpuByPage(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "rows", defaultValue = "5") Integer rows,
+            @RequestParam(value = "saleable", defaultValue = "true") Boolean saleable,
+            @RequestParam(value = "key", required = false) String key);
+
+    /**
+     * 根据spu商品id查询详情
+     * @param id
+     * @return
+     */
+    @GetMapping("/spu/detail/{id}")
+    ResponseEntity<SpuDetail> querySpuDetailById(@PathVariable("id") Long id);
+
+    /**
+     * 根据spu的id查询sku
+     * @param id
+     * @return
+     */
+    @GetMapping("sku/list")
+    ResponseEntity<List<Sku>> querySkuBySpuId(@RequestParam("id") Long id);
+}
+```
+
+以上的这些代码直接从商品微服务中拷贝而来，完全一致。差别就是没有方法的具体实现。大家觉得这样有没有问题？
+
+
+
+而FeignClient代码遵循SpringMVC的风格，因此与商品微服务的Controller完全一致。这样就存在一定的问题：
+
+- 代码冗余。尽管不用写实现，只是写接口，但服务调用方要写与服务controller一致的代码，有几个消费者就要写几次。
+- 增加开发成本。调用方还得清楚知道接口的路径，才能编写正确的FeignClient。
+
+
+
+#### 1.3.2.2.解决方案
+
+因此，一种比较友好的实践是这样的：
+
+- 我们的服务提供方不仅提供实体类，还要提供api接口声明
+- 调用方不用字自己编写接口方法声明，直接继承提供方给的Api接口即可，
+
+
+
+第一步：服务的提供方在`leyou-item-interface`中提供API接口，并编写接口声明：
+
+ ![1526613268722](/images/leyou/1526613268722.png)
+
+商品分类服务接口：
+
+```java
+@RequestMapping("category")
+public interface CategoryApi {
+
+    @GetMapping("names")
+    ResponseEntity<List<String>> queryNameByIds(@RequestParam("ids") List<Long> ids);
+}
+```
+
+商品服务接口，返回值不再使用ResponseEntity：
+
+```java
+@RequestMapping("/goods")
+public interface GoodsApi {
+
+    /**
+     * 分页查询商品
+     * @param page
+     * @param rows
+     * @param saleable
+     * @param key
+     * @return
+     */
+    @GetMapping("/spu/page")
+    PageResult<SpuBo> querySpuByPage(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "rows", defaultValue = "5") Integer rows,
+            @RequestParam(value = "saleable", defaultValue = "true") Boolean saleable,
+            @RequestParam(value = "key", required = false) String key);
+
+    /**
+     * 根据spu商品id查询详情
+     * @param id
+     * @return
+     */
+    @GetMapping("/spu/detail/{id}")
+    SpuDetail querySpuDetailById(@PathVariable("id") Long id);
+
+    /**
+     * 根据spu的id查询sku
+     * @param id
+     * @return
+     */
+    @GetMapping("sku/list")
+    List<Sku> querySkuBySpuId(@RequestParam("id") Long id);
+}
+```
+
+需要引入springMVC及leyou-common的依赖：
+
+```xml
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-webmvc</artifactId>
+    <version>5.0.6.RELEASE</version>
+</dependency>
+<dependency>
+    <groupId>com.leyou.common</groupId>
+    <artifactId>leyou-common</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+
+
+第二步：在调用方`leyou-search`中编写FeignClient，但不要写方法声明了，直接继承`leyou-item-interface`提供的api接口：
+
+商品的FeignClient：
+
+```java
+@FeignClient(value = "item-service")
+public interface GoodsClient extends GoodsApi {
+}
+```
+
+商品分类的FeignClient：
+
+```java
+@FeignClient(value = "item-service")
+public interface CategoryClient extends CategoryApi {
+}
+```
+
+
+
+是不是简单多了？
+
+项目结构：
+
+ ![1532215914558](/images/leyou/1532215914558.png)
+
+ ![1532218231760](/images/leyou/1532218231760.png)
+
+
+
+#### 1.3.2.3.测试
+
+在leyou-search中引入springtest依赖：
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+创建测试类：
+
+在接口上按快捷键：`Ctrl + Shift + T`
+
+ ![1532216103709](/images/leyou/1532216103709.png)
+
+ ![1532216169168](/images/leyou/1532216169168.png)
+
+测试代码：
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = LeyouSearchApplication.class)
+public class CategoryClientTest {
+
+    @Autowired
+    private CategoryClient categoryClient;
+
+    @Test
+    public void testQueryCategories() {
+        List<String> names = this.categoryClient.queryNameByIds(Arrays.asList(1L, 2L, 3L));
+        names.forEach(System.out::println);
+    }
+}
+```
+
+结果：
+
+![1532216884221](/images/leyou/1532216884221.png)
+
+
+
+## 1.4.导入数据
+
+导入数据只做一次,以后的更新删除等操作通过消息队列来操作索引库
+
+### 1.4.1.创建GoodsRepository
+
+java代码：
+
+```java
+public interface GoodsRepository extends ElasticsearchRepository<Goods, Long> {
+}
+```
+
+
+
+### 1.4.2.创建索引
+
+我们新建一个测试类，在里面进行数据的操作：
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = LeyouSearchApplication.class)
+public class ElasticsearchTest {
+
+    @Autowired
+    private GoodsRepository goodsRepository;
+
+    @Autowired
+    private ElasticsearchTemplate elasticsearchTemplate;
+
+    @Test
+    public void createIndex(){
+        // 创建索引
+        this.elasticsearchTemplate.createIndex(Goods.class);
+        // 配置映射
+        this.elasticsearchTemplate.putMapping(Goods.class);
+    }
+}
+```
+
+通过kibana查看：
+
+![1532217819818](/images/leyou/1532217819818.png)
+
+
+
+### 1.4.3.导入数据
+
+导入数据其实就是查询数据，然后把查询到的Spu转变为Goods来保存，因此我们先编写一个SearchService，然后在里面定义一个方法， 把Spu转为Goods
+
+```java
+@Service
+public class SearchService {
+
+    @Autowired
+    private CategoryClient categoryClient;
+
+    @Autowired
+    private GoodsClient goodsClient;
+
+    @Autowired
+    private SpecificationClient specificationClient;
+
+    private ObjectMapper mapper = new ObjectMapper();
+
+    public Goods buildGoods(Spu spu) throws IOException {
+        Goods goods = new Goods();
+
+        // 查询商品分类名称
+        List<String> names = this.categoryClient.queryNameByIds(Arrays.asList(spu.getCid1(), spu.getCid2(), spu.getCid3()));
+        // 查询sku
+        List<Sku> skus = this.goodsClient.querySkuBySpuId(spu.getId());
+        // 查询详情
+        SpuDetail spuDetail = this.goodsClient.querySpuDetailById(spu.getId());
+        // 查询规格参数
+        List<SpecParam> params = this.specificationClient.querySpecParam(null, spu.getCid3(), true, null);
+
+        // 处理sku，仅封装id、价格、标题、图片，并获得价格集合
+        List<Long> prices = new ArrayList<>();
+        List<Map<String, Object>> skuList = new ArrayList<>();
+        skus.forEach(sku -> {
+            prices.add(sku.getPrice());
+            Map<String, Object> skuMap = new HashMap<>();
+            skuMap.put("id", sku.getId());
+            skuMap.put("title", sku.getTitle());
+            skuMap.put("price", sku.getPrice());
+            skuMap.put("image", StringUtils.isBlank(sku.getImages()) ? "" : StringUtils.split(sku.getImages(), ",")[0]);
+            skuList.add(skuMap);
+        });
+
+        // 处理规格参数
+        Map<String, Object> genericSpecs = mapper.readValue(spuDetail.getGenericSpec(), new TypeReference<Map<String, Object>>() {
+        });
+        Map<String, Object> specialSpecs = mapper.readValue(spuDetail.getSpecialSpec(), new TypeReference<Map<String, Object>>() {
+        });
+        // 获取可搜索的规格参数
+        Map<String, Object> searchSpec = new HashMap<>();
+
+        // 过滤规格模板，把所有可搜索的信息保存到Map中
+        Map<String, Object> specMap = new HashMap<>();
+        params.forEach(p -> {
+            if (p.getSearching()) {
+                if (p.getGeneric()) {
+                    String value = genericSpecs.get(p.getId().toString()).toString();
+                    if(p.getNumeric()){
+                        value = chooseSegment(value, p);
+                    }
+                    specMap.put(p.getName(), StringUtils.isBlank(value) ? "其它" : value);
+                } else {
+                    specMap.put(p.getName(), specialSpecs.get(p.getId().toString()));
+                }
+            }
+        });
+
+        goods.setId(spu.getId());
+        goods.setSubTitle(spu.getSubTitle());
+        goods.setBrandId(spu.getBrandId());
+        goods.setCid1(spu.getCid1());
+        goods.setCid2(spu.getCid2());
+        goods.setCid3(spu.getCid3());
+        goods.setCreateTime(spu.getCreateTime());
+        goods.setAll(spu.getTitle() + " " + StringUtils.join(names, " "));
+        goods.setPrice(prices);
+        goods.setSkus(mapper.writeValueAsString(skuList));
+        goods.setSpecs(specMap);
+        return goods;
+    }                                                   
+
+}
+```
+
+因为过滤参数中有一类比较特殊，就是数值区间：
+
+![1526608095471](/images/leyou/1526608095471.png)
+
+所以我们在存入时要进行处理：
+
+```java
+private String chooseSegment(String value, SpecParam p) {
+    double val = NumberUtils.toDouble(value);
+    String result = "其它";
+    // 保存数值段
+    for (String segment : p.getSegments().split(",")) {
+        String[] segs = segment.split("-");
+        // 获取数值范围
+        double begin = NumberUtils.toDouble(segs[0]);
+        double end = Double.MAX_VALUE;
+        if(segs.length == 2){
+            end = NumberUtils.toDouble(segs[1]);
+        }
+        // 判断是否在范围内
+        if(val >= begin && val < end){
+            if(segs.length == 1){
+                result = segs[0] + p.getUnit() + "以上";
+            }else if(begin == 0){
+                result = segs[1] + p.getUnit() + "以下";
+            }else{
+                result = segment + p.getUnit();
+            }
+            break;
+        }
+    }
+    return result;
+}
+```
+
+
+
+然后编写一个测试类，循环查询Spu，然后调用IndexService中的方法，把SPU变为Goods，然后写入索引库：
+
+```java
+@Test
+public void loadData(){
+    // 创建索引
+    this.elasticsearchTemplate.createIndex(Goods.class);
+    // 配置映射
+    this.elasticsearchTemplate.putMapping(Goods.class);
+    int page = 1;
+    int rows = 100;
+    int size = 0;
+    do {
+        // 查询分页数据
+        PageResult<SpuBo> result = this.goodsClient.querySpuByPage(page, rows, true, null);
+        List<SpuBo> spus = result.getItems();
+        size = spus.size();
+        // 创建Goods集合
+        List<Goods> goodsList = new ArrayList<>();
+        // 遍历spu
+        for (SpuBo spu : spus) {
+            try {
+                Goods goods = this.searchService.buildGoods(spu);
+                goodsList.add(goods);
+            } catch (Exception e) {
+                break;
+            }
+        }
+
+        this.goodsRepository.saveAll(goodsList);
+        page++;
+    } while (size == 100);
+}
+```
+
+通过kibana查询， 可以看到数据成功导入：
+
+![1532228358310](/images/leyou/1532228358310.png)
+
+
+
+# 2.实现基本搜索
+
+## 2.1.页面分析
+
+### 2.1.1.页面跳转
+
+在首页的顶部，有一个输入框：
+
+![1526629923970](/images/leyou/1526629923970.png)
+
+当我们输入任何文本，点击搜索，就会跳转到搜索页`search.html`了：
+
+并且将搜索关键字以请求参数携带过来：
+
+![1532229236516](/images/leyou/1532229236516.png)
+
+
+
+我们打开`search.html`，在最下面会有提前定义好的Vue实例：
+
+```html
+<script type="text/javascript">
+    var vm = new Vue({
+        el: "#searchApp",
+        data: {
+        },
+        components:{
+            // 加载页面顶部组件
+            lyTop: () => import("./js/pages/top.js")
+        }
+    });
+</script>
+```
+
+这个Vue实例中，通过import导入的方式，加载了另外一个js：top.js并作为一个局部组件。top其实是页面顶部导航组件，我们暂时不管
+
+### 2.1.2.发起异步请求
+
+要想在页面加载后，就展示出搜索结果。我们应该在页面加载时，获取地址栏请求参数，并发起异步请求，查询后台数据，然后在页面渲染。
+
+我们在data中定义一个对象，记录请求的参数：
+
+```js
+data: {
+    search:{
+        key:"", // 搜索页面的关键字
+    }
+}
+```
+
+
+
+我们通过钩子函数created，在页面加载时获取请求参数，并记录下来。
+
+```js
+created(){
+    // 判断是否有请求参数
+    if(!location.search){
+        return;
+    }
+    // 将请求参数转为对象
+    const search = ly.parse(location.search.substring(1));
+    // 记录在data的search对象中
+    this.search = search;
+    
+    // 发起请求，根据条件搜索
+    this.loadData();
+}
+```
+
+然后发起请求，搜索数据。
+
+```js
+methods: {
+    loadData(){
+        // ly.http.post("/search/page", ly.stringify(this.search)).then(resp=>{
+        ly.http.post("/search/page", this.search).then(resp=>{
+            console.log(resp);
+        });
+    }
+}
+```
+
+- 我们这里使用`ly`是common.js中定义的工具对象。
+- 这里使用的是post请求，这样可以携带更多参数，并且以json格式发送
+
+
+
+在leyou-gateway中，添加允许信任域名：
+
+![1532233280898](/images/leyou/1532233280898.png)
+
+并添加网关映射：
+
+![1532233247824](/images/leyou/1532233247824.png)
+
+
+
+刷新页面试试：
+
+![1532233086523](/images/leyou/1532233086523.png)
+
+因为后台没有提供接口，所以无法访问。没关系，接下来我们实现后台接口
+
+
+
+## 2.2.后台提供搜索接口
+
+### 2.2.1.controller
+
+首先分析几个问题：
+
+- 请求方式：Post
+
+- 请求路径：/search/page，不过前面的/search应该是网关的映射路径，因此真实映射路径page，代表分页查询
+
+- 请求参数：json格式，目前只有一个属性：key-搜索关键字，但是搜索结果页一定是带有分页查询的，所以将来肯定会有page属性，因此我们可以用一个对象来接收请求的json数据：
+
+  ```java
+  public class SearchRequest {
+      private String key;// 搜索条件
+
+      private Integer page;// 当前页
+
+      private static final Integer DEFAULT_SIZE = 20;// 每页大小，不从页面接收，而是固定大小
+      private static final Integer DEFAULT_PAGE = 1;// 默认页
+
+      public String getKey() {
+          return key;
+      }
+
+      public void setKey(String key) {
+          this.key = key;
+      }
+
+      public Integer getPage() {
+          if(page == null){
+              return DEFAULT_PAGE;
+          }
+          // 获取页码时做一些校验，不能小于1
+          return Math.max(DEFAULT_PAGE, page);
+      }
+
+      public void setPage(Integer page) {
+          this.page = page;
+      }
+
+      public Integer getSize() {
+          return DEFAULT_SIZE;
+      }
+  }
+  ```
+
+- 返回结果：作为分页结果，一般都两个属性：当前页数据、总条数信息，我们可以使用之前定义的PageResult类
+
+
+
+代码：
+
+```java
+@RestController
+@RequestMapping
+public class SearchController {
+
+    @Autowired
+    private SearchService searchService;
+
+    /**
+     * 搜索商品
+     *
+     * @param request
+     * @return
+     */
+    @PostMapping("page")
+    public ResponseEntity<PageResult<Goods>> search(@RequestBody SearchRequest request) {
+        PageResult<Goods> result = this.searchService.search(request);
+        if (result == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(result);
+    }
+}
+```
+
+
+
+### 2.2.2.service
+
+```java
+@Service
+public class SearchService {
+
+    @Autowired
+    private GoodsRepository goodsRepository;
+
+    public PageResult<Goods> search(SearchRequest request) {
+        String key = request.getKey();
+        // 判断是否有搜索条件，如果没有，直接返回null。不允许搜索全部商品
+        if (StringUtils.isBlank(key)) {
+            return null;
+        }
+
+        // 构建查询条件
+        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
+        
+        // 1、对key进行全文检索查询
+        queryBuilder.withQuery(QueryBuilders.matchQuery("all", key).operator(Operator.AND));
+        
+        // 2、通过sourceFilter设置返回的结果字段,我们只需要id、skus、subTitle
+        queryBuilder.withSourceFilter(new FetchSourceFilter(
+                new String[]{"id","skus","subTitle"}, null));
+        
+        // 3、分页
+        // 准备分页参数
+        int page = request.getPage();
+        int size = request.getSize();
+        queryBuilder.withPageable(PageRequest.of(page - 1, size));
+
+        // 4、查询，获取结果
+        Page<Goods> pageInfo = this.goodsRepository.search(queryBuilder.build());
+
+        // 封装结果并返回
+        return new PageResult<>(goodsPage.getTotalElements(), goodsPage.getTotalPages(), goodsPage.getContent());
+    }
+}
+```
+
+注意点：我们要设置SourceFilter，来选择要返回的结果，否则返回一堆没用的数据，影响查询效率。
+
+### 2.2.3.测试
+
+刷新页面测试：
+
+![1532237344249](/images/leyou/1532237344249.png)
+
+![1532237401249](/images/leyou/1532237401249.png)
+
+数据是查到了，但是因为我们只查询部分字段，所以结果json 数据中有很多null，这很不优雅。
+
+
+
+解决办法很简单，在leyou-search的application.yml中添加一行配置，json处理时忽略空值：
+
+```yaml
+spring:
+  jackson:
+    default-property-inclusion: non_null # 配置json处理时忽略空值
+```
+
+
+
+结果：
+
+![1532237986819](/images/leyou/1532237986819.png)
+
+
+
+## 2.3.页面渲染
+
+页面已经拿到了结果，接下来就要渲染样式了。
+
+### 2.3.1.保存搜索结果
+
+首先，在data中定义属性，保存搜索的结果：
+
+![1532239032197](/images/leyou/1532239032197.png)
+
+在`loadData`的异步查询中，将结果赋值给`goodsList`：
+
+![1532239117076](/images/leyou/1532239117076.png)
+
+
+
+### 2.3.2.循环展示商品
+
+在search.html的中部，有一个`div`，用来展示所有搜索到的商品：
+
+![1532238893722](/images/leyou/1532238893722.png)
+
+可以看到，`div`中有一个无序列表`ul`，内部的每一个`li`就是一个商品spu了。
+
+我们删除多余的，只保留一个`li`，然后利用vue的循环来展示搜索到的结果：
+
+![1532239244410](/images/leyou/1532239244410.png)
+
+
+
+### 2.3.3.多sku展示
+
+#### 2.3.3.1.分析
+
+接下来展示具体的商品信息，来看图：
+
+ ![1526607712207](/images/leyou/1526607712207.png)
+
+这里我们可以发现，一个商品位置，是多个sku的信息集合。**当用户鼠标选择某个sku，对应的图片、价格、标题会随之改变！**
+
+我们先来实现sku的选择，才能去展示不同sku的数据。
+
+ ![1526654252710](/images/leyou/1526654252710.png)
+
+可以看到，在列表中默认第一个是被选中的，那我们就需要做两件事情：
+
+- 在搜索到数据时，先默认把第一个sku作为被选中的，记录下来
+
+- 记录当前被选中的是哪一个sku，记录在哪里比较合适呢？显然是遍历到的goods对象自己内部，因为每一个goods都会有自己的sku信息。
+
+
+
+#### 2.3.3.2.初始化sku
+
+查询出的结果集skus是一个json类型的字符串，不是js对象
+
+![1532240220800](/images/leyou/1532240220800.png)
+
+我们在查询成功的回调函数中，对goods进行遍历，把skus转化成对象，并添加一个selected属性保存被选中的sku：
+
+![1532240609206](/images/leyou/1532240609206.png)
+
+![1532240586769](/images/leyou/1532240586769.png)
+
+
+
+#### 2.3.3.3.多sku图片列表
+
+接下来，我们看看多个sku的图片列表位置：
+
+![1532240706261](/images/leyou/1532240706261.png)
+
+看到又是一个无序列表，这里我们也一样删掉多余的，保留一个`li`，需要注意选中的项有一个样式类：selected
+
+我们的代码：
+
+```vue
+<!--多sku图片列表-->
+<ul class="skus">
+    <li :class="{selected: sku.id == goods.selected.id}" v-for="sku in goods.skus" :key="sku.id"
+        @mouseEnter="goods.selected=sku">
+        <img :src="sku.image">
+    </li>
+</ul>
+```
+
+注意：
+
+- class样式通过 goods.selected的id是否与当前sku的id一致来判断
+- 绑定了鼠标事件，鼠标进入后把当前sku赋值到goods.selected
+
+
+
+### 2.3.4.展示sku其它属性
+
+现在，我们已经可以通过`goods.selected获取`用户选中的sku，那么我们就可以在页面展示了：
+
+![1526656197524](/images/leyou/1526656197524.png)
+
+
+
+刷新页面：
+
+ ![1526656243166](/images/leyou/1526656243166.png)
+
+看起来很完美是吧！
+
+但其实有一些瑕疵
+
+### 2.3.5.几个问题
+
+#### 2.3.5.1.价格显示的是分
+
+首先价格显示就不正确，我们数据库中存放的是以分为单位，所以这里要格式化。
+
+好在我们之前common.js中定义了工具类，可以帮我们转换。
+
+改造：
+
+![1532242831006](/images/leyou/1532242831006.png)
+
+结果报错：
+
+![1532242950035](/images/leyou/1532242950035.png)
+
+为啥？
+
+因为在Vue范围内使用任何变量，都会默认去Vue实例中寻找，我们使用ly，但是Vue实例中没有这个变量。所以解决办法就是把ly记录到Vue实例：
+
+![1532242983324](/images/leyou/1532242983324.png)
+
+然后刷新页面：
+
+![1532243052100](/images/leyou/1532243052100.png)
+
+
+
+#### 2.3.5.2.标题过长
+
+标题内容太长了，已经无法完全显示，怎么办？
+
+截取一下：
+
+![1526656959487](//images/leyou/1526656959487.png)
+
+最好在加个悬停展示所有内容的效果
+
+
+
+#### 2.3.5.3.sku点击不切换
+
+还有一个错误比较隐蔽，不容易被发现。我们点击sku 的图片列表，发现没有任何变化。
+
+这不科学啊，为什么？
+
+通过控制台观察，发现数据其实是变化了，但是Vue却没有重新渲染视图。
+
+这是因为Vue的自动渲染是基于对象的属性变化的。比如页面使用GoodsList进行渲染，如果GoodsList变化，或者其内部的任何子对象变化，都会Vue感知，从而从新渲染页面。
+
+然而，这一切有一个前提，那就是当你第一次渲染时，对象中有哪些属性，Vue就只监视这些属性，后来添加的属性发生改变，是不会被监视到的。
+
+而我们的goods对象中，本身是没有selected属性的，是我们后来才添加进去的：
+
+![1532243182104](/images/leyou/1532243182104.png)
+
+这段代码稍微改造一下，即可：
+
+![1532243275078](/images/leyou/1532243275078.png)
+
+也就是说，我们先把selected属性初始化完毕，然后才把整个对象赋值给goodsList，这样，goodsList已初始化时就有selected属性，以后就会被正常监控了。
+
+ ![](/images/leyou/skus.gif)
+
+
+
+# 3.页面分页效果
+
+刚才的查询中，我们默认了查询的页码和每页大小，因此所有的分页功能都无法使用，接下来我们一起看看`分页功能条`该如何制作。
+
+这里要分两步，
+
+- 第一步：如何生成分页条
+- 第二步：点击分页按钮，我们做什么
+
+## 3.1.如何生成分页条
+
+先看下页面关于分页部分的代码：
+
+ ![1526692249371](H:/images/leyou/1526692249371.png)
+
+可以看到所有的分页栏内容都是写死的。
+
+### 3.1.1.需要的数据
+
+分页数据应该是根据**总页数**、**当前页**、**总条数**等信息来计算得出。
+
+- 当前页：肯定是由页面来决定的，点击按钮会切换到对应的页
+- 总页数：需要后台传递给我们
+- 总条数：需要后台传递给我们
+
+我们首先在data中记录下这几个值：page-当前页，total-总条数，totalPage-总页数
+
+```js
+data: {
+    ly,
+    search:{
+        key: "",
+        page: 1
+    },
+    goodsList:[], // 接收搜索得到的结果
+    total: 0, // 总条数
+    totalPage: 0 // 总页数
+}
+```
+
+因为page是搜索条件之一，所以记录在search对象中。
+
+要注意：我们在created钩子函数中，会读取url路径的参数，然后赋值给search。如果是第一次请求页面，page是不存在的。因此为了避免page被覆盖，我们应该这么做：
+
+![1532243978471](/images/leyou/1532243978471.png)
+
+不过，这个时候我们自己的search对象中的值就可有可无了
+
+
+
+### 3.1.2.后台提供数据
+
+后台返回的结果中，要包含total和totalPage，我们改造下刚才的接口：
+
+在我们返回的PageResult对象中，其实是有totalPage字段的：
+
+  ![1526695144476](/images/leyou/1526695144476.png)
+
+我们在返回时，把这个值填上：
+
+ ![1526695592422](//images/leyou/1526695592422.png)
+
+页面测试一下：
+
+![1532244453375](/images/leyou/1532244453375.png)
+
+OK
+
+
+
+### 3.1.3.页面计算分页条
+
+首先，把后台提供的数据保存在data中：
+
+ ![1526695967230](H:/%E4%B9%90%E4%BC%98/7%E6%9C%881%E5%8F%B7%E6%9B%B4%E6%96%B0/day12-%E5%9F%BA%E6%9C%AC%E6%90%9C%E7%B4%A2%E5%8A%9F%E8%83%BD//images/leyou/1526695967230.png)
+
+
+
+然后看下我们要实现的效果：
+
+![1526695821870](H:/%E4%B9%90%E4%BC%98/7%E6%9C%881%E5%8F%B7%E6%9B%B4%E6%96%B0/day12-%E5%9F%BA%E6%9C%AC%E6%90%9C%E7%B4%A2%E5%8A%9F%E8%83%BD//images/leyou/1526695821870.png)
+
+这里最复杂的是中间的1~5的分页按钮，它需要动态变化。
+
+思路分析：
+
+- 最多有5个按钮，因此我们可以用`v-for`循环从1到5即可
+- 但是分页条不一定是从1开始：
+  - 如果当前页值小于等于3的时候，分页条位置从1开始到5结束
+  - 如果总页数小于等于5的时候，分页条位置从1开始到5结束
+  - 如果当前页码大于3，应该从page-3开始
+  - 但是如果当前页码大于totalPage-3，应该从totalPage-5开始
+
+所以，我们的页面这样来做：
+
+![1532246481241](/images/leyou/1532246481241.png)
+
+a标签中的分页数字通过`index`函数来计算，需要把`i`传递过去：
+
+```js
+index(i){
+    if(this.search.page <= 3 || this.totalPage <= 5){
+        // 如果当前页小于等于3或者总页数小于等于5
+        return i;
+    } else if(this.search.page > 3) {
+        // 如果当前页大于3
+        return this.search.page - 3 + i;
+    } else {
+        return this.totalPage - 5 + i;
+    }
+}
+```
+
+
+
+需要注意的是，如果总页数不足5页，我们就不应该遍历1~5，而是1~总页数，稍作改进：
+
+![1526698842013](/images/leyou/1526698842013.png)
+
+分页条的其它部分就比较简单了：
+
+```vue
+<div class="sui-pagination pagination-large">
+    <ul style="width: 550px">
+        <li :class="{prev:true,disabled:search.page === 1}">
+            <a href="#">«上一页</a>
+        </li>
+        <li :class="{active: index(i) === search.page}" v-for="i in Math.min(5,totalPage)" :key="i">
+            <a href="#">{{index(i)}}</a>
+        </li>
+        <li class="dotted" v-show="totalPage > 5"><span>...</span></li>
+        <li :class="{next:true,disabled:search.page === totalPage}">
+            <a href="#">下一页»</a>
+        </li>
+    </ul>
+    <div>
+        <span>共{{totalPage}}页&nbsp;</span>
+        <span>
+            到第
+            <input type="text" class="page-num" :value="search.page">
+            页 <button class="page-confirm" onclick="alert(1)">确定</button>
+        </span>
+    </div>
+</div>
+```
+
+
+
+
+
+## 3.2.点击分页做什么
+
+点击分页按钮后，自然是要修改`page`的值
+
+所以，我们在`上一页`、`下一页`按钮添加点击事件，对page进行修改，在数字按钮上绑定点击事件，点击直接修改page：
+
+![1532248549662](/images/leyou/1532248549662.png)
+
+
+
+
+
+
+
+```js
+    prevPage(){
+        if(this.search.page > 1){
+            this.search.page--
+        }
+    },
+    nextPage(){
+        if(this.search.page < this.totalPage){
+            this.search.page++
+        }
+    }
+```
+
+
+
+当`page`发生变化，我们应该去后台重新查询数据。
+
+不过，如果我们直接发起ajax请求，那么浏览器的地址栏中是不会有变化的，没有记录下分页信息。如果用户刷新页面，那么就会回到第一页。
+
+这样不太友好，我们应该把**搜索条件记录在地址栏的查询参数中**。
+
+因此，我们监听search的变化，然后把search的过滤字段拼接在url路径后：
+
+```js
+watch:{
+    search:{
+        deep:true,
+            handler(val){
+            // 把search对象变成请求参数，拼接在url路径
+            window.location.href = "http://www.leyou.com/search.html?" + ly.stringify(val);
+        }
+    }
+},
+```
+
+刷新页面测试，然后就出现重大bug：页面无限刷新！为什么？
+
+
+
+因为Vue实例初始化的钩子函数中，我们读取请求参数，赋值给search的时候，也触发了watch监视！也就是说，每次页面创建完成，都会触发watch，然后就会去修改window.location路径，然后页面被刷新，再次触发created钩子，又触发watch，周而复始，无限循环。
+
+
+
+所以，我们需要在watch中进行监控，如果发现是第一次初始化，则不继续向下执行。
+
+那么问题是，如何判断是不是第一次？
+
+第一次初始化时，search中的key值肯定是空的，所以，我们这么做：
+
+```js
+watch:{
+    search:{
+        deep:true,
+            handler(val,old){
+            if(!old || !old.key){
+                // 如果旧的search值为空，或者search中的key为空，证明是第一次
+                return;
+            }
+            // 把search对象变成请求参数，拼接在url路径
+            window.location.href = "http://www.leyou.com/search.html?" + ly.stringify(val);
+        }
+    }
+}
+```
+
+再次刷新，OK了！
+
+
+
+## 3.3.页面顶部分页条
+
+在页面商品列表的顶部，也有一个分页条：
+
+ ![1526716212704](/images/leyou/1526716212704.png)
+
+我们把这一部分，也加上点击事件：
+
+![1532248435097](/images/leyou/1532248435097.png)
+
+
+
+# 4.排序(作业)
+
+## 4.1.页面搜索排序条件
+
+在搜索商品列表的顶部，有这么一部分内容：
+
+ ![1526716565293](/images/leyou/1526716565293.png)
+
+这是用来做排序的，默认按照综合排序。点击新品，应该按照商品创建时间排序，点击价格应该按照价格排序。因为我们没有统计销量和评价，这里咱们以`新品`和`价格`为例，进行讲解，做法是想通的。
+
+排序需要知道两个内容：
+
+- 排序的字段
+- 排序的方式
+
+因此，我们首先在`search`中记录这两个信息，因为created钩子函数会对search进行覆盖，因此我们在钩子函数中对这两个信息进行初始化即可：
+
+ ![1526717586493](/images/leyou/1526717586493.png)
+
+然后，在页面上给按钮绑定点击事件，修改`sortBy`和`descending`的值：
+
+```vue
+<!--排序字段-->
+<ul class="sui-nav">
+    <li :class="{active:!search.sortBy}" @click="search.sortBy=''">
+        <a href="#">综合</a>
+    </li>
+    <li>
+        <a href="#">销量</a>
+    </li>
+    <li @click="search.sortBy='createTime'" :class="{active: search.sortBy==='createTime'}">
+        <a href="#">新品</a>
+    </li>
+    <li>
+        <a href="#">评价</a>
+    </li>
+    <li @click="search.sortBy='price'; search.descending = !search.descending"
+        :class="{active: search.sortBy==='price'}">
+        <a href="#">
+            价格
+            <v-icon v-show="search.descending">arrow_drop_down</v-icon>
+            <v-icon v-show="!search.descending">arrow_drop_up</v-icon>
+        </a>
+    </li>
+</ul>
+```
+
+可以看到，页面请求参数中已经有了排序字段了：
+
+ ![1526718252315](/images/leyou/1526718252315.png)
+
+
+
+## 4.2.后台添加排序逻辑
+
+
+
+接下来，后台需要接收请求参数中的排序信息，然后在搜索中加入排序的逻辑。
+
+现在，我们的请求参数对象`SearchRequest`中，只有page、key两个字段。需要进行扩展：
+
+ ![1526718448918](/images/leyou/1526718448918.png)
+
+
+
+然后在搜索业务逻辑中，添加排序条件：
+
+![1526718637618](/images/leyou/1526718637618.png)
+
+
+
+注意，因为我们存储在索引库中的的价格是一个数组，因此在按照价格排序时，会进行智能处理：
+
+- 如果是价格降序，则会把数组中的最大值拿来排序
+- 如果是价格升序，则会把数组中的最小值拿来排序
+
+![1526719415219](/images/leyou/1526719415219.png)
+---
+layout: post
+title:  搜索过滤
+categories: 乐优
+description: 搜索过滤
+keywords: 乐优
+---
+# 0.学习目标
+
+- 了解过滤功能的基本思路
+- 独立实现分类和品牌展示
+- 了解规格参数展示
+- 实现过滤条件筛选
+- 实现已选过滤项回显
+- 实现取消选择过滤项
+
+
+
+# 1.过滤功能分析
+
+首先看下页面要实现的效果：
+
+![1526725119663](/images/leyou/1526725119663.png)
+
+整个过滤部分有3块：
+
+- 顶部的导航，已经选择的过滤条件展示：
+  - 商品分类面包屑，根据用户选择的商品分类变化
+  - 其它已选择过滤参数
+- 过滤条件展示，又包含3部分
+  - 商品分类展示
+  - 品牌展示
+  - 其它规格参数
+- 展开或收起的过滤条件的按钮
+
+
+
+顶部导航要展示的内容跟用户选择的过滤条件有关。
+
+- 比如用户选择了某个商品分类，则面包屑中才会展示具体的分类
+- 比如用户选择了某个品牌，列表中才会有品牌信息。
+
+所以，这部分需要依赖第二部分：过滤条件的展示和选择。因此我们先不着急去做。
+
+
+
+展开或收起的按钮是否显示，取决于过滤条件有多少，如果很少，那么就没必要展示。所以也是跟第二部分的过滤条件有关。
+
+这样分析来看，我们必须先做第二部分：过滤条件展示。
+
+
+
+# 2.生成分类和品牌过滤
+
+先来看分类和品牌。在我们的数据库中已经有所有的分类和品牌信息。在这个位置，是不是把所有的分类和品牌信息都展示出来呢？
+
+显然不是，用户搜索的条件会对商品进行过滤，而在搜索结果中，不一定包含所有的分类和品牌，直接展示出所有商品分类，让用户选择显然是不合适的。
+
+无论是分类信息，还是品牌信息，都应该从搜索的结果商品中进行聚合得到。
+
+## 2.1.扩展返回的结果
+
+原来，我们返回的结果是PageResult对象，里面只有total、totalPage、items3个属性。但是现在要对商品分类和品牌进行聚合，数据显然不够用，我们需要对返回的结果进行扩展，添加分类和品牌的数据。
+
+那么问题来了：以什么格式返回呢？
+
+看页面：
+
+ ![1526738120021](/images/leyou/1526738120021.png)
+
+
+
+分类：页面显示了分类名称，但背后肯定要保存id信息。所以至少要有id和name
+
+品牌：页面展示的有logo，有文字，当然肯定有id，基本上是品牌的完整数据
+
+我们新建一个类，继承PageResult，然后扩展两个新的属性：分类集合和品牌集合：
+
+```java
+public class SearchResult extends PageResult<Goods>{
+
+    private List<Category> categories;
+
+    private List<Brand> brands;
+
+    public SearchResult(Long total, Integer totalPage, List<Goods> items, List<Category> categories, List<Brand> brands) {
+        super(total, totalPage, items);
+        this.categories = categories;
+        this.brands = brands;
+    }
+}
+```
+
+
+
+## 2.2.聚合商品分类和品牌
+
+我们修改搜索的业务逻辑，对分类和品牌聚合。
+
+因为索引库中只有id，所以我们根据id聚合，然后再根据id去查询完整数据。
+
+所以，商品微服务需要提供一个接口：根据品牌id集合，批量查询品牌。
+
+### 2.2.1.提供查询品牌接口
+
+BrandApi
+
+```java
+@RequestMapping("brand")
+public interface BrandApi {
+
+    @GetMapping("list")
+    List<Brand> queryBrandByIds(@RequestParam("ids") List<Long> ids);
+}
+```
+
+BrandController
+
+```java
+/**
+     * 根据多个id查询品牌
+     * @param ids
+     * @return
+     */
+@GetMapping("list")
+public ResponseEntity<List<Brand>> queryBrandByIds(@RequestParam("ids") List<Long> ids){
+    List<Brand> list = this.brandService.queryBrandByIds(ids);
+    if(list == null){
+        new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    return ResponseEntity.ok(list);
+}
+```
+
+BrandService
+
+```java
+public List<Brand> queryBrandByIds(List<Long> ids) {
+    return this.brandMapper.selectByIdList(ids);
+}
+```
+
+BrandMapper
+
+继承通用mapper的 `SelectByIdListMapper`即可
+
+```java
+public interface BrandMapper extends Mapper<Brand>, SelectByIdListMapper<Brand,Long> {}
+```
+
+
+
+### 2.2.2.搜索功能改造
+
+添加BrandClient
+
+```java
+@FeignClient("item-service")
+public interface BrandClient extends BrandApi {
+}
+```
+
+
+
+修改SearchService：
+
+```java
+@Service
+public class SearchService {
+
+    @Autowired
+    private GoodsRepository goodsRepository;
+
+    @Autowired
+    private CategoryClient categoryClient;
+
+    @Autowired
+    private BrandClient brandClient;
+
+    private static final Logger logger = LoggerFactory.getLogger(SearchService.class);
+
+    public PageResult<Goods> search(SearchRequest request) {
+        // 判断是否有搜索条件，如果没有，直接返回null。不允许搜索全部商品
+        if (StringUtils.isBlank(request.getKey())) {
+            return null;
+        }
+
+        // 1、构建查询条件
+        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
+        
+        // 1.1、基本查询
+        queryBuilder.withQuery(QueryBuilders.matchQuery("all", request.getKey()));
+        // 通过sourceFilter设置返回的结果字段,我们只需要id、skus、subTitle
+        queryBuilder.withSourceFilter(new FetchSourceFilter(
+                new String[]{"id", "skus", "subTitle"}, null));
+
+        // 1.2.分页排序
+        searchWithPageAndSort(queryBuilder,request);
+        
+        // 1.3、聚合
+        String categoryAggName = "category"; // 商品分类聚合名称
+        String brandAggName = "brand"; // 品牌聚合名称
+        // 对商品分类进行聚合
+        queryBuilder.addAggregation(AggregationBuilders.terms(categoryAggName).field("cid3"));
+        // 对品牌进行聚合
+        queryBuilder.addAggregation(AggregationBuilders.terms(brandAggName).field("brandId"));
+
+        // 2、查询，获取结果
+        AggregatedPage<Goods> pageInfo = (AggregatedPage<Goods>) this.goodsRepository.search(queryBuilder.build());
+
+        // 3、解析查询结果
+        // 3.1、分页信息
+        Long total = pageInfo.getTotalElements();
+        int totalPage = (total.intValue() + request.getSize() - 1) / request.getSize();
+     	// 3.2、商品分类的聚合结果
+        List<Category> categories = 
+            getCategoryAggResult(pageInfo.getAggregation(categoryAggName));
+        // 3.3、品牌的聚合结果
+        List<Brand> brands = getBrandAggResult(pageInfo.getAggregation(brandAggName));
+
+        // 返回结果
+         return new SearchResult(goodsPage.getTotalElements(), goodsPage.getTotalPages(), goodsPage.getContent(), categories, brands);
+    }
+    
+
+    // 解析品牌聚合结果
+    private List<Brand> getBrandAggResult(Aggregation aggregation) {
+        try {
+            LongTerms brandAgg = (LongTerms) aggregation;
+            List<Long> bids = new ArrayList<>();
+            for (LongTerms.Bucket bucket : brandAgg.getBuckets()) {
+                bids.add(bucket.getKeyAsNumber().longValue());
+            }
+            // 根据id查询品牌
+            return this.brandClient.queryBrandByIds(bids);
+        } catch (Exception e){
+            logger.error("品牌聚合出现异常：", e);
+            return null;
+        }
+    }
+
+    // 解析商品分类聚合结果
+    private List<Category> getCategoryAggResult(Aggregation aggregation) {
+        try{
+            List<Category> categories = new ArrayList<>();
+            LongTerms categoryAgg = (LongTerms) aggregation;
+            List<Long> cids = new ArrayList<>();
+            for (LongTerms.Bucket bucket : categoryAgg.getBuckets()) {
+                cids.add(bucket.getKeyAsNumber().longValue());
+            }
+            // 根据id查询分类名称
+            List<String> names = this.categoryClient.queryNameByIds(cids);
+
+            for (int i = 0; i < names.size(); i++) {
+                Category c = new Category();
+                c.setId(cids.get(i));
+                c.setName(names.get(i));
+                categories.add(c);
+            }
+            return categories;
+        } catch (Exception e){
+            logger.error("分类聚合出现异常：", e);
+            return null;
+        }
+    }
+
+    // 构建基本查询条件
+    private void searchWithPageAndSort(NativeSearchQueryBuilder queryBuilder, SearchRequest request) {
+        // 准备分页参数
+        int page = request.getPage();
+        int size = request.getSize();
+
+        // 1、分页
+        queryBuilder.withPageable(PageRequest.of(page - 1, size));
+        // 2、排序
+        String sortBy = request.getSortBy();
+        Boolean desc = request.getDescending();
+        if (StringUtils.isNotBlank(sortBy)) {
+            // 如果不为空，则进行排序
+            queryBuilder.withSort(SortBuilders.fieldSort(sortBy).order(desc ? SortOrder.DESC : SortOrder.ASC));
+        }
+    }
+}
+```
+
+
+
+测试：
+
+![1532259453938](/images/leyou/1532259453938.png)
+
+
+
+## 2.3.页面渲染数据
+
+### 2.3.1.过滤参数数据结构
+
+来看下页面的展示效果：
+
+ ![1526742664217](/images/leyou/1526742664217.png)
+
+虽然分类、品牌内容都不太一样，但是结构相似，都是key和value的结构。
+
+而且页面结构也极为类似：
+
+ ![1526742817804](/images/leyou/1526742817804.png)
+
+
+
+所以，我们可以把所有的过滤条件放入一个`数组`中，然后在页面利用`v-for`遍历一次生成。
+
+其基本结构是这样的：
+
+```js
+[
+    {
+        k:"过滤字段名",
+        options:[{/*过滤字段值对象*/},{/*过滤字段值对象*/}]
+    }
+]
+```
+
+我们先在data中定义数组：filter，等待组装过滤参数：
+
+```js
+data: {
+    ly,
+    search:{
+        key: "",
+        page: 1
+    },
+    goodsList:[], // 接收搜索得到的结果
+    total: 0, // 总条数
+    totalPage: 0, // 总页数
+    filters:[] // 过滤参数集合
+},
+```
+
+然后在查询搜索结果的回调函数中，对过滤参数进行封装：
+
+![1532261937404](/images/leyou/1532261937404.png)
+
+然后刷新页面，通过浏览器工具，查看封装的结果：
+
+![1532260781128](/images/leyou/1532260781128.png)
+
+
+
+### 2.3.2.页面渲染数据
+
+首先看页面原来的代码：
+
+ ![1526803362517](/images/leyou/1526803362517.png)
+
+我们注意到，虽然页面元素是一样的，但是品牌会比其它搜索条件多出一些样式，因为品牌是以图片展示。需要进行特殊处理。数据展示是一致的，我们采用v-for处理：
+
+```html
+<div class="type-wrap" v-for="(f,i) in filters" :key="i" v-if="f.k !== '品牌'">
+    <div class="fl key">{{f.k}}</div>
+    <div class="fl value">
+        <ul class="type-list">
+            <li v-for="(option, j) in f.options" :key="j">
+                <a>{{option.name}}</a>
+            </li>
+        </ul>
+    </div>
+    <div class="fl ext"></div>
+</div>
+<div class="type-wrap logo" v-else>
+    <div class="fl key brand">{{f.k}}</div>
+    <div class="value logos">
+        <ul class="logo-list">
+            <li v-for="(option, j) in f.options" v-if="option.image">
+                <img :src="option.image" />
+            </li>
+            <li style="text-align: center" v-else>
+                <a style="line-height: 30px; font-size: 12px" href="#">{{option.name}}</a>
+            </li>
+        </ul>
+    </div>
+    <div class="fl ext">
+        <a href="javascript:void(0);" class="sui-btn">多选</a>
+    </div>
+</div>
+```
+
+结果：
+
+![1532264524663](/images/leyou/1532264524663.png)
+
+
+
+# 3.生成规格参数过滤
+
+## 3.1.谋而后动
+
+有四个问题需要先思考清楚：
+
+- 什么时候显示规格参数过滤？
+- 如何知道哪些规格需要过滤？
+- 要过滤的参数，其可选值是如何获取的？
+- 规格过滤的可选值，其数据格式怎样的？
+
+
+
+> 什么情况下显示有关规格参数的过滤？
+
+如果用户尚未选择商品分类，或者聚合得到的分类数大于1，那么就没必要进行规格参数的聚合。因为不同分类的商品，其规格是不同的。
+
+因此，我们在后台**需要对聚合得到的商品分类数量进行判断，如果等于1，我们才继续进行规格参数的聚合**。
+
+
+
+> 如何知道哪些规格需要过滤？
+
+我们不能把数据库中的所有规格参数都拿来过滤。因为并不是所有的规格参数都可以用来过滤，参数的值是不确定的。
+
+值的庆幸的是，我们在设计规格参数时，已经标记了某些规格可搜索，某些不可搜索。
+
+因此，一旦商品分类确定，我们就可以根据商品分类查询到其对应的规格，从而知道哪些规格要进行搜索。
+
+
+
+> 要过滤的参数，其可选值是如何获取的？
+
+虽然数据库中有所有的规格参数，但是不能把一切数据都用来供用户选择。
+
+与商品分类和品牌一样，应该是从用户搜索得到的结果中聚合，得到与结果品牌的规格参数可选值。
+
+
+
+> 规格过滤的可选值，其数据格式怎样的？
+
+我们直接看页面效果：
+
+![1526805322441](/images/leyou/1526805322441.png)
+
+我们之前存储时已经将数据分段，恰好符合这里的需求
+
+
+
+## 3.3.实战
+
+接下来，我们就用代码实现刚才的思路。
+
+总结一下，应该是以下几步：
+
+- 1）用户搜索得到商品，并聚合出商品分类
+- 2）判断分类数量是否等于1，如果是则进行规格参数聚合
+- 3）先根据分类，查找可以用来搜索的规格
+- 4）对规格参数进行聚合
+- 5）将规格参数聚合结果整理后返回
+
+
+
+### 3.3.1.扩展返回结果
+
+返回结果中需要增加新数据，用来保存规格参数过滤条件。这里与前面的品牌和分类过滤的json结构类似：
+
+```json
+[
+    {
+        "k":"规格参数名",
+        "options":["规格参数值","规格参数值"]
+    }
+]
+```
+
+因此，在java中我们用List<Map<String, String>>来表示。
+
+```java
+public class SearchResult extends PageResult<Goods>{
+
+    private List<Category> categories;// 分类过滤条件
+
+    private List<Brand> brands; // 品牌过滤条件
+
+    private List<Map<String,String>> specs; // 规格参数过滤条件
+
+    public SearchResult(Long total, Integer totalPage, List<Goods> items,
+                        List<Category> categories, List<Brand> brands,
+                        List<Map<String,String>> specs) {
+        super(total, totalPage, items);
+        this.categories = categories;
+        this.brands = brands;
+        this.specs = specs;
+    }
+}
+```
+
+
+
+### 3.3.2.判断是否需要聚合
+
+首先，在聚合得到商品分类后，判断分类的个数，如果是1个则进行规格聚合：
+
+![1532270316330](/images/leyou/1532270316330.png)
+
+
+
+我们将聚合的代码抽取到了一个`getSpecs`方法中。
+
+
+
+### 3.3.3.获取需要聚合的规格参数
+
+然后，我们需要根据商品分类，查询所有可用于搜索的规格参数：![1532270455414](/images/leyou/1532270455414.png)
+
+要注意的是，这里我们需要根据id查询规格，而规格参数接口需要从商品微服务提供
+
+
+
+### 3.3.4.聚合规格参数
+
+因为规格参数保存时不做分词，因此其名称会自动带上一个.keyword后缀：
+
+![1532270506198](/images/leyou/1532270506198.png)
+
+
+
+### 3.3.5.解析聚合结果
+
+![1532270553350](/images/leyou/1532270553350.png)
+
+
+
+### 3.3.6.最终的完整代码
+
+```java
+@Service
+public class SearchService {
+
+    @Autowired
+    private CategoryClient categoryClient;
+
+    @Autowired
+    private GoodsClient goodsClient;
+
+    @Autowired
+    private SpecificationClient specificationClient;
+
+    @Autowired
+    private GoodsRepository goodsRepository;
+
+    @Autowired
+    private BrandClient brandClient;
+
+    @Autowired
+    private ElasticsearchTemplate elasticsearchTemplate;
+
+    private ObjectMapper mapper = new ObjectMapper();
+
+    private static final Logger logger = LoggerFactory.getLogger(SearchService.class);
+
+    public SearchResult search(SearchRequest request) {
+        String key = request.getKey();
+        // 判断是否有搜索条件，如果没有，直接返回null。不允许搜索全部商品
+        if (StringUtils.isBlank(key)) {
+            return null;
+        }
+        // 构建查询条件
+        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
+        MatchQueryBuilder basicQuery = QueryBuilders.matchQuery("all", key).operator(Operator.AND);
+        queryBuilder.withQuery(basicQuery);
+        // 通过sourceFilter设置返回的结果字段,我们只需要id、skus、subTitle
+        queryBuilder.withSourceFilter(new FetchSourceFilter(new String[]{"id", "skus", "subTitle"}, null));
+
+        // 分页
+        searchWithPageAndSort(queryBuilder, request);
+
+        // 聚合
+        queryBuilder.addAggregation(AggregationBuilders.terms("brands").field("cid3"));
+        queryBuilder.addAggregation(AggregationBuilders.terms("category").field("brandId"));
+
+        // 执行查询获取结果集
+        AggregatedPage<Goods> goodsPage = (AggregatedPage<Goods>) this.goodsRepository.search(queryBuilder.build());
+
+        // 获取聚合结果集
+        // 商品分类的聚合结果
+        List<Category> categories =
+                getCategoryAggResult(goodsPage.getAggregation("brands"));
+        // 品牌的聚合结果
+        List<Brand> brands = getBrandAggResult(goodsPage.getAggregation("category"));
+
+        // 根据商品分类判断是否需要聚合
+        List<Map<String, Object>> specs = new ArrayList<>();
+        if (categories.size() == 1) {
+            // 如果商品分类只有一个才进行聚合，并根据分类与基本查询条件聚合
+            specs = getSpec(categories.get(0).getId(), basicQuery);
+        }
+
+        return new SearchResult(goodsPage.getTotalElements(), goodsPage.getTotalPages(), goodsPage.getContent(), categories, brands, specs);
+    }
+
+    /**
+     * 聚合出规格参数
+     *
+     * @param cid
+     * @param query
+     * @return
+     */
+    private List<Map<String, Object>> getSpec(Long cid, QueryBuilder query) {
+        try {
+            // 不管是全局参数还是sku参数，只要是搜索参数，都根据分类id查询出来
+            List<SpecParam> params = this.specificationClient.querySpecParam(null, cid, true, null);
+            List<Map<String, Object>> specs = new ArrayList<>();
+
+            NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
+            queryBuilder.withQuery(query);
+
+            // 聚合规格参数
+            params.forEach(p -> {
+                String key = p.getName();
+                queryBuilder.addAggregation(AggregationBuilders.terms(key).field("specs." + key + ".keyword"));
+
+            });
+
+            // 查询
+            Map<String, Aggregation> aggs = this.elasticsearchTemplate.query(queryBuilder.build(),
+                    SearchResponse::getAggregations).asMap();
+
+            // 解析聚合结果
+            params.forEach(param -> {
+                Map<String, Object> spec = new HashMap<>();
+                String key = param.getName();
+                spec.put("k", key);
+                StringTerms terms = (StringTerms) aggs.get(key);
+                spec.put("options", terms.getBuckets().stream().map(StringTerms.Bucket::getKeyAsString));
+                specs.add(spec);
+            });
+
+            return specs;
+        } catch (
+                Exception e)
+
+        {
+            logger.error("规格聚合出现异常：", e);
+            return null;
+        }
+
+    }
+
+    // 构建基本查询条件
+    private void searchWithPageAndSort(NativeSearchQueryBuilder queryBuilder, SearchRequest request) {
+        // 准备分页参数
+        int page = request.getPage();
+        int size = request.getSize();
+
+        // 1、分页
+        queryBuilder.withPageable(PageRequest.of(page - 1, size));
+        // 2、排序
+        String sortBy = request.getSortBy();
+        Boolean desc = request.getDescending();
+        if (StringUtils.isNotBlank(sortBy)) {
+            // 如果不为空，则进行排序
+            queryBuilder.withSort(SortBuilders.fieldSort(sortBy).order(desc ? SortOrder.DESC : SortOrder.ASC));
+        }
+    }
+
+    // 解析品牌聚合结果
+    private List<Brand> getBrandAggResult(Aggregation aggregation) {
+        try {
+            LongTerms brandAgg = (LongTerms) aggregation;
+            List<Long> bids = new ArrayList<>();
+            for (LongTerms.Bucket bucket : brandAgg.getBuckets()) {
+                bids.add(bucket.getKeyAsNumber().longValue());
+            }
+            // 根据id查询品牌
+            return this.brandClient.queryBrandByIds(bids);
+        } catch (Exception e) {
+            logger.error("品牌聚合出现异常：", e);
+            return null;
+        }
+    }
+
+    // 解析商品分类聚合结果
+    private List<Category> getCategoryAggResult(Aggregation aggregation) {
+        try {
+            List<Category> categories = new ArrayList<>();
+            LongTerms categoryAgg = (LongTerms) aggregation;
+            List<Long> cids = new ArrayList<>();
+            for (LongTerms.Bucket bucket : categoryAgg.getBuckets()) {
+                cids.add(bucket.getKeyAsNumber().longValue());
+            }
+            // 根据id查询分类名称
+            List<String> names = this.categoryClient.queryNameByIds(cids);
+
+            for (int i = 0; i < names.size(); i++) {
+                Category c = new Category();
+                c.setId(cids.get(i));
+                c.setName(names.get(i));
+                categories.add(c);
+            }
+            return categories;
+        } catch (Exception e) {
+            logger.error("分类聚合出现异常：", e);
+            return null;
+        }
+    }
+}
+```
+
+
+
+### 3.3.7.测试结果
+
+![1532270167684](/images/leyou/1532270167684.png)
+
+
+
+## 3.4.页面渲染
+
+### 3.4.1.渲染规格过滤条件
+
+首先把后台传递过来的specs添加到filters数组：
+
+要注意：分类、品牌的option选项是对象，里面有name属性，而specs中的option是简单的字符串，所以需要进行封装，变为相同的结构：
+
+![1532271319440](/images/leyou/1532271319440.png)
+
+最后的结果：
+
+![1526836508277](/images/leyou/1526836508277.png)
+
+
+
+### 3.4.2.展示或收起过滤条件
+
+是不是感觉显示的太多了，我们可以通过按钮点击来展开和隐藏部分内容：
+
+![1532271362148](/images/leyou/1532271362148.png)
+
+我们在data中定义变量，记录展开或隐藏的状态：
+
+![1532271577293](/images/leyou/1532271577293.png)
+
+然后在按钮绑定点击事件，以改变show的取值：
+
+![1532272309322](/images/leyou/1532272309322.png)
+
+
+
+在展示规格时，对show进行判断：
+
+![1532272262743](/images/leyou/1532272262743.png)
+
+OK！
+
+
+
+# 4.过滤条件的筛选
+
+当我们点击页面的过滤项，要做哪些事情？
+
+- 把过滤条件保存在search对象中（watch监控到search变化后就会发送到后台）
+- 在页面顶部展示已选择的过滤项
+- 把商品分类展示到顶部面包屑
+
+
+
+## 4.1.保存过滤项
+
+### 4.1.1.定义属性
+
+我们把已选择的过滤项保存在search中：
+
+![1532273487583](/images/leyou/1532273487583.png)
+
+要注意，在created构造函数中会对search进行初始化，所以要在构造函数中对filter进行初始化：
+
+ ![1526902467385](/images/leyou/1526902467385.png)
+
+search.filter是一个对象，结构：
+
+```js
+{
+    "过滤项名":"过滤项值"
+}
+```
+
+
+
+### 4.1.2.绑定点击事件
+
+给所有的过滤项绑定点击事件：
+
+![1532272879418](/images/leyou/1532272879418.png)
+
+要注意，点击事件传2个参数：
+
+- k：过滤项的key
+- option：当前过滤项对象
+
+在点击事件中，保存过滤项到`selectedFilter`：
+
+```js
+selectFilter(k, o){
+    const obj = {};
+    Object.assign(obj, this.search);
+    if(k === '分类' || k === '品牌'){
+        o = o.id;
+    }
+    obj.filter[k] = o.name;
+    this.search = obj;
+}
+```
+
+另外，这里search对象中嵌套了filter对象，请求参数格式化时需要进行特殊处理，修改common.js中的一段代码：
+
+![1532273144046](/images/leyou/1532273144046.png)
+
+
+
+我们刷新页面，点击后通过浏览器功能查看`search.filter`的属性变化：
+
+![1532274670784](/images/leyou/1532274670784.png)
+
+并且，此时浏览器地址也发生了变化：
+
+```
+http://www.leyou.com/search.html?key=%E6%89%8B%E6%9C%BA&page=1&filter.%E5%93%81%E7%89%8C=2032&filter.CPU%E5%93%81%E7%89%8C=%E6%B5%B7%E6%80%9D%EF%BC%88Hisilicon%EF%BC%89&filter.CPU%E6%A0%B8%E6%95%B0=%E5%8D%81%E6%A0%B8
+```
+
+网络请求也正常发出：
+
+![1532274821104](/images/leyou/1532274821104.png)
+
+
+
+## 4.2.后台添加过滤条件
+
+既然请求已经发送到了后台，那接下来我们就在后台去添加这些条件：
+
+### 4.2.1.拓展请求对象
+
+我们需要在请求类：`SearchRequest`中添加属性，接收过滤属性。过滤属性都是键值对格式，但是key不确定，所以用一个map来接收即可。
+
+ ![1526910290497](/images/leyou/1526910290497.png)
+
+
+
+### 4.2.2.添加过滤条件
+
+目前，我们的基本查询是这样的：
+
+![1526910653795](/images/leyou/1526910653795.png)
+
+现在，我们要把页面传递的过滤条件也进入进去。
+
+因此不能在使用普通的查询，而是要用到BooleanQuery，基本结构是这样的：
+
+```json
+GET /heima/_search
+{
+    "query":{
+        "bool":{
+        	"must":{ "match": { "title": "小米手机",operator:"and"}},
+        	"filter":{
+                "range":{"price":{"gt":2000.00,"lt":3800.00}}
+        	}
+        }
+    }
+}
+```
+
+所以，我们对原来的基本查询进行改造：
+
+ ![1526910768974](/images/leyou/1526910768974.png)
+
+因为比较复杂，我们将其封装到一个方法中：
+
+```java
+// 构建基本查询条件
+private QueryBuilder buildBasicQueryWithFilter(SearchRequest request) {
+    BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+    // 基本查询条件
+    queryBuilder.must(QueryBuilders.matchQuery("all", request.getKey()).operator(Operator.AND));
+    // 过滤条件构建器
+    BoolQueryBuilder filterQueryBuilder = QueryBuilders.boolQuery();
+    // 整理过滤条件
+    Map<String, String> filter = request.getFilter();
+    for (Map.Entry<String, String> entry : filter.entrySet()) {
+        String key = entry.getKey();
+        String value = entry.getValue();
+        // 商品分类和品牌要特殊处理
+        if (key != "cid3" && key != "brandId") {
+            key = "specs." + key + ".keyword";
+        }
+        // 字符串类型，进行term查询
+        filterQueryBuilder.must(QueryBuilders.termQuery(key, value));
+    }
+    // 添加过滤条件
+    queryBuilder.filter(filterQueryBuilder);
+    return queryBuilder;
+}
+```
+
+其它不变。
+
+## 4.3.页面测试
+
+我们先不点击过滤条件，直接搜索手机：
+
+ ![1526910966728](/images/leyou/1526910966728.png)
+
+总共184条
+
+
+
+接下来，我们点击一个过滤条件：
+
+ ![1526911057839](/images/leyou/1526911057839.png)
+
+得到的结果：
+
+ ![1526911090064](/images/leyou/1526911090064.png)
+
+
+
+# 5.页面展示选择的过滤项(作业)
+
+## 5.1.商品分类面包屑
+
+当用户选择一个商品分类以后，我们应该在过滤模块的上方展示一个面包屑，把三级商品分类都显示出来。
+
+ ![1526912181355](/images/leyou/1526912181355.png)
+
+用户选择的商品分类就存放在`search.filter`中，但是里面只有第三级分类的id：cid3
+
+我们需要根据它查询出所有三级分类的id及名称
+
+### 5.1.1.提供查询分类接口
+
+我们在商品微服务中提供一个根据三级分类id查询1~3级分类集合的方法：
+
+> Controller
+
+```java
+/**
+     * 根据3级分类id，查询1~3级的分类
+     * @param id
+     * @return
+     */
+@GetMapping("all/level")
+public ResponseEntity<List<Category>> queryAllByCid3(@RequestParam("id") Long id){
+    List<Category> list = this.categoryService.queryAllByCid3(id);
+    if (list == null || list.size() < 1) {
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    return ResponseEntity.ok(list);
+}
+```
+
+> Service
+
+```java
+public List<Category> queryAllByCid3(Long id) {
+    Category c3 = this.categoryMapper.selectByPrimaryKey(id);
+    Category c2 = this.categoryMapper.selectByPrimaryKey(c3.getParentId());
+    Category c1 = this.categoryMapper.selectByPrimaryKey(c2.getParentId());
+    return Arrays.asList(c1,c2,c3);
+}
+```
+
+测试：
+
+ ![1526912781014](/images/leyou/1526912781014.png)
+
+### 5.1.2.页面展示面包屑
+
+后台提供了接口，下面的问题是，我们在哪里去查询接口？
+
+大家首先想到的肯定是当用户点击以后。
+
+
+
+但是我们思考一下：用户点击以后，就会重新发起请求，页面刷新，那么你渲染的结果就没了。
+
+因此，应该是在页面重新加载完毕后，此时因为过滤条件中加入了商品分类的条件，所以查询的结果中只有1个分类。
+
+我们判断商品分类是否只有1个，如果是，则查询三级商品分类，添加到面包屑即可。
+
+![1526914910479](/images/leyou/1526914910479.png)
+
+渲染：
+
+ ![1528416823546](/images/leyou/1528416823546.png)
+
+
+
+刷新页面：
+
+ ![1526914954839](/images/leyou/1526914954839.png)
+
+
+
+## 5.2.其它过滤项
+
+接下来，我们需要在页面展示用户已选择的过滤项，如图：
+
+![1526911364625](/images/leyou/1526911364625.png)
+
+我们知道，所有已选择过滤项都保存在`search.filter`中，因此在页面遍历并展示即可。
+
+但这里有个问题，filter中数据的格式：
+
+ ![1526911311273](/images/leyou/1526911311273.png)
+
+基本有四类数据：
+
+- 商品分类：这个不需要展示，分类展示在面包屑位置
+- 品牌：这个要展示，但是其key和值不合适，我们不能显示一个id在页面。需要找到其name值
+- 数值类型规格：这个展示的时候，需要把单位查询出来
+- 非数值类型规格：这个直接展示其值即可
+
+因此，我们在页面上这样处理：
+
+```html
+<!--已选择过滤项-->
+<ul class="tags-choose">
+    <li class="tag" v-for="(v,k) in search.filter" v-if="k !== 'cid3'" :key="k">
+        {{k === 'brandId' ? '品牌' : k}}:<span style="color: red">{{getFilterValue(k,v)}}</span></span>
+<i class="sui-icon icon-tb-close"></i>
+</li>
+</ul>
+```
+
+- 判断如果 `k === 'cid3'`说明是商品分类，直接忽略
+- 判断`k === 'brandId'`说明是品牌，页面显示品牌，其它规格则直接显示`k`的值
+- 值的处理比较复杂，我们用一个方法`getFilterValue(k,v)`来处理，调用时把`k`和`v`都传递
+
+方法内部：
+
+```js
+getFilterValue(k,v){
+    // 如果没有过滤参数，我们跳过展示
+    if(!this.filters || this.filters.length === 0){
+        return null;
+    }
+    let filter = null;
+    // 判断是否是品牌
+    if(k === 'brandId'){
+        // 返回品牌名称
+        return this.filters.find(f => f.k === 'brandId').options[0].name;
+    }
+    return v;
+}
+```
+
+然后刷新页面，即可看到效果：
+
+![1526911811998](/images/leyou/1526911811998.png)
+
+
+
+## 5.3.隐藏已经选择的过滤项
+
+现在，我们已经实现了已选择过滤项的展示，但是你会发现一个问题：
+
+已经选择的过滤项，在过滤列表中依然存在：
+
+![1526915075037](/images/leyou/1526915075037.png)
+
+
+
+这些已经选择的过滤项，应该从列表中移除。
+
+怎么做呢？
+
+你必须先知道用户选择了什么。用户选择的项保存在`search.filter`中：
+
+ ![1526915191753](/images/leyou/1526915191753.png)
+
+我们可以编写一个计算属性，把filters中的 已经被选择的key过滤掉：
+
+```js
+computed:{
+    remainFilters(){
+        const keys = Object.keys(this.search.filter);
+        if(this.search.filter.cid3){
+            keys.push("cid3")
+        }
+        if(this.search.filter.brandId){
+            keys.push("brandId")
+        }
+        return this.filters.filter(f => !keys.includes(f.k));
+    }
+}
+```
+
+然后页面不再直接遍历`filters`，而是遍历`remainFilters`
+
+![1526916315470](/images/leyou/1526916315470.png)
+
+刷新页面：
+
+![1526916538925](/images/leyou/1526916538925.png)
+
+
+
+最后发现，还剩下一堆没选过的。但是都只有一个可选项，此时再过滤没有任何意义，应该隐藏，所以，在刚才的过滤条件中，还应该添加一条：如果只剩下一个可选项，不显示
+
+![1526916815264](/images/leyou/1526916815264.png)
+
+
+
+![1526916838222](/images/leyou/1526916838222.png)
+
+
+
+
+
+# 6.取消过滤项（作业）
+
+我们能够看到，每个过滤项后面都有一个小叉，当点击后，应该取消对应条件的过滤。
+
+思路非常简单：
+
+- 给小叉绑定点击事件
+- 点击后把过滤项从`search.filter`中移除，页面会自动刷新，OK
+
+
+
+> 绑定点击事件：
+
+![1526955150293](/images/leyou/1526955150293.png)
+
+绑定点击事件时，把k传递过去，方便删除
+
+> 删除过滤项
+
+```js
+removeFilter(k){
+    this.search.filter[k] = null;
+}
+```
+
+
+
+
+
+# 7.优化
+
+搜索系统需要优化的点：
+
+- 查询规格参数部分可以添加缓存
+- 聚合计算interval变化频率极低，所以可以设计为定时任务计算（周期为天），然后缓存起来。
+- elasticsearch本身有查询缓存，可以不进行优化
+- 商品图片应该采用缩略图，减少流量，提高页面加载速度
+- 图片采用延迟加载
+- 图片还可以采用CDN服务器
+- sku信息应该在页面异步加载，而不是放到索引库
+---
+layout: post
+title:  商品详情及静态化
+categories: 乐优
+description: 商品详情及静态化
+keywords: 乐优
+---
+# 0.学习目标
+
+- 了解Thymeleaf的基本使用
+- 实现商品详情页的渲染
+- 知道页面静态化的作用
+- 实现页面静态化功能
+
+
+
+# 1.商品详情
+
+当用户搜索到商品，肯定会点击查看，就会进入商品详情页，接下来我们完成商品详情页的展示，
+
+## 1.1.Thymeleaf
+
+在商品详情页中，我们会使用到Thymeleaf来渲染页面，所以需要先了解Thymeleaf的语法。
+
+详见课前资料中《Thymeleaf语法入门.md》
+
+
+
+## 1.2.商品详情页服务
+
+商品详情浏览量比较大，并发高，我们会独立开启一个微服务，用来展示商品详情。
+
+### 1.2.1.创建module
+
+商品的详情页服务，命名为：`leyou-goods-web`
+
+![1532349011199](/images/leyou/1532349011199.png)
+
+目录：
+
+![1532349060982](/images/leyou/1532349060982.png)
+
+
+
+### 1.2.2.pom依赖
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>leyou</artifactId>
+        <groupId>com.leyou.parent</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leyou.goods</groupId>
+    <artifactId>leyou-goods-web</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.leyou.item</groupId>
+            <artifactId>leyou-item-interface</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+
+
+### 1.2.3.编写启动类
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+@EnableFeignClients
+public class LeyouGoodsWebApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(LeyouGoodsWebApplication.class, args);
+    }
+}
+```
+
+
+
+### 1.2.4.application.yml文件
+
+```yaml
+server:
+  port: 8084
+spring:
+  application:
+    name: goods-page
+  thymeleaf:
+    cache: false
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+  instance:
+    lease-renewal-interval-in-seconds: 5 # 每隔5秒发送一次心跳
+    lease-expiration-duration-in-seconds: 10 # 10秒不发送就过期
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+    instance-id: ${spring.application.name}.${server.port}
+```
+
+
+
+### 1.2.5.页面模板
+
+我们从leyou-portal中复制item.html模板到当前项目resource目录下的templates中：
+
+ ![1532353728660](/images/leyou/1532353728660.png)
+
+
+
+## 1.3.页面跳转
+
+### 1.3.1.修改页面跳转路径
+
+首先我们需要修改搜索结果页的商品地址，目前所有商品的地址都是：http://www.leyou.com/item.html
+
+ ![1526955707685](/images/leyou/1526955707685.png)
+
+我们应该跳转到对应的商品的详情页才对。
+
+那么问题来了：商品详情页是一个SKU？还是多个SKU的集合？
+
+![1526955852490](/images/leyou/1526955852490.png)
+
+通过详情页的预览，我们知道它是多个SKU的集合，即SPU。
+
+所以，页面跳转时，我们应该携带SPU的id信息。
+
+例如：http://www.leyou.com/item/2314123.html
+
+这里就采用了路径占位符的方式来传递spu的id，我们打开`search.html`，修改其中的商品路径：
+
+![1526972476737](/images/leyou/1532354937173.png)
+
+刷新页面后再看：
+
+![1532356634734](/images/leyou/1532356634734.png)
+
+
+
+### 1.3.2.nginx反向代理
+
+接下来，我们要把这个地址指向我们刚刚创建的服务：`leyou-goods-web`，其端口为8084
+
+我们在nginx.conf中添加一段逻辑：
+
+![1532356995455](/images/leyou/1532356995455.png)
+
+把以/item开头的请求，代理到我们的8084端口。
+
+
+
+### 1.3.3.编写跳转controller
+
+在`leyou-goods-web`中编写controller，接收请求，并跳转到商品详情页：
+
+```java
+@Controller
+@RequestMapping("item")
+public class GoodsController {
+
+    /**
+     * 跳转到商品详情页
+     * @param model
+     * @param id
+     * @return
+     */
+    @GetMapping("{id}.html")
+    public String toItemPage(Model model, @PathVariable("id")Long id){
+
+        return "item";
+    }
+}
+```
+
+
+
+### 1.3.4.测试
+
+启动`leyou-goods-page`，点击搜索页面商品，看是能够正常跳转：
+
+![1532490861851](/images/leyou/1532490861851.png)
+
+现在看到的依然是静态的数据。我们接下来开始页面的渲染
+
+
+
+## 1.4.封装模型数据
+
+首先我们一起来分析一下，在这个页面中需要哪些数据
+
+我们已知的条件是传递来的spu的id，我们需要根据spu的id查询到下面的数据：
+
+- spu信息
+- spu的详情
+- spu下的所有sku
+- 品牌
+- 商品三级分类
+- 商品规格参数、规格参数组
+
+
+
+### 1.4.1.商品微服务提供接口
+
+#### 1.4.1.1.查询spu
+
+以上所需数据中，查询spu的接口目前还没有，我们需要在商品微服务中提供这个接口：
+
+> GoodsApi
+
+```java
+/**
+ * 根据spu的id查询spu
+ * @param id
+ * @return
+ */
+@GetMapping("spu/{id}")
+public Spu querySpuById(@PathVariable("id") Long id);
+```
+
+> GoodsController
+
+```java
+@GetMapping("spu/{id}")
+public ResponseEntity<Spu> querySpuById(@PathVariable("id") Long id){
+    Spu spu = this.goodsService.querySpuById(id);
+    if(spu == null){
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    return ResponseEntity.ok(spu);
+}
+```
+
+> GoodsService
+
+```java
+public Spu querySpuById(Long id) {
+    return this.spuMapper.selectByPrimaryKey(id);
+}
+```
+
+
+
+#### 1.4.1.2.查询规格参数组
+
+我们在页面展示规格时，需要按组展示：
+
+![1532496187812](/images/leyou/1532496187812.png)
+
+组内有多个参数，为了方便展示。我们提供一个接口，查询规格组，同时在规格组中持有组内的所有参数。
+
+> 拓展`SpecGroup`类：
+
+我们在`SpecGroup`中添加一个`SpecParam`的集合，保存改组下所有规格参数
+
+```java
+@Table(name = "tb_spec_group")
+public class SpecGroup {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private Long cid;
+
+    private String name;
+
+    @Transient
+    private List<SpecParam> params; // 该组下的所有规格参数集合
+}
+```
+
+然后提供查询接口：
+
+> SpecificationAPI：
+
+```java
+@RequestMapping("spec")
+public interface SpecificationApi {
+    @GetMapping("groups/{cid}")
+    public ResponseEntity<List<SpecGroup>> querySpecGroups(@PathVariable("cid") Long cid);
+
+    @GetMapping("/params")
+    public List<SpecParam> querySpecParam(
+            @RequestParam(value = "gid", required = false) Long gid,
+            @RequestParam(value = "cid", required = false) Long cid,
+            @RequestParam(value = "searching", required = false) Boolean searching,
+            @RequestParam(value = "generic", required = false) Boolean generic);
+
+    // 查询规格参数组，及组内参数
+    @GetMapping("{cid}")
+    List<SpecGroup> querySpecsByCid(@PathVariable("cid") Long cid);
+
+}
+```
+
+> SpecificationController
+
+```java
+@GetMapping("{cid}")
+public ResponseEntity<List<SpecGroup>> querySpecsByCid(@PathVariable("cid") Long cid){
+    List<SpecGroup> list = this.specificationService.querySpecsByCid(cid);
+    if(list == null || list.size() == 0){
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    return ResponseEntity.ok(list);
+}
+```
+
+> SpecificationService
+
+```java
+public List<SpecGroup> querySpecsByCid(Long cid) {
+    // 查询规格组
+    List<SpecGroup> groups = this.querySpecGroups(cid);
+    SpecParam param = new SpecParam();
+    groups.forEach(g -> {
+        // 查询组内参数
+        g.setParams(this.querySpecParams(g.getId(), null, null, null));
+    });
+    return groups;
+}
+```
+
+在service中，我们调用之前编写过的方法，查询规格组，和规格参数，然后封装返回。
+
+
+
+### 1.4.2.创建FeignClient
+
+我们在`leyou-goods-web`服务中，创建FeignClient：
+
+ ![1529916126099](/images/leyou/1529916126099.png)
+
+BrandClient：
+
+```java
+@FeignClient("item-service")
+public interface BrandClient extends BrandApi {
+}
+```
+
+CategoryClient
+
+```java
+@FeignClient("item-service")
+public interface CategoryClient extends CategoryApi {
+}
+```
+
+GoodsClient:
+
+```java
+@FeignClient("item-service")
+public interface GoodsClient extends GoodsApi {
+}
+```
+
+SpecificationClient：
+
+```java
+@FeignClient(value = "item-service")
+public interface SpecificationClient extends SpecificationApi{
+}
+```
+
+
+
+### 1.4.3.封装数据模型
+
+我们创建一个GoodsService，在里面来封装数据模型。
+
+这里要查询的数据：
+
+- SPU
+
+- SpuDetail
+
+- SKU集合
+
+- 商品分类
+
+  - 这里值需要分类的id和name就够了，因此我们查询到以后自己需要封装数据
+
+- 品牌
+
+- 规格组
+
+  - 查询规格组的时候，把规格组下所有的参数也一并查出，上面提供的接口中已经实现该功能，我们直接调
+
+- sku的特有规格参数
+
+  有了规格组，为什么这里还要查询？
+
+  因为在SpuDetail中的SpecialSpec中，是以id作为规格参数id作为key，如图：
+
+  ![1532499905549](/images/leyou/1532499905549.png)
+
+  但是，在页面渲染时，需要知道参数的名称，如图：
+
+   ![1529922667759](/images/leyou/1529922667759.png)
+
+  我们就需要把id和name一一对应起来，因此需要额外查询sku的特有规格参数，然后变成一个id:name的键值对格式。也就是一个Map，方便将来根据id查找！
+
+
+
+> Service代码
+
+```java
+@Service
+public class GoodsService {
+
+    @Autowired
+    private GoodsClient goodsClient;
+
+    @Autowired
+    private BrandClient brandClient;
+
+    @Autowired
+    private CategoryClient categoryClient;
+
+    @Autowired
+    private SpecificationClient specificationClient;
+
+    private static final Logger logger = LoggerFactory.getLogger(GoodsService.class);
+
+    public Map<String, Object> loadModel(Long spuId){
+
+        try {
+            // 查询spu
+            Spu spu = this.goodsClient.querySpuById(spuId);
+
+            // 查询spu详情
+            SpuDetail spuDetail = this.goodsClient.querySpuDetailById(spuId);
+
+            // 查询sku
+            List<Sku> skus = this.goodsClient.querySkuBySpuId(spuId);
+
+            // 查询品牌
+            List<Brand> brands = this.brandClient.queryBrandByIds(Arrays.asList(spu.getBrandId()));
+
+            // 查询分类
+            List<Category> categories = getCategories(spu);
+
+            // 查询组内参数
+            List<SpecGroup> specGroups = this.specificationClient.querySpecsByCid(spu.getCid3());
+
+            // 查询所有特有规格参数
+            List<SpecParam> specParams = this.specificationClient.querySpecParam(null, spu.getCid3(), null, false);
+            // 处理规格参数
+            Map<Long, String> paramMap = new HashMap<>();
+            specParams.forEach(param->{
+                paramMap.put(param.getId(), param.getName());
+            });
+
+            Map<String, Object> map = new HashMap<>();
+            map.put("spu", spu);
+            map.put("spuDetail", spuDetail);
+            map.put("skus", skus);
+            map.put("brand", brands.get(0));
+            map.put("categories", categories);
+            map.put("groups", specGroups);
+            map.put("params", paramMap);
+            return map;
+        } catch (Exception e) {
+            logger.error("加载商品数据出错,spuId:{}", spuId, e);
+        }
+        return null;
+    }
+
+    private List<Category> getCategories(Spu spu) {
+        try {
+            List<String> names = this.categoryClient.queryNameByIds(
+                    Arrays.asList(spu.getCid1(), spu.getCid2(), spu.getCid3()));
+            Category c1 = new Category();
+            c1.setName(names.get(0));
+            c1.setId(spu.getCid1());
+
+            Category c2 = new Category();
+            c2.setName(names.get(1));
+            c2.setId(spu.getCid2());
+
+            Category c3 = new Category();
+            c3.setName(names.get(2));
+            c3.setId(spu.getCid3());
+
+            return Arrays.asList(c1, c2, c3);
+        } catch (Exception e) {
+            logger.error("查询商品分类出错，spuId：{}", spu.getId(), e);
+        }
+        return null;
+    }
+}
+```
+
+
+
+然后在controller中把数据放入model：
+
+```java
+@Controller
+@RequestMapping("item")
+public class GoodsController {
+
+    @Autowired
+    private GoodsService goodsService;
+    /**
+     * 跳转到商品详情页
+     * @param model
+     * @param id
+     * @return
+     */
+    @GetMapping("{id}.html")
+    public String toItemPage(Model model, @PathVariable("id")Long id){
+        // 加载所需的数据
+        Map<String, Object> modelMap = this.goodsService.loadModel(id);
+        // 放入模型
+        model.addAllAttributes(modelMap);
+        return "item";
+    }
+}
+```
+
+### 1.4.4.页面测试数据
+
+我们在页面中先写一段JS，把模型中的数据取出观察，看是否成功：
+
+```html
+<script th:inline="javascript">
+    const a = /*[[${groups}]]*/ [];
+    const b = /*[[${params}]]*/ [];
+    const c = /*[[${categories}]]*/ [];
+    const d = /*[[${spu}]]*/ {};
+    const e = /*[[${spuDetail}]]*/ {};
+    const f = /*[[${skus}]]*/ [];
+    const g = /*[[${brand}]]*/ {};
+</script>
+```
+
+然后查看页面源码：
+
+![1532509946463](/images/leyou/1532509946463.png)
+
+数据都成功查到了！
+
+
+
+## 1.5.渲染面包屑
+
+在商品展示页的顶部，有一个商品分类、品牌、标题的面包屑
+
+ ![1526978423084](/images/leyou/1526978423084.png)
+
+其数据有3部分：
+
+- 商品分类
+- 商品品牌
+- spu标题
+
+我们的模型中都有，所以直接渲染即可（页面101行开始）：
+
+```html
+<div class="crumb-wrap">
+    <ul class="sui-breadcrumb">
+        <li th:each="category : ${categories}">
+            <a href="#" th:text="${category.name}">手机</a>
+        </li>
+        <li>
+            <a href="#" th:text="${brand.name}">Apple</a>
+        </li>
+        <li class="active" th:text="${spu.title}">Apple iPhone 6s</li>
+    </ul>
+</div>
+```
+
+
+
+## 1.6.渲染商品列表
+
+先看下整体效果：
+
+![1526979330657](/images/leyou/1526979330657.png)
+
+这个部分需要渲染的数据有5块：
+
+- sku图片
+- sku标题
+- 副标题
+- sku价格
+- 特有规格属性列表
+
+其中，sku 的图片、标题、价格，都必须在用户选中一个具体sku后，才能渲染。而特有规格属性列表可以在spuDetail中查询到。而副标题则是在spu中，直接可以在页面渲染
+
+因此，我们先对特有规格属性列表进行渲染。等用户选择一个sku，再通过js对其它sku属性渲染
+
+### 1.6.1.副标题
+
+副标题是在spu中，所以我们直接通过Thymeleaf渲染：
+
+在第146行左右：
+
+```html
+<div class="news"><span th:utext="${spu.subTitle}"></span></div>
+```
+
+副标题中可能会有超链接，因此这里也用`th:utext`来展示，效果：
+
+ ![1526980061592](/images/leyou/1526980061592.png)
+
+### 1.6.2.渲染规格属性列表
+
+规格属性列表将来会有事件和动态效果。我们需要有js代码参与，不能使用Thymeleaf来渲染了。
+
+因此，这里我们用vue，不过需要先把数据放到js对象中，方便vue使用
+
+#### 初始化数据
+
+我们在页面的`head`中，定义一个js标签，然后在里面定义变量，保存与sku相关的一些数据：
+
+```html
+<script th:inline="javascript">
+    // sku集合
+    const skus = /*[[${skus}]]*/ [];
+    // 规格参数id与name对
+	const paramMap = /*[[${params}]]*/ {};
+    // 特有规格参数集合
+    const specialSpec = JSON.parse(/*[[${spuDetail.specialSpec}]]*/ "");
+</script>
+```
+
+- specialSpec：这是SpuDetail中唯一与Sku相关的数据
+
+  因此我们并没有保存整个spuDetail，而是只保留了这个属性，而且需要手动转为js对象。
+
+- paramMap：规格参数的id和name对，方便页面根据id获取参数名
+
+- sku：特有规格参数集合
+
+我们来看下页面获取的数据：
+
+![1529923363960](/images/leyou/1529923363960.png)
+
+
+
+#### 通过Vue渲染
+
+我们把刚才获得的几个变量保存在Vue实例中：
+
+![1532531501925](/images/leyou/1532531501925.png)
+
+然后在页面中渲染：
+
+```html
+<div id="specification" class="summary-wrap clearfix">
+    <dl v-for="(v,k) in specialSpec" :key="k">
+        <dt>
+            <div class="fl title">
+                <i>{{paramMap[k]}}</i>
+            </div>
+        </dt>
+        <dd v-for="(str,j) in v" :key="j">
+            <a href="javascript:;" class="selected">
+                {{str}}<span title="点击取消选择">&nbsp;</span>
+            </a>
+        </dd>
+    </dl>
+</div>
+```
+
+然后刷新页面查看：
+
+![1532531590626](/images/leyou/1532531590626.png)
+
+数据成功渲染了。不过我们发现所有的规格都被勾选了。这是因为现在，每一个规格都有样式：`selected`，我们应该只选中一个，让它的class样式为selected才对！
+
+
+
+那么问题来了，我们该如何确定用户选择了哪一个？
+
+
+
+### 1.6.3.规格属性的筛选
+
+#### 分析
+
+规格参数的格式是这样的：
+
+ ![1529923584730](/images/leyou/1529923584730.png)
+
+每一个规格项是数组中的一个元素，因此我们只要保存被选择的规格项的索引，就能判断哪个是用户选择的了！
+
+我们需要一个对象来保存用户选择的索引，格式如下：
+
+```js
+{
+    "4":0,
+    "12":0,
+    "13":0
+}
+```
+
+但问题是，第一次进入页面时，用户并未选择任何参数。因此索引应该有一个默认值，我们将默认值设置为0。
+
+我们在`head`的script标签中，对索引对象进行初始化：
+
+ ![1529923658242](H:/images/leyou/1529923658242.png)
+
+然后在vue中保存：
+
+ ![1529923701283](/images/leyou/1529923701283.png)
+
+#### 页面改造
+
+我们在页面中，通过判断indexes的值来判断当前规格是否被选中，并且给规格绑定点击事件，点击规格项后，修改indexes中的对应值：
+
+```html
+<div id="specification" class="summary-wrap clearfix">
+    <dl v-for="(v,k) in specialSpec" :key="k">
+        <dt>
+            <div class="fl title">
+                <i>{{paramMap[k]}}</i>
+            </div>
+        </dt>
+        <dd v-for="(str,j) in v" :key="j">
+            <a href="javascript:;" :class="{selected: j===indexes[k]}" @click="indexes[k]=j">
+                {{str}}<span v-if="j===indexes[k]" title="点击取消选择">&nbsp;</span>
+            </a>
+        </dd>
+    </dl>
+</div>
+```
+
+
+
+效果：
+
+![1532533192037](/images/leyou/1532533192037.png)
+
+
+
+### 1.6.4.确定SKU
+
+在我们设计sku数据的时候，就已经添加了一个字段：indexes：
+
+![1532533286400](/images/leyou/1532533286400.png)
+
+这其实就是规格参数的索引组合。
+
+而我们在页面中，用户点击选择规格后，就会把对应的索引保存起来：
+
+![1532533340274](/images/leyou/1532533340274.png)
+
+因此，我们可以根据这个indexes来确定用户要选择的sku
+
+我们在vue中定义一个**计算属性**，来计算与索引匹配的sku：
+
+```js
+computed:{
+    sku(){
+        const index = Object.values(this.indexes).join("_");
+        return this.skus.find(s => s.indexes = index);
+    }
+}
+```
+
+在浏览器工具中查看：
+
+![1532533876765](/images/leyou/1532533876765.png)
+
+
+
+### 1.6.5.渲染sku列表
+
+既然已经拿到了用户选中的sku，接下来，就可以在页面渲染数据了
+
+#### 图片列表
+
+商品图片是一个字符串，以`,`分割，页面展示比较麻烦，所以我们编写一个**计算属性**:images()，将图片字符串变成数组：
+
+```js
+computed: {
+    sku(){
+        const index = Object.values(this.indexes).join("_");
+        return this.skus.find(s=>s.indexes==index);
+    },
+    images(){
+        return this.sku.images ? this.sku.images.split(",") : [''];
+    }
+},
+```
+
+
+
+页面改造：
+
+```html
+<div class="zoom">
+   <!--默认第一个预览-->
+   <div id="preview" class="spec-preview">
+      <span class="jqzoom">
+         <img :jqimg="images[0]" :src="images[0]" width="400px" height="400px"/>
+      </span>
+   </div>
+   <!--下方的缩略图-->
+   <div class="spec-scroll">
+      <a class="prev">&lt;</a>
+      <!--左右按钮-->
+      <div class="items">
+         <ul>
+            <li v-for="(image, i) in images" :key="i">
+               <img :src="image" :bimg="image" onmousemove="preview(this)" />
+            </li>
+         </ul>
+      </div>
+      <a class="next">&gt;</a>
+   </div>
+</div>
+```
+
+效果：
+
+ ![1526985783938](/images/leyou/1526985783938.png)
+
+
+
+#### 标题和价格
+
+ ![1526985959427](/images/leyou/1526985959427.png)
+
+
+
+#### 完整效果
+
+![1532535748931](/images/leyou/1532535748931.png)
+
+
+
+## 1.7.商品详情
+
+商品详情页面如下图所示：
+
+![1526988361312](/images/leyou/1526988361312.png)
+
+分成上下两部分：
+
+- 上部：展示的是规格属性列表
+- 下部：展示的是商品详情
+
+
+
+### 1.7.1.属性列表（作业）
+
+这部分内容与规格参数部分重复，我就不带大家做了，大家可以自己完成
+
+
+
+### 1.7.2.商品详情
+
+商品详情是HTML代码，我们不能使用 `th:text`，应该使用`th:utext`
+
+在页面的第444行左右：
+
+```html
+<!--商品详情-->
+<div class="intro-detail" th:utext="${spuDetail.description}">
+</div>
+```
+
+最终展示效果：
+
+![1532536101914](/images/leyou/1532536101914.png)
+
+
+
+
+
+## 1.8.规格包装：
+
+规格包装分成两部分：
+
+- 规格参数
+- 包装列表
+
+而且规格参数需要按照组来显示
+
+### 1.8.1.规格参数
+
+最终的效果：
+
+![1532536238386](/images/leyou/1532536238386.png)
+
+
+
+我们模型中有一个groups，跟这个数据结果很像：
+
+ ![1529924049003](/images/leyou/1529924049003.png)
+
+分成8个组，组内都有params，里面是所有的参数。不过，这些参数都没有值！
+
+规格参数的值分为两部分：
+
+- 通用规格参数：保存在SpuDetail中的genericSpec中
+- 特有规格参数：保存在sku的ownSpec中
+
+我们需要把这两部分值取出来，放到groups中。
+
+
+
+从spuDetail中取出genericSpec并取出groups：
+
+![1532537802576](/images/leyou/1532537802576.png)
+
+把genericSpec引入到Vue实例：
+
+![1532537863801](/images/leyou/1532537863801.png)
+
+
+
+因为sku是动态的，所以我们编写一个**计算属性**，来进行值的组合：
+
+```js
+groups(){
+    groups.forEach(group => {
+        group.params.forEach(param => {
+            if(param.generic){
+                // 通用属性，去spu的genericSpec中获取
+                param.v = this.genericSpec[param.id] || '其它';
+            }else{
+                // 特有属性值，去SKU中获取
+                param.v = JSON.parse(this.sku.ownSpec)[param.id]
+            }
+        })
+    })
+    return groups;
+}
+```
+
+然后在页面渲染：
+
+```html
+<div class="Ptable">
+    <div class="Ptable-item" v-for="group in groups" :key="group.name">
+        <h3>{{group.name}}</h3>
+        <dl>
+            <div v-for="p in group.params">
+                <dt>{{p.name}}</dt><dd>{{p.v + (p.unit || '')}}</dd>
+            </div>
+        </dl>
+    </div>
+</div>
+```
+
+### 1.8.2.包装列表
+
+包装列表在商品详情中，我们一开始并没有赋值到Vue实例中，但是可以通过Thymeleaf来渲染
+
+```html
+<div class="package-list">
+    <h3>包装清单</h3>
+    <p th:text="${spuDetail.packingList}"></p>
+</div>
+```
+
+
+
+最终效果：
+
+![1532538150603](/images/leyou/1532538150603.png)
+
+![1532538178543](/images/leyou/1532538178543.png)
+
+
+
+## 1.9.售后服务
+
+售后服务也可以通过Thymeleaf进行渲染：
+
+```html
+<div id="three" class="tab-pane">
+    <p>售后保障</p>
+    <p th:text="${spuDetail.afterService}"></p>
+</div>
+```
+
+效果：
+
+![1532538249704](/images/leyou/1532538249704.png)
+
+
+
+# 2.页面静态化
+
+## 2.1.简介
+
+### 2.1.1.问题分析
+
+现在，我们的页面是通过Thymeleaf模板引擎渲染后返回到客户端。在后台需要大量的数据查询，而后渲染得到HTML页面。会对数据库造成压力，并且请求的响应时间过长，并发能力不高。
+
+大家能想到什么办法来解决这个问题？
+
+首先我们能想到的就是缓存技术，比如之前学习过的Redis。不过Redis适合数据规模比较小的情况。假如数据量比较大，例如我们的商品详情页。每个页面如果10kb，100万商品，就是10GB空间，对内存占用比较大。此时就给缓存系统带来极大压力，如果缓存崩溃，接下来倒霉的就是数据库了。
+
+所以缓存并不是万能的，某些场景需要其它技术来解决，比如静态化。
+
+### 2.1.2.什么是静态化
+
+静态化是指把动态生成的HTML页面变为静态内容保存，以后用户的请求到来，直接访问静态页面，不再经过服务的渲染。
+
+而静态的HTML页面可以部署在nginx中，从而大大提高并发能力，减小tomcat压力。
+
+
+
+### 2.1.3.如何实现静态化
+
+目前，静态化页面都是通过模板引擎来生成，而后保存到nginx服务器来部署。常用的模板引擎比如：
+
+- Freemarker
+- Velocity
+- Thymeleaf
+
+我们之前就使用的Thymeleaf，来渲染html返回给用户。Thymeleaf除了可以把渲染结果写入Response，也可以写到本地文件，从而实现静态化。
+
+## 2.2.Thymeleaf实现静态化
+
+### 2.2.1.概念
+
+先说下Thymeleaf中的几个概念：
+
+- Context：运行上下文
+- TemplateResolver：模板解析器
+- TemplateEngine：模板引擎
+
+> Context
+
+上下文： 用来保存模型数据，当模板引擎渲染时，可以从Context上下文中获取数据用于渲染。
+
+当与SpringBoot结合使用时，我们放入Model的数据就会被处理到Context，作为模板渲染的数据使用。
+
+> TemplateResolver
+
+模板解析器：用来读取模板相关的配置，例如：模板存放的位置信息，模板文件名称，模板文件的类型等等。
+
+当与SpringBoot结合时，TemplateResolver已经由其创建完成，并且各种配置也都有默认值，比如模板存放位置，其默认值就是：templates。比如模板文件类型，其默认值就是html。
+
+> TemplateEngine
+
+模板引擎：用来解析模板的引擎，需要使用到上下文、模板解析器。分别从两者中获取模板中需要的数据，模板文件。然后利用内置的语法规则解析，从而输出解析后的文件。来看下模板引擎进行处理的函数：
+
+```java
+templateEngine.process("模板名", context, writer);
+```
+
+三个参数：
+
+- 模板名称
+- 上下文：里面包含模型数据
+- writer：输出目的地的流
+
+在输出时，我们可以指定输出的目的地，如果目的地是Response的流，那就是网络响应。如果目的地是本地文件，那就实现静态化了。
+
+而在SpringBoot中已经自动配置了模板引擎，因此我们不需要关心这个。现在我们做静态化，就是把输出的目的地改成本地文件即可！
+
+### 2.2.2.具体实现
+
+ ![1532757937331](/images/leyou/1532757937331.png)
+
+Service代码：
+
+```java
+@Service
+public class GoodsHtmlService {
+
+    @Autowired
+    private GoodsService goodsService;
+
+    @Autowired
+    private TemplateEngine templateEngine;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GoodsHtmlService.class);
+
+    /**
+     * 创建html页面
+     *
+     * @param spuId
+     * @throws Exception
+     */
+    public void createHtml(Long spuId) {
+
+        PrintWriter writer = null;
+        try {
+            // 获取页面数据
+            Map<String, Object> spuMap = this.goodsService.loadModel(spuId);
+
+            // 创建thymeleaf上下文对象
+            Context context = new Context();
+            // 把数据放入上下文对象
+            context.setVariables(spuMap);
+
+            // 创建输出流
+            File file = new File("C:\\project\\nginx-1.14.0\\html\\item\\" + spuId + ".html");
+            writer = new PrintWriter(file);
+
+            // 执行页面静态化方法
+            templateEngine.process("item", context, writer);
+        } catch (Exception e) {
+            LOGGER.error("页面静态化出错：{}，"+ e, spuId);
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
+    }
+
+    /**
+     * 新建线程处理页面静态化
+     * @param spuId
+     */
+    public void asyncExcute(Long spuId) {
+        ThreadUtils.execute(()->createHtml(spuId));
+        /*ThreadUtils.execute(new Runnable() {
+            @Override
+            public void run() {
+                createHtml(spuId);
+            }
+        });*/
+    }
+}
+```
+
+线程工具类：
+
+```java
+public class ThreadUtils {
+
+    private static final ExecutorService es = Executors.newFixedThreadPool(10);
+
+    public static void execute(Runnable runnable) {
+        es.submit(runnable);
+    }
+}
+```
+
+### 2.2.3.什么时候创建静态文件
+
+我们编写好了创建静态文件的service，那么问题来了：什么时候去调用它呢
+
+想想这样的场景：
+
+假如大部分的商品都有了静态页面。那么用户的请求都会被nginx拦截下来，根本不会到达我们的`leyou-goods-web`服务。只有那些还没有页面的请求，才可能会到达这里。
+
+因此，如果请求到达了这里，我们除了返回页面视图外，还应该创建一个静态页面，那么下次就不会再来麻烦我们了。
+
+所以，我们在GoodsController中添加逻辑，去生成静态html文件：
+
+```java
+@GetMapping("{id}.html")
+public String toItemPage(@PathVariable("id")Long id, Model model){
+
+    // 加载所需的数据
+    Map<String, Object> map = this.goodsService.loadModel(id);
+    // 把数据放入数据模型
+    model.addAllAttributes(map);
+
+    // 页面静态化
+    this.goodsHtmlService.asyncExcute(id);
+
+    return "item";
+}
+```
+
+注意：生成html 的代码不能对用户请求产生影响，所以这里我们使用额外的线程进行异步创建。
+
+
+
+### 2.2.4.重启测试：
+
+访问一个商品详情，然后查看nginx目录：
+
+![1532757980379](/images/leyou/1532757980379.png)
+
+
+
+## 2.3.nginx代理静态页面
+
+接下来，我们修改nginx，让它对商品请求进行监听，指向本地静态页面，如果本地没找到，才进行反向代理：
+
+```nginx
+server {
+    listen       80;
+    server_name  www.leyou.com;
+
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Server $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+    location /item {
+        # 先找本地
+        root html;
+        if (!-f $request_filename) { #请求的文件不存在，就反向代理
+            proxy_pass http://127.0.0.1:8084;
+            break;
+        }
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:9002;
+        proxy_connect_timeout 600;
+        proxy_read_timeout 600;
+    }
+}
+```
+
+重启测试：
+
+发现请求速度得到了极大提升：
+
+![1532758206086](/images/leyou/1532758206086.png)
+---
+layout: post
+title:  rabbitmq及数据同步
+categories: 乐优
+description: rabbitmq及数据同步
+keywords: 乐优
+---
+# 0.学习目标
+
+- 了解常见的MQ产品
+- 了解RabbitMQ的5种消息模型
+- 会使用Spring AMQP
+- 利用MQ实现搜索和静态页的数据同步
+
+
+
+
+
+# 1.RabbitMQ
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 1.1.搜索与商品服务的问题
+
+目前我们已经完成了商品详情和搜索系统的开发。我们思考一下，是否存在问题？
+
+- 商品的原始数据保存在数据库中，增删改查都在数据库中完成。
+- 搜索服务数据来源是索引库，如果数据库商品发生变化，索引库数据不能及时更新。
+- 商品详情做了页面静态化，静态页面数据也不会随着数据库商品发生变化。
+
+如果我们在后台修改了商品的价格，搜索页面和商品详情页显示的依然是旧的价格，这样显然不对。该如何解决？
+
+
+
+这里有两种解决方案：
+
+- 方案1：每当后台对商品做增删改操作，同时要修改索引库数据及静态页面
+- 方案2：搜索服务和商品页面服务对外提供操作接口，后台在商品增删改后，调用接口
+
+
+
+以上两种方式都有同一个严重问题：就是代码耦合，后台服务中需要嵌入搜索和商品页面服务，违背了微服务的`独立`原则。
+
+所以，我们会通过另外一种方式来解决这个问题：消息队列
+
+
+
+## 1.2.消息队列（MQ）
+
+### 1.2.1.什么是消息队列
+
+消息队列，即MQ，Message Queue。
+
+![1527063872737](/images/leyou/1527063872737.png)
+
+
+
+消息队列是典型的：生产者、消费者模型。生产者不断向消息队列中生产消息，消费者不断的从队列中获取消息。因为消息的生产和消费都是异步的，而且只关心消息的发送和接收，没有业务逻辑的侵入，这样就实现了生产者和消费者的解耦。
+
+结合前面所说的问题：
+
+- 商品服务对商品增删改以后，无需去操作索引库或静态页面，只是发送一条消息，也不关心消息被谁接收。
+- 搜索服务和静态页面服务接收消息，分别去处理索引库和静态页面。
+
+如果以后有其它系统也依赖商品服务的数据，同样监听消息即可，商品服务无需任何代码修改。
+
+
+
+### 1.2.2.AMQP和JMS
+
+MQ是消息通信的模型，并不是具体实现。现在实现MQ的有两种主流方式：AMQP、JMS。
+
+![1527064480681](/images/leyou/1527064480681.png)
+
+![1527064487042](/images/leyou/1527064487042.png)
+
+
+
+两者间的区别和联系：
+
+- JMS是定义了统一的接口，来对消息操作进行统一；AMQP是通过规定协议来统一数据交互的格式
+- JMS限定了必须使用Java语言；AMQP只是协议，不规定实现方式，因此是跨语言的。
+- JMS规定了两种消息模型；而AMQP的消息模型更加丰富
+
+
+
+### 1.2.3.常见MQ产品
+
+![1527064606029](/images/leyou/1527064606029.png)
+
+- ActiveMQ：基于JMS
+- RabbitMQ：基于AMQP协议，erlang语言开发，稳定性好
+- RocketMQ：基于JMS，阿里巴巴产品，目前交由Apache基金会
+- Kafka：分布式消息系统，高吞吐量
+
+
+
+### 1.2.4.RabbitMQ
+
+RabbitMQ是基于AMQP的一款消息管理系统
+
+官网： http://www.rabbitmq.com/
+
+官方教程：http://www.rabbitmq.com/getstarted.html
+
+![1532758972119](/images/leyou/1532758972119.png)
+
+
+
+ ![1527064762982](/images/leyou/1527064762982.png)
+
+
+
+## 1.3.下载和安装
+
+### 1.3.1.下载
+
+官网下载地址：http://www.rabbitmq.com/download.html
+
+![1532759070767](/images/leyou/1532759070767.png)
+
+目前最新版本是：3.7.5
+
+我们的课程中使用的是：3.4.1版本
+
+课前资料提供了安装包：
+
+![1532761948333](/images/leyou/1532761948333.png)
+
+### 1.3.2.安装
+
+详见课前资料中的：
+
+![1532761916357](/images/leyou/1532761916357.png)
+
+# 2.五种消息模型
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+RabbitMQ提供了6种消息模型，但是第6种其实是RPC，并不是MQ，因此不予学习。那么也就剩下5种。
+
+但是其实3、4、5这三种都属于订阅模型，只不过进行路由的方式不同。
+
+![1527068544487](/images/leyou/1527068544487.png)
+
+
+
+我们通过一个demo工程来了解下RabbitMQ的工作方式：
+
+导入工程：
+
+![1532762038694](/images/leyou/1532762038694.png)
+
+导入后：
+
+ ![1532762308507](/images/leyou/1532762308507.png)
+
+依赖：
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>cn.itcast.rabbitmq</groupId>
+	<artifactId>itcast-rabbitmq</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.0.2.RELEASE</version>
+	</parent>
+	<properties>
+		<java.version>1.8</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-amqp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+		</dependency>
+	</dependencies>
+</project>
+```
+
+我们抽取一个建立RabbitMQ连接的工具类，方便其他程序获取连接：
+
+```java
+public class ConnectionUtil {
+    /**
+     * 建立与RabbitMQ的连接
+     * @return
+     * @throws Exception
+     */
+    public static Connection getConnection() throws Exception {
+        //定义连接工厂
+        ConnectionFactory factory = new ConnectionFactory();
+        //设置服务地址
+        factory.setHost("192.168.56.101");
+        //端口
+        factory.setPort(5672);
+        //设置账号信息，用户名、密码、vhost
+        factory.setVirtualHost("/leyou");
+        factory.setUsername("leyou");
+        factory.setPassword("leyou");
+        // 通过工程获取连接
+        Connection connection = factory.newConnection();
+        return connection;
+    }
+}
+```
+
+
+
+## 2.1.基本消息模型
+
+官方介绍：
+
+ ![1532762961149](/images/leyou/1532762961149.png)
+
+RabbitMQ是一个消息代理：它接受和转发消息。 你可以把它想象成一个邮局：当你把邮件放在邮箱里时，你可以确定邮差先生最终会把邮件发送给你的收件人。 在这个比喻中，RabbitMQ是邮政信箱，邮局和邮递员。
+
+RabbitMQ与邮局的主要区别是它不处理纸张，而是接受，存储和转发数据消息的二进制数据块。
+
+ ![1532762975546](/images/leyou/1532762975546.png)
+
+P（producer/ publisher）：生产者，一个发送消息的用户应用程序。
+
+C（consumer）：消费者，消费和接收有类似的意思，消费者是一个主要用来等待接收消息的用户应用程序
+
+队列（红色区域）：rabbitmq内部类似于邮箱的一个概念。虽然消息流经rabbitmq和你的应用程序，但是它们只能存储在队列中。队列只受主机的内存和磁盘限制，实质上是一个大的消息缓冲区。许多生产者可以发送消息到一个队列，许多消费者可以尝试从一个队列接收数据。
+
+总之：
+
+生产者将消息发送到队列，消费者从队列中获取消息，队列是存储消息的缓冲区。
+
+
+
+我们将用Java编写两个程序;发送单个消息的生产者，以及接收消息并将其打印出来的消费者。我们将详细介绍Java API中的一些细节，这是一个消息传递的“Hello World”。
+
+我们将调用我们的消息发布者（发送者）Send和我们的消息消费者（接收者）Recv。发布者将连接到RabbitMQ，发送一条消息，然后退出。
+
+### 2.1.1.生产者发送消息
+
+```java
+public class Send {
+
+    private final static String QUEUE_NAME = "simple_queue";
+
+    public static void main(String[] argv) throws Exception {
+        // 获取到连接以及mq通道
+        Connection connection = ConnectionUtil.getConnection();
+        // 从连接中创建通道，这是完成大部分API的地方。
+        Channel channel = connection.createChannel();
+
+        // 声明（创建）队列，必须声明队列才能够发送消息，我们可以把消息发送到队列中。
+        // 声明一个队列是幂等的 - 只有当它不存在时才会被创建
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+
+        // 消息内容
+        String message = "Hello World!";
+        channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
+        System.out.println(" [x] Sent '" + message + "'");
+
+        //关闭通道和连接
+        channel.close();
+        connection.close();
+    }
+}
+```
+
+控制台：
+
+![1532763328424](/images/leyou/1532763328424.png)
+
+### 2.1.2.管理工具中查看消息
+
+进入队列页面，可以看到新建了一个队列：simple_queue
+
+![1532763817830](/images/leyou/1532763817830.png)
+
+点击队列名称，进入详情页，可以查看消息：
+
+![1532763489858](/images/leyou/1532763489858.png)
+
+在控制台查看消息并不会将消息消费，所以消息还在。
+
+
+
+### 2.1.3.消费者获取消息
+
+```java
+public class Recv {
+    private final static String QUEUE_NAME = "simple_queue";
+
+    public static void main(String[] argv) throws Exception {
+        // 获取到连接
+        Connection connection = ConnectionUtil.getConnection();
+        // 创建通道
+        Channel channel = connection.createChannel();
+        // 声明队列
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        // 定义队列的消费者
+        DefaultConsumer consumer = new DefaultConsumer(channel) {
+            // 获取消息，并且处理，这个方法类似事件监听，如果有消息的时候，会被自动调用
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties,
+                    byte[] body) throws IOException {
+                // body 即消息体
+                String msg = new String(body);
+                System.out.println(" [x] received : " + msg + "!");
+            }
+        };
+        // 监听队列，第二个参数：是否自动进行消息确认。
+        channel.basicConsume(QUEUE_NAME, true, consumer);
+    }
+}
+```
+
+控制台：
+
+![1532763733443](/images/leyou/1532763733443.png)
+
+这个时候，队列中的消息就没了：
+
+![1532763773208](/images/leyou/1532763773208.png)
+
+我们发现，消费者已经获取了消息，但是程序没有停止，一直在监听队列中是否有新的消息。一旦有新的消息进入队列，就会立即打印.
+
+
+
+### 2.1.4.消息确认机制（ACK）
+
+通过刚才的案例可以看出，消息一旦被消费者接收，队列中的消息就会被删除。
+
+那么问题来了：RabbitMQ怎么知道消息被接收了呢？
+
+如果消费者领取消息后，还没执行操作就挂掉了呢？或者抛出了异常？消息消费失败，但是RabbitMQ无从得知，这样消息就丢失了！
+
+因此，RabbitMQ有一个ACK机制。当消费者获取消息后，会向RabbitMQ发送回执ACK，告知消息已经被接收。不过这种回执ACK分两种情况：
+
+- 自动ACK：消息一旦被接收，消费者自动发送ACK
+- 手动ACK：消息接收后，不会发送ACK，需要手动调用
+
+大家觉得哪种更好呢？
+
+这需要看消息的重要性：
+
+- 如果消息不太重要，丢失也没有影响，那么自动ACK会比较方便
+- 如果消息非常重要，不容丢失。那么最好在消费完成后手动ACK，否则接收消息后就自动ACK，RabbitMQ就会把消息从队列中删除。如果此时消费者宕机，那么消息就丢失了。
+
+我们之前的测试都是自动ACK的，如果要手动ACK，需要改动我们的代码：
+
+```java
+public class Recv2 {
+    private final static String QUEUE_NAME = "simple_queue";
+
+    public static void main(String[] argv) throws Exception {
+        // 获取到连接
+        Connection connection = ConnectionUtil.getConnection();
+        // 创建通道
+        final Channel channel = connection.createChannel();
+        // 声明队列
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        // 定义队列的消费者
+        DefaultConsumer consumer = new DefaultConsumer(channel) {
+            // 获取消息，并且处理，这个方法类似事件监听，如果有消息的时候，会被自动调用
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties,
+                    byte[] body) throws IOException {
+                // body 即消息体
+                String msg = new String(body);
+                System.out.println(" [x] received : " + msg + "!");
+                // 手动进行ACK
+                channel.basicAck(envelope.getDeliveryTag(), false);
+            }
+        };
+        // 监听队列，第二个参数false，手动进行ACK
+        channel.basicConsume(QUEUE_NAME, false, consumer);
+    }
+}
+```
+
+注意到最后一行代码：
+
+```java
+channel.basicConsume(QUEUE_NAME, false, consumer);
+```
+
+如果第二个参数为true，则会自动进行ACK；如果为false，则需要手动ACK。方法的声明：
+
+![1532764253019](/images/leyou/1532764253019.png)
+
+
+
+#### 2.1.4.1.自动ACK存在的问题
+
+修改消费者，添加异常，如下：
+
+![1532764600849](/images/leyou/1532764600849.png)
+
+生产者不做任何修改，直接运行，消息发送成功：
+
+![1532764694290](/images/leyou/1532764694290.png)
+
+运行消费者，程序抛出异常。但是消息依然被消费：
+
+![1532764717995](/images/leyou/1532764717995.png)
+
+管理界面：
+
+![1532764734232](/images/leyou/1532764734232.png)
+
+ 
+
+#### 2.1.4.2.演示手动ACK
+
+修改消费者，把自动改成手动（去掉之前制造的异常）
+
+![1532764831241](/images/leyou/1532764831241.png)
+
+生产者不变，再次运行：
+
+![1532764895239](/images/leyou/1532764895239.png)
+
+运行消费者
+
+![1532764957092](/images/leyou/1532764957092.png)
+
+但是，查看管理界面，发现：
+
+![1532765013834](/images/leyou/1532765013834.png)
+
+停掉消费者的程序，发现：
+
+![1532765038088](/images/leyou/1532765038088.png)
+
+这是因为虽然我们设置了手动ACK，但是代码中并没有进行消息确认！所以消息并未被真正消费掉。
+
+当我们关掉这个消费者，消息的状态再次称为Ready
+
+ 
+
+修改代码手动ACK：
+
+![1532765123282](/images/leyou/1532765123282.png)
+
+执行：
+
+![1532765151039](/images/leyou/1532765151039.png)
+
+消息消费成功！
+
+
+
+## 2.2.work消息模型
+
+工作队列或者竞争消费者模式
+
+ ![1532765197277](/images/leyou/1532765197277.png)
+
+在第一篇教程中，我们编写了一个程序，从一个命名队列中发送并接受消息。在这里，我们将创建一个工作队列，在多个工作者之间分配耗时任务。
+
+工作队列，又称任务队列。主要思想就是避免执行资源密集型任务时，必须等待它执行完成。相反我们稍后完成任务，我们将任务封装为消息并将其发送到队列。 在后台运行的工作进程将获取任务并最终执行作业。当你运行许多工人时，任务将在他们之间共享，但是一个消息只能被一个消费者获取。
+
+这个概念在Web应用程序中特别有用，因为在短的HTTP请求窗口中无法处理复杂的任务。
+
+接下来我们来模拟这个流程：
+
+​    P：生产者：任务的发布者
+
+​    C1：消费者，领取任务并且完成任务，假设完成速度较快
+
+​    C2：消费者2：领取任务并完成任务，假设完成速度慢
+
+ 
+
+面试题：避免消息堆积？
+
+1） 采用workqueue，多个消费者监听同一队列。
+
+2）接收到消息以后，而是通过线程池，异步消费。
+
+ 
+
+### 2.2.1.生产者
+
+生产者与案例1中的几乎一样：
+
+```java
+public class Send {
+    private final static String QUEUE_NAME = "test_work_queue";
+
+    public static void main(String[] argv) throws Exception {
+        // 获取到连接
+        Connection connection = ConnectionUtil.getConnection();
+        // 获取通道
+        Channel channel = connection.createChannel();
+        // 声明队列
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        // 循环发布任务
+        for (int i = 0; i < 50; i++) {
+            // 消息内容
+            String message = "task .. " + i;
+            channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
+            System.out.println(" [x] Sent '" + message + "'");
+
+            Thread.sleep(i * 2);
+        }
+        // 关闭通道和连接
+        channel.close();
+        connection.close();
+    }
+}
+```
+
+不过这里我们是循环发送50条消息。
+
+### 2.2.2.消费者1
+
+![1527085386747](/images/leyou/1527085386747.png)
+
+### 2.2.3.消费者2
+
+![1527085448377](/images/leyou/1527085448377.png)
+
+与消费者1基本类似，就是没有设置消费耗时时间。
+
+这里是模拟有些消费者快，有些比较慢。
+
+
+
+接下来，两个消费者一同启动，然后发送50条消息：
+
+![1527085826462](/images/leyou/1527085826462.png)
+
+可以发现，两个消费者各自消费了25条消息，而且各不相同，这就实现了任务的分发。
+
+
+
+### 2.2.4.能者多劳
+
+刚才的实现有问题吗？
+
+- 消费者1比消费者2的效率要低，一次任务的耗时较长
+- 然而两人最终消费的消息数量是一样的
+- 消费者2大量时间处于空闲状态，消费者1一直忙碌
+
+现在的状态属于是把任务平均分配，正确的做法应该是消费越快的人，消费的越多。
+
+怎么实现呢？
+
+我们可以使用basicQos方法和prefetchCount = 1设置。 这告诉RabbitMQ一次不要向工作人员发送多于一条消息。 或者换句话说，不要向工作人员发送新消息，直到它处理并确认了前一个消息。 相反，它会将其分派给不是仍然忙碌的下一个工作人员。
+
+![1532765689904](/images/leyou/1532765689904.png)
+
+再次测试：
+
+![1527086159534](/images/leyou/1527086159534.png)
+
+
+
+## 2.3.订阅模型分类
+
+在之前的模式中，我们创建了一个工作队列。 工作队列背后的假设是：每个任务只被传递给一个工作人员。 在这一部分，我们将做一些完全不同的事情 - 我们将会传递一个信息给多个消费者。 这种模式被称为“发布/订阅”。 
+
+订阅模型示意图：
+
+ ![1527086284940](/images/leyou/1527086284940.png)
+
+解读：
+
+1、1个生产者，多个消费者
+
+2、每一个消费者都有自己的一个队列
+
+3、生产者没有将消息直接发送到队列，而是发送到了交换机
+
+4、每个队列都要绑定到交换机
+
+5、生产者发送的消息，经过交换机到达队列，实现一个消息被多个消费者获取的目的
+
+X（Exchanges）：交换机一方面：接收生产者发送的消息。另一方面：知道如何处理消息，例如递交给某个特别队列、递交给所有队列、或是将消息丢弃。到底如何操作，取决于Exchange的类型。
+
+Exchange类型有以下几种：
+
+​         Fanout：广播，将消息交给所有绑定到交换机的队列
+
+​         Direct：定向，把消息交给符合指定routing key 的队列
+
+​         Topic：通配符，把消息交给符合routing pattern（路由模式） 的队列
+
+我们这里先学习
+
+​	Fanout：即广播模式
+
+**Exchange（交换机）只负责转发消息，不具备存储消息的能力**，因此如果没有任何队列与Exchange绑定，或者没有符合路由规则的队列，那么消息会丢失！
+
+
+
+## 2.4.订阅模型-Fanout
+
+Fanout，也称为广播。
+
+流程图：
+
+ ![1527086564505](/images/leyou/1527086564505.png)
+
+在广播模式下，消息发送流程是这样的：
+
+- 1）  可以有多个消费者
+- 2）  每个**消费者有自己的queue**（队列）
+- 3）  每个**队列都要绑定到Exchange**（交换机）
+- 4）  **生产者发送的消息，只能发送到交换机**，交换机来决定要发给哪个队列，生产者无法决定。
+- 5）  交换机把消息发送给绑定过的所有队列
+- 6）  队列的消费者都能拿到消息。实现一条消息被多个消费者消费
+
+
+
+### 2.4.1.生产者
+
+两个变化：
+
+- 1）  声明Exchange，不再声明Queue
+- 2）  发送消息到Exchange，不再发送到Queue
+
+```java
+public class Send {
+
+    private final static String EXCHANGE_NAME = "fanout_exchange_test";
+
+    public static void main(String[] argv) throws Exception {
+        // 获取到连接
+        Connection connection = ConnectionUtil.getConnection();
+        // 获取通道
+        Channel channel = connection.createChannel();
+        
+        // 声明exchange，指定类型为fanout
+        channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
+        
+        // 消息内容
+        String message = "Hello everyone";
+        // 发布消息到Exchange
+        channel.basicPublish(EXCHANGE_NAME, "", null, message.getBytes());
+        System.out.println(" [生产者] Sent '" + message + "'");
+
+        channel.close();
+        connection.close();
+    }
+}
+```
+
+### 2.4.2.消费者1
+
+```java
+public class Recv {
+    private final static String QUEUE_NAME = "fanout_exchange_queue_1";
+
+    private final static String EXCHANGE_NAME = "fanout_exchange_test";
+
+    public static void main(String[] argv) throws Exception {
+        // 获取到连接
+        Connection connection = ConnectionUtil.getConnection();
+        // 获取通道
+        Channel channel = connection.createChannel();
+        // 声明队列
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+
+        // 绑定队列到交换机
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, "");
+
+        // 定义队列的消费者
+        DefaultConsumer consumer = new DefaultConsumer(channel) {
+            // 获取消息，并且处理，这个方法类似事件监听，如果有消息的时候，会被自动调用
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties,
+                    byte[] body) throws IOException {
+                // body 即消息体
+                String msg = new String(body);
+                System.out.println(" [消费者1] received : " + msg + "!");
+            }
+        };
+        // 监听队列，自动返回完成
+        channel.basicConsume(QUEUE_NAME, true, consumer);
+    }
+}
+```
+
+要注意代码中：**队列需要和交换机绑定**
+
+### 2.4.3.消费者2
+
+```java
+public class Recv2 {
+    private final static String QUEUE_NAME = "fanout_exchange_queue_2";
+
+    private final static String EXCHANGE_NAME = "fanout_exchange_test";
+
+    public static void main(String[] argv) throws Exception {
+        // 获取到连接
+        Connection connection = ConnectionUtil.getConnection();
+        // 获取通道
+        Channel channel = connection.createChannel();
+        // 声明队列
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+
+        // 绑定队列到交换机
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, "");
+        
+        // 定义队列的消费者
+        DefaultConsumer consumer = new DefaultConsumer(channel) {
+            // 获取消息，并且处理，这个方法类似事件监听，如果有消息的时候，会被自动调用
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties,
+                    byte[] body) throws IOException {
+                // body 即消息体
+                String msg = new String(body);
+                System.out.println(" [消费者2] received : " + msg + "!");
+            }
+        };
+        // 监听队列，手动返回完成
+        channel.basicConsume(QUEUE_NAME, true, consumer);
+    }
+}
+```
+
+
+
+### 2.4.4.测试
+
+我们运行两个消费者，然后发送1条消息：
+
+![1532766264386](/images/leyou/1532766264386.png)
+
+![1532766291204](/images/leyou/1532766291204.png)
+
+
+
+## 2.5.订阅模型-Direct
+
+有选择性的接收消息
+
+在订阅模式中，生产者发布消息，所有消费者都可以获取所有消息。
+
+在路由模式中，我们将添加一个功能 - 我们将只能订阅一部分消息。 例如，我们只能将重要的错误消息引导到日志文件（以节省磁盘空间），同时仍然能够在控制台上打印所有日志消息。
+
+但是，在某些场景下，我们希望不同的消息被不同的队列消费。这时就要用到Direct类型的Exchange。
+
+在Direct模型下，队列与交换机的绑定，不能是任意绑定了，而是要指定一个RoutingKey（路由key）
+
+消息的发送方在向Exchange发送消息时，也必须指定消息的routing key。
+
+ ![1532766437787](/images/leyou/1532766437787.png)
+
+P：生产者，向Exchange发送消息，发送消息时，会指定一个routing key。
+
+X：Exchange（交换机），接收生产者的消息，然后把消息递交给 与routing key完全匹配的队列
+
+C1：消费者，其所在队列指定了需要routing key 为 error 的消息
+
+C2：消费者，其所在队列指定了需要routing key 为 info、error、warning 的消息
+
+
+
+### 2.5.1.生产者
+
+此处我们模拟商品的增删改，发送消息的RoutingKey分别是：insert、update、delete
+
+```java
+public class Send {
+    private final static String EXCHANGE_NAME = "direct_exchange_test";
+
+    public static void main(String[] argv) throws Exception {
+        // 获取到连接
+        Connection connection = ConnectionUtil.getConnection();
+        // 获取通道
+        Channel channel = connection.createChannel();
+        // 声明exchange，指定类型为direct
+        channel.exchangeDeclare(EXCHANGE_NAME, "direct");
+        // 消息内容
+        String message = "商品新增了， id = 1001";
+        // 发送消息，并且指定routing key 为：insert ,代表新增商品
+        channel.basicPublish(EXCHANGE_NAME, "insert", null, message.getBytes());
+        System.out.println(" [商品服务：] Sent '" + message + "'");
+
+        channel.close();
+        connection.close();
+    }
+}
+```
+
+### 2.5.2.消费者1
+
+我们此处假设消费者1只接收两种类型的消息：更新商品和删除商品。
+
+```java
+public class Recv {
+    private final static String QUEUE_NAME = "direct_exchange_queue_1";
+    private final static String EXCHANGE_NAME = "direct_exchange_test";
+
+    public static void main(String[] argv) throws Exception {
+        // 获取到连接
+        Connection connection = ConnectionUtil.getConnection();
+        // 获取通道
+        Channel channel = connection.createChannel();
+        // 声明队列
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        
+        // 绑定队列到交换机，同时指定需要订阅的routing key。假设此处需要update和delete消息
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, "update");
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, "delete");
+
+        // 定义队列的消费者
+        DefaultConsumer consumer = new DefaultConsumer(channel) {
+            // 获取消息，并且处理，这个方法类似事件监听，如果有消息的时候，会被自动调用
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties,
+                    byte[] body) throws IOException {
+                // body 即消息体
+                String msg = new String(body);
+                System.out.println(" [消费者1] received : " + msg + "!");
+            }
+        };
+        // 监听队列，自动ACK
+        channel.basicConsume(QUEUE_NAME, true, consumer);
+    }
+}
+```
+
+
+
+### 2.5.3.消费者2
+
+我们此处假设消费者2接收所有类型的消息：新增商品，更新商品和删除商品。
+
+```java
+public class Recv2 {
+    private final static String QUEUE_NAME = "direct_exchange_queue_2";
+    private final static String EXCHANGE_NAME = "direct_exchange_test";
+
+    public static void main(String[] argv) throws Exception {
+        // 获取到连接
+        Connection connection = ConnectionUtil.getConnection();
+        // 获取通道
+        Channel channel = connection.createChannel();
+        // 声明队列
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        
+        // 绑定队列到交换机，同时指定需要订阅的routing key。订阅 insert、update、delete
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, "insert");
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, "update");
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, "delete");
+
+        // 定义队列的消费者
+        DefaultConsumer consumer = new DefaultConsumer(channel) {
+            // 获取消息，并且处理，这个方法类似事件监听，如果有消息的时候，会被自动调用
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties,
+                    byte[] body) throws IOException {
+                // body 即消息体
+                String msg = new String(body);
+                System.out.println(" [消费者2] received : " + msg + "!");
+            }
+        };
+        // 监听队列，自动ACK
+        channel.basicConsume(QUEUE_NAME, true, consumer);
+    }
+}
+```
+
+
+
+### 2.5.4.测试
+
+我们分别发送增、删、改的RoutingKey，发现结果：
+
+ ![1527088296131](/images/leyou/1527088296131.png)
+
+
+
+## 2.6.订阅模型-Topic
+
+`Topic`类型的`Exchange`与`Direct`相比，都是可以根据`RoutingKey`把消息路由到不同的队列。只不过`Topic`类型`Exchange`可以让队列在绑定`Routing key` 的时候使用通配符！
+
+`Routingkey` 一般都是有一个或多个单词组成，多个单词之间以”.”分割，例如： `item.insert`
+
+ 通配符规则：
+
+​         `#`：匹配一个或多个词
+
+​         `*`：匹配不多不少恰好1个词
+
+举例：
+
+​         `audit.#`：能够匹配`audit.irs.corporate` 或者 `audit.irs`
+
+​         `audit.*`：只能匹配`audit.irs`
+
+
+
+ ![1532766712166](/images/leyou/1532766712166.png)
+
+在这个例子中，我们将发送所有描述动物的消息。消息将使用由三个字（两个点）组成的routing key发送。路由关键字中的第一个单词将描述速度，第二个颜色和第三个种类：“<speed>.<color>.<species>”。
+
+我们创建了三个绑定：Q1绑定了绑定键“* .orange.*”，Q2绑定了“*.*.rabbit”和“lazy.＃”。
+
+Q1匹配所有的橙色动物。
+
+Q2匹配关于兔子以及懒惰动物的消息。
+
+
+
+练习，生产者发送如下消息，会进入那个队列：
+
+quick.orange.rabbit à Q1 Q2
+
+lazy.orange.elephant à Q1 Q2
+
+quick.orange.fox à Q1
+
+lazy.pink.rabbit à Q2
+
+quick.brown.fox à 不匹配任意队列，被丢弃
+
+quick.orange.male.rabbit à 
+
+orange à 
+
+
+
+### 2.6.1.生产者
+
+使用topic类型的Exchange，发送消息的routing key有3种： `item.isnert`、`item.update`、`item.delete`：
+
+```java
+public class Send {
+    private final static String EXCHANGE_NAME = "topic_exchange_test";
+
+    public static void main(String[] argv) throws Exception {
+        // 获取到连接
+        Connection connection = ConnectionUtil.getConnection();
+        // 获取通道
+        Channel channel = connection.createChannel();
+        // 声明exchange，指定类型为topic
+        channel.exchangeDeclare(EXCHANGE_NAME, "topic");
+        // 消息内容
+        String message = "新增商品 : id = 1001";
+        // 发送消息，并且指定routing key 为：insert ,代表新增商品
+        channel.basicPublish(EXCHANGE_NAME, "item.insert", null, message.getBytes());
+        System.out.println(" [商品服务：] Sent '" + message + "'");
+
+        channel.close();
+        connection.close();
+    }
+}
+```
+
+### 2.6.2.消费者1
+
+我们此处假设消费者1只接收两种类型的消息：更新商品和删除商品
+
+```java
+public class Recv {
+    private final static String QUEUE_NAME = "topic_exchange_queue_1";
+    private final static String EXCHANGE_NAME = "topic_exchange_test";
+
+    public static void main(String[] argv) throws Exception {
+        // 获取到连接
+        Connection connection = ConnectionUtil.getConnection();
+        // 获取通道
+        Channel channel = connection.createChannel();
+        // 声明队列
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        
+        // 绑定队列到交换机，同时指定需要订阅的routing key。需要 update、delete
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, "item.update");
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, "item.delete");
+
+        // 定义队列的消费者
+        DefaultConsumer consumer = new DefaultConsumer(channel) {
+            // 获取消息，并且处理，这个方法类似事件监听，如果有消息的时候，会被自动调用
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties,
+                    byte[] body) throws IOException {
+                // body 即消息体
+                String msg = new String(body);
+                System.out.println(" [消费者1] received : " + msg + "!");
+            }
+        };
+        // 监听队列，自动ACK
+        channel.basicConsume(QUEUE_NAME, true, consumer);
+    }
+}
+```
+
+
+
+### 2.6.3.消费者2
+
+我们此处假设消费者2接收所有类型的消息：新增商品，更新商品和删除商品。
+
+```java
+/**
+ * 消费者2
+ */
+public class Recv2 {
+    private final static String QUEUE_NAME = "topic_exchange_queue_2";
+    private final static String EXCHANGE_NAME = "topic_exchange_test";
+
+    public static void main(String[] argv) throws Exception {
+        // 获取到连接
+        Connection connection = ConnectionUtil.getConnection();
+        // 获取通道
+        Channel channel = connection.createChannel();
+        // 声明队列
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        
+        // 绑定队列到交换机，同时指定需要订阅的routing key。订阅 insert、update、delete
+        channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, "item.*");
+
+        // 定义队列的消费者
+        DefaultConsumer consumer = new DefaultConsumer(channel) {
+            // 获取消息，并且处理，这个方法类似事件监听，如果有消息的时候，会被自动调用
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties,
+                    byte[] body) throws IOException {
+                // body 即消息体
+                String msg = new String(body);
+                System.out.println(" [消费者2] received : " + msg + "!");
+            }
+        };
+        // 监听队列，自动ACK
+        channel.basicConsume(QUEUE_NAME, true, consumer);
+    }
+}
+```
+
+
+
+## 2.7.持久化
+
+如何避免消息丢失？
+
+1）  消费者的ACK机制。可以防止消费者丢失消息。
+
+2）  但是，如果在消费者消费之前，MQ就宕机了，消息就没了。
+
+
+
+是可以将消息进行持久化呢？
+
+ 要将消息持久化，前提是：队列、Exchange都持久化
+
+### 2.7.1.交换机持久化
+
+![1532766951432](/images/leyou/1532766951432.png)
+
+### 2.7.2.队列持久化
+
+![1532766981230](/images/leyou/1532766981230.png)
+
+### 2.7.3.消息持久化
+
+![1532767057491](/images/leyou/1532767057491.png)
+
+
+
+# 3.Spring AMQP
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 3.1.简介
+
+Sprin有很多不同的项目，其中就有对AMQP的支持：
+
+![1532767136007](/images/leyou/1532767136007.png)
+
+Spring AMQP的页面：http://spring.io/projects/spring-amqp
+
+![1532767171063](/images/leyou/1532767171063.png)
+
+
+
+注意这里一段描述：
+
+![1532767227821](/images/leyou/1532767227821.png)                                             
+
+​         Spring-amqp是对AMQP协议的抽象实现，而spring-rabbit 是对协议的具体实现，也是目前的唯一实现。底层使用的就是RabbitMQ。
+
+
+
+## 2.2.依赖和配置
+
+添加AMQP的启动器：
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+```
+
+在`application.yml`中添加RabbitMQ地址：
+
+```yaml
+spring:
+  rabbitmq:
+    host: 192.168.56.101
+    username: leyou
+    password: leyou
+    virtual-host: /leyou
+```
+
+## 2.3.监听者
+
+在SpringAmqp中，对消息的消费者进行了封装和抽象，一个普通的JavaBean中的普通方法，只要通过简单的注解，就可以成为一个消费者。
+
+```java
+@Component
+public class Listener {
+
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(value = "spring.test.queue", durable = "true"),
+            exchange = @Exchange(
+                    value = "spring.test.exchange",
+                    ignoreDeclarationExceptions = "true",
+                    type = ExchangeTypes.TOPIC
+            ),
+            key = {"#.#"}))
+    public void listen(String msg){
+        System.out.println("接收到消息：" + msg);
+    }
+}
+```
+
+- `@Componet`：类上的注解，注册到Spring容器
+- `@RabbitListener`：方法上的注解，声明这个方法是一个消费者方法，需要指定下面的属性：
+  - `bindings`：指定绑定关系，可以有多个。值是`@QueueBinding`的数组。`@QueueBinding`包含下面属性：
+    - `value`：这个消费者关联的队列。值是`@Queue`，代表一个队列
+    - `exchange`：队列所绑定的交换机，值是`@Exchange`类型
+    - `key`：队列和交换机绑定的`RoutingKey`
+
+类似listen这样的方法在一个类中可以写多个，就代表多个消费者。
+
+
+
+## 2.4.AmqpTemplate
+
+Spring最擅长的事情就是封装，把他人的框架进行封装和整合。
+
+Spring为AMQP提供了统一的消息处理模板：AmqpTemplate，非常方便的发送消息，其发送方法：
+
+![1527090258083](/images/leyou/1527090258083.png)
+
+红框圈起来的是比较常用的3个方法，分别是：
+
+- 指定交换机、RoutingKey和消息体
+- 指定消息
+- 指定RoutingKey和消息，会向默认的交换机发送消息
+
+
+
+## 2.5.测试代码
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = Application.class)
+public class MqDemo {
+
+    @Autowired
+    private AmqpTemplate amqpTemplate;
+
+    @Test
+    public void testSend() throws InterruptedException {
+        String msg = "hello, Spring boot amqp";
+        this.amqpTemplate.convertAndSend("spring.test.exchange","a.b", msg);
+        // 等待10秒后再结束
+        Thread.sleep(10000);
+    }
+}
+```
+
+运行后查看日志：
+
+![1532767726274](/images/leyou/1532767726274.png)
+
+
+
+# 3.项目改造
+
+接下来，我们就改造项目，实现搜索服务、商品静态页的数据同步。
+
+## 3.1.思路分析
+
+> 发送方：商品微服务
+
+- 什么时候发？
+
+  当商品服务对商品进行写操作：增、删、改的时候，需要发送一条消息，通知其它服务。
+
+- 发送什么内容？
+
+  对商品的增删改时其它服务可能需要新的商品数据，但是如果消息内容中包含全部商品信息，数据量太大，而且并不是每个服务都需要全部的信息。因此我们**只发送商品id**，其它服务可以根据id查询自己需要的信息。
+
+> 接收方：搜索微服务、静态页微服务
+
+接收消息后如何处理？
+
+- 搜索微服务：
+  - 增/改：添加新的数据到索引库
+  - 删：删除索引库数据
+- 静态页微服务：
+  - 增：创建新的静态页
+  - 删：删除原来的静态页
+  - 改：创建新的静态页并删除原来的
+
+
+
+## 3.2.商品服务发送消息
+
+我们先在商品微服务`leyou-item-service`中实现发送消息。
+
+### 3.2.1.引入依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+```
+
+### 3.2.2.配置文件
+
+我们在application.yml中添加一些有关RabbitMQ的配置：
+
+```yaml
+spring:
+  rabbitmq:
+    host: 192.168.56.101
+    username: leyou
+    password: leyou
+    virtual-host: /leyou
+    template:
+      exchange: leyou.item.exchange
+    publisher-confirms: true
+```
+
+- template：有关`AmqpTemplate`的配置
+  - retry：失败重试
+    - enabled：开启失败重试
+    - initial-interval：第一次重试的间隔时长
+    - max-interval：最长重试间隔，超过这个间隔将不再重试
+    - multiplier：下次重试间隔的倍数，此处是2即下次重试间隔是上次的2倍
+  - exchange：缺省的交换机名称，此处配置后，发送消息如果不指定交换机就会使用这个
+- publisher-confirms：生产者确认机制，确保消息会正确发送，如果发送失败会有错误回执，从而触发重试
+
+### 3.2.3.改造GoodsService
+
+在GoodsService中封装一个发送消息到mq的方法：
+
+```java
+private void sendMessage(Long id, String type){
+    // 发送消息
+    try {
+        this.amqpTemplate.convertAndSend("item." + type, id);
+    } catch (Exception e) {
+        logger.error("{}商品消息发送异常，商品id：{}", type, id, e);
+    }
+}
+```
+
+这里没有指定交换机，因此默认发送到了配置中的：`leyou.item.exchange`
+
+**注意：这里要把所有异常都try起来，不能让消息的发送影响到正常的业务逻辑**
+
+
+
+然后在新增的时候调用：
+
+![1532768930797](/images/leyou/1532768930797.png)
+
+修改的时候调用：
+
+![1532769005960](/images/leyou/1532769005960.png)
+
+
+
+## 3.3.搜索服务接收消息
+
+搜索服务接收到消息后要做的事情：
+
+- 增：添加新的数据到索引库
+- 删：删除索引库数据
+- 改：修改索引库数据
+
+因为索引库的新增和修改方法是合二为一的，因此我们可以将这两类消息一同处理，删除另外处理。
+
+### 3.3.1.引入依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+```
+
+### 3.3.2.添加配置
+
+```yaml
+spring:
+  rabbitmq:
+    host: 192.168.56.101
+    username: leyou
+    password: leyou
+    virtual-host: /leyou
+```
+
+这里只是接收消息而不发送，所以不用配置template相关内容。
+
+### 3.3.3.编写监听器
+
+ ![1532769181819](/images/leyou/1532769181819.png)
+
+代码：
+
+```java
+@Component
+public class GoodsListener {
+
+    @Autowired
+    private SearchService searchService;
+
+    /**
+     * 处理insert和update的消息
+     *
+     * @param id
+     * @throws Exception
+     */
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(value = "leyou.create.index.queue", durable = "true"),
+            exchange = @Exchange(
+                    value = "leyou.item.exchange",
+                    ignoreDeclarationExceptions = "true",
+                    type = ExchangeTypes.TOPIC),
+            key = {"item.insert", "item.update"}))
+    public void listenCreate(Long id) throws Exception {
+        if (id == null) {
+            return;
+        }
+        // 创建或更新索引
+        this.searchService.createIndex(id);
+    }
+
+    /**
+     * 处理delete的消息
+     *
+     * @param id
+     */
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(value = "leyou.delete.index.queue", durable = "true"),
+            exchange = @Exchange(
+                    value = "leyou.item.exchange",
+                    ignoreDeclarationExceptions = "true",
+                    type = ExchangeTypes.TOPIC),
+            key = "item.delete"))
+    public void listenDelete(Long id) {
+        if (id == null) {
+            return;
+        }
+        // 删除索引
+        this.searchService.deleteIndex(id);
+    }
+}
+```
+
+
+
+### 3.3.4.编写创建和删除索引方法
+
+这里因为要创建和删除索引，我们需要在SearchService中拓展两个方法，创建和删除索引：
+
+```java
+public void createIndex(Long id) throws IOException {
+
+    Spu spu = this.goodsClient.querySpuById(id);
+    // 构建商品
+    Goods goods = this.buildGoods(spu);
+
+    // 保存数据到索引库
+    this.goodsRepository.save(goods);
+}
+
+public void deleteIndex(Long id) {
+    this.goodsRepository.deleteById(id);
+}
+```
+
+创建索引的方法可以从之前导入数据的测试类中拷贝和改造。
+
+
+
+## 3.4.静态页服务接收消息
+
+商品静态页服务接收到消息后的处理：
+
+- 增：创建新的静态页
+- 删：删除原来的静态页
+- 改：创建新的静态页并删除原来的
+
+不过，我们编写的创建静态页的方法也具备覆盖以前页面的功能，因此：增和改的消息可以放在一个方法中处理，删除消息放在另一个方法处理。
+
+### 3.4.1.引入依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+```
+
+### 3.4.2.添加配置
+
+```yaml
+spring:
+  rabbitmq:
+    host: 192.168.56.101
+    username: leyou
+    password: leyou
+    virtual-host: /leyou
+```
+
+这里只是接收消息而不发送，所以不用配置template相关内容。
+
+
+
+### 3.4.3.编写监听器
+
+ ![1532769581964](/images/leyou/1532769581964.png)
+
+代码：
+
+```java
+@Component
+public class GoodsListener {
+
+    @Autowired
+    private GoodsHtmlService goodsHtmlService;
+
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(value = "leyou.create.web.queue", durable = "true"),
+            exchange = @Exchange(
+                    value = "leyou.item.exchange",
+                    ignoreDeclarationExceptions = "true",
+                    type = ExchangeTypes.TOPIC),
+            key = {"item.insert", "item.update"}))
+    public void listenCreate(Long id) throws Exception {
+        if (id == null) {
+            return;
+        }
+        // 创建页面
+        goodsHtmlService.createHtml(id);
+    }
+
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(value = "leyou.delete.web.queue", durable = "true"),
+            exchange = @Exchange(
+                    value = "leyou.item.exchange",
+                    ignoreDeclarationExceptions = "true",
+                    type = ExchangeTypes.TOPIC),
+            key = "item.delete"))
+    public void listenDelete(Long id) {
+        if (id == null) {
+            return;
+        }
+        // 创建页面
+        goodsHtmlService.deleteHtml(id);
+    }
+}
+```
+
+### 3.4.4.添加删除页面方法
+
+```java
+public void deleteHtml(Long id) {
+    File file = new File("C:\\project\\nginx-1.14.0\\html\\item\\", id + ".html");
+    file.deleteOnExit();
+}
+```
+
+
+
+## 3.5.测试
+
+### 3.5.1.查看RabbitMQ控制台
+
+重新启动项目，并且登录RabbitMQ管理界面：http://192.168.56.101:15672
+
+可以看到，交换机已经创建出来了：
+
+![1532772446520](/images/leyou/1532772446520.png)
+
+队列也已经创建完毕：
+
+![1532772471931](/images/leyou/1532772471931.png)
+
+并且队列都已经绑定到交换机：
+
+![1532772521932](/images/leyou/1532772521932.png)
+
+### 3.5.2.修改数据试一试
+
+在后台修改商品数据的价格，分别在搜索及商品详情页查看是否统一。
+---
+layout: post
+title:  用户注册
+categories: 乐优
+description: 用户注册
+keywords: 乐优
+---
+# 0.学习目标
+
+- 独立创建用户中心
+- 了解面向接口开发方式
+- 实现数据校验功能
+- 实现短信发送功能
+- 实现注册功能
+- 实现根据用户名和密码查询用户功能
+
+
+
+
+
+
+
+# 1.创建用户中心
+
+用户搜索到自己心仪的商品，接下来就要去购买，但是购买必须先登录。所以接下来我们编写用户中心，实现用户的登录和注册功能。
+
+用户中心的提供的服务：
+
+- 用户的注册
+- 用户登录
+- 用户个人信息管理
+- 用户地址管理
+- 用户收藏管理
+- 我的订单
+- 优惠券管理
+
+这里我们暂时先实现基本的：`注册和登录`功能，其它功能大家可以自行补充完整。
+
+因为用户中心的服务其它微服务也会调用，因此这里我们做聚合。
+
+leyou-user：父工程，包含2个子工程：
+- leyou-user-interface：实体及接口
+- leyou-user-service：业务和服务
+
+
+
+## 1.1.创建父module
+
+创建
+
+![1532778843008](/images/leyou/1532778843008.png)
+
+位置：
+
+![1532778910920](/images/leyou/1532778910920.png)
+
+
+
+## 1.2.创建leyou-user-interface
+
+在leyou-user下，创建module：
+
+![1532779001951](/images/leyou/1532779001951.png)
+
+![1532779042843](/images/leyou/1532779042843.png)
+
+pom：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>leyou-user</artifactId>
+        <groupId>com.leyou.user</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leyou.user</groupId>
+    <artifactId>leyou-user-interface</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+
+</project>
+```
+
+
+
+## 1.3.创建leyou-user-service
+
+创建module
+
+![1532779120507](/images/leyou/1532779120507.png)
+
+![1532779166910](/images/leyou/1532779166910.png)
+
+pom
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>leyou-user</artifactId>
+        <groupId>com.leyou.user</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leyou.user</groupId>
+    <artifactId>leyou-user-service</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <!-- mybatis启动器 -->
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- 通用Mapper启动器 -->
+        <dependency>
+            <groupId>tk.mybatis</groupId>
+            <artifactId>mapper-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- mysql驱动 -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.leyou.user</groupId>
+            <artifactId>leyou-user-interface</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+</project>
+```
+
+
+
+启动类
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+@MapperScan("com.leyou.user.mapper")
+public class LeyouUserApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(LeyouUserApplication.class, args);
+    }
+}
+```
+
+
+
+配置：
+
+```yaml
+server:
+  port: 8085
+spring:
+  application:
+    name: user-service
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/leyou
+    username: root
+    password: root
+    driver-class-name: com.mysql.jdbc.Driver
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+  instance:
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+    instance-id: ${eureka.instance.ip-address}.${server.port}
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 15
+
+mybatis:
+  type-aliases-package: com.leyou.user.pojo
+```
+
+
+
+父工程leyou-user的pom：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>leyou</artifactId>
+        <groupId>com.leyou.parent</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leyou.user</groupId>
+    <artifactId>leyou-user</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0.0-SNAPSHOT</version>
+    <modules>
+        <module>leyou-user-interface</module>
+        <module>leyou-user-service</module>
+    </modules>
+
+</project>
+```
+
+
+
+## 1.4.添加网关路由
+
+我们修改`leyou-gateway`，添加路由规则，对`leyou-user-service`进行路由:
+
+![1532779772325](/images/leyou/1532779772325.png)
+
+
+
+# 2.后台功能准备
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 2.1.接口文档
+
+整个用户中心的开发，我们将模拟公司内面向接口的开发。
+
+现在假设项目经理已经设计好了接口文档，详见：《用户中心接口说明.md》
+
+![1527174356711](/images/leyou/1527174356711.png)
+
+我们将根据文档直接编写后台功能，不关心页面实现。
+
+
+
+## 2.2.数据结构
+
+```mysql
+CREATE TABLE `tb_user` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL COMMENT '用户名',
+  `password` varchar(32) NOT NULL COMMENT '密码，加密存储',
+  `phone` varchar(20) DEFAULT NULL COMMENT '注册手机号',
+  `created` datetime NOT NULL COMMENT '创建时间',
+  `salt` varchar(32) NOT NULL COMMENT '密码加密的salt值',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8 COMMENT='用户表';
+```
+
+数据结构比较简单，因为根据用户名查询的频率较高，所以我们给用户名创建了索引
+
+
+
+## 2.3.基本代码
+
+ ![1532781014342](/images/leyou/1532781014342.png)
+
+### 2.3.1.实体类
+
+```java
+@Table(name = "tb_user")
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String username;// 用户名
+
+    @JsonIgnore
+    private String password;// 密码
+
+    private String phone;// 电话
+
+    private Date created;// 创建时间
+
+    @JsonIgnore
+    private String salt;// 密码的盐值
+}
+```
+
+注意：为了安全考虑。这里对password和salt添加了注解@JsonIgnore，这样在json序列化时，就不会把password和salt返回。
+
+
+
+### 2.3.2.mapper
+
+```java
+public interface UserMapper extends Mapper<User> {
+}
+```
+
+
+
+### 2.3.3.Service
+
+```java
+@Service
+public class UserService {
+
+    @Autowired
+    private UserMapper userMapper;
+}
+```
+
+
+
+### 2.3.4.controller
+
+```java
+@Controller
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+    
+}
+```
+
+
+
+# 3.数据验证功能
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 3.1.接口说明
+
+实现用户数据的校验，主要包括对：手机号、用户名的唯一性校验。
+
+**接口路径：**
+
+```
+GET /check/{data}/{type}
+```
+
+**参数说明：**
+
+| 参数 | 说明                                   | 是否必须 | 数据类型 | 默认值 |
+| ---- | -------------------------------------- | -------- | -------- | ------ |
+| data | 要校验的数据                           | 是       | String   | 无     |
+| type | 要校验的数据类型：1，用户名；2，手机； | 否       | Integer  | 1      |
+
+**返回结果：**
+
+返回布尔类型结果：
+
+- true：可用
+- false：不可用
+
+状态码：
+
+- 200：校验成功
+- 400：参数有误
+- 500：服务器内部异常
+
+
+
+## 3.2.controller
+
+因为有了接口，我们可以不关心页面，所有需要的东西都一清二楚：
+
+- 请求方式：GET
+- 请求路径：/check/{param}/{type}
+- 请求参数：param,type
+- 返回结果：true或false
+
+```java
+/**
+  * 校验数据是否可用
+  * @param data
+  * @param type
+  * @return
+  */
+@GetMapping("check/{data}/{type}")
+public ResponseEntity<Boolean> checkUserData(@PathVariable("data") String data, @PathVariable(value = "type", defaultValue="1") Integer type) {
+    Boolean boo = this.userService.checkData(data, type);
+    if (boo == null) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+    return ResponseEntity.ok(boo);
+}
+```
+
+## 3.3.Service
+
+```java
+public Boolean checkData(String data, Integer type) {
+    User record = new User();
+    switch (type) {
+        case 1:
+            record.setUsername(data);
+            break;
+        case 2:
+            record.setPhone(data);
+            break;
+        default:
+            return null;
+    }
+    return this.userMapper.selectCount(record) == 0;
+}
+```
+
+
+
+## 3.4.测试
+
+我们在数据库插入一条假数据：
+
+![1532781696303](/images/leyou/1532781696303.png)
+
+然后在浏览器调用接口，测试：
+
+![1532781679924](/images/leyou/1532781679924.png)
+
+![1532781726835](/images/leyou/1532781726835.png)
+
+
+
+# 4.阿里大于短信服务
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 4.1.demo
+
+注册页面上有短信发送的按钮，当用户点击发送短信，我们需要生成验证码，发送给用户。我们将使用阿里提供的阿里大于来实现短信发送。
+
+参考课前资料的《阿里短信.md》学习demo入门
+
+
+
+## 4.2.创建短信微服务
+
+因为系统中不止注册一个地方需要短信发送，因此我们将短信发送抽取为微服务：`leyou-sms-service`，凡是需要的地方都可以使用。
+
+另外，因为短信发送API调用时长的不确定性，为了提高程序的响应速度，短信发送我们都将采用异步发送方式，即：
+
+- 短信服务监听MQ消息，收到消息后发送短信。
+- 其它服务要发送短信时，通过MQ通知短信微服务。
+
+
+
+### 4.2.1.创建module
+
+![1532786840913](/images/leyou/1532786840913.png)
+
+![1532786877872](/images/leyou/1532786877872.png)
+
+
+
+### 4.2.2.pom
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>leyou</artifactId>
+        <groupId>com.leyou.parent</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leyou.sms</groupId>
+    <artifactId>leyou-sms-service</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>aliyun-java-sdk-core</artifactId>
+            <version>3.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>aliyun-java-sdk-dysmsapi</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+
+
+### 4.2.3.编写启动类
+
+```java
+@SpringBootApplication
+public class LeyouSmsApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(LeyouSmsApplication.class, args);
+    }
+}
+```
+
+
+
+### 4.2.4.编写application.yml
+
+```yaml
+server:
+  port: 8086
+spring:
+  application:
+    name: sms-service
+  rabbitmq:
+    host: 192.168.56.101
+    username: leyou
+    password: leyou
+    virtual-host: /leyou
+```
+
+## 4.3.编写短信工具类
+
+### 4.3.1.属性抽取
+
+我们首先把一些常量抽取到application.yml中：
+
+```yaml
+leyou:
+  sms:
+    accessKeyId: JWffwFJIwada # 你自己的accessKeyId
+    accessKeySecret: aySRliswq8fe7rF9gQyy1Izz4MQ # 你自己的AccessKeySecret
+    signName: 乐优商城 # 签名名称
+    verifyCodeTemplate: SMS_133976814 # 模板名称
+```
+
+然后注入到属性类中：
+
+```java
+@ConfigurationProperties(prefix = "leyou.sms")
+public class SmsProperties {
+
+    String accessKeyId;
+
+    String accessKeySecret;
+
+    String signName;
+
+    String verifyCodeTemplate;
+
+    public String getAccessKeyId() {
+        return accessKeyId;
+    }
+
+    public void setAccessKeyId(String accessKeyId) {
+        this.accessKeyId = accessKeyId;
+    }
+
+    public String getAccessKeySecret() {
+        return accessKeySecret;
+    }
+
+    public void setAccessKeySecret(String accessKeySecret) {
+        this.accessKeySecret = accessKeySecret;
+    }
+
+    public String getSignName() {
+        return signName;
+    }
+
+    public void setSignName(String signName) {
+        this.signName = signName;
+    }
+
+    public String getVerifyCodeTemplate() {
+        return verifyCodeTemplate;
+    }
+
+    public void setVerifyCodeTemplate(String verifyCodeTemplate) {
+        this.verifyCodeTemplate = verifyCodeTemplate;
+    }
+}
+```
+
+
+
+### 4.3.2.工具类
+
+我们把阿里提供的demo进行简化和抽取，封装一个工具类：
+
+```java
+@Component
+@EnableConfigurationProperties(SmsProperties.class)
+public class SmsUtils {
+
+    @Autowired
+    private SmsProperties prop;
+
+    //产品名称:云通信短信API产品,开发者无需替换
+    static final String product = "Dysmsapi";
+    //产品域名,开发者无需替换
+    static final String domain = "dysmsapi.aliyuncs.com";
+
+    static final Logger logger = LoggerFactory.getLogger(SmsUtils.class);
+
+    public SendSmsResponse sendSms(String phone, String code, String signName, String template) throws ClientException {
+
+        //可自助调整超时时间
+        System.setProperty("sun.net.client.defaultConnectTimeout", "10000");
+        System.setProperty("sun.net.client.defaultReadTimeout", "10000");
+
+        //初始化acsClient,暂不支持region化
+        IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou",
+                prop.getAccessKeyId(), prop.getAccessKeySecret());
+        DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou", product, domain);
+        IAcsClient acsClient = new DefaultAcsClient(profile);
+
+        //组装请求对象-具体描述见控制台-文档部分内容
+        SendSmsRequest request = new SendSmsRequest();
+        request.setMethod(MethodType.POST);
+        //必填:待发送手机号
+        request.setPhoneNumbers(phone);
+        //必填:短信签名-可在短信控制台中找到
+        request.setSignName(signName);
+        //必填:短信模板-可在短信控制台中找到
+        request.setTemplateCode(template);
+        //可选:模板中的变量替换JSON串,如模板内容为"亲爱的${name},您的验证码为${code}"时,此处的值为
+        request.setTemplateParam("{\"code\":\"" + code + "\"}");
+
+        //选填-上行短信扩展码(无特殊需求用户请忽略此字段)
+        //request.setSmsUpExtendCode("90997");
+
+        //可选:outId为提供给业务方扩展字段,最终在短信回执消息中将此值带回给调用者
+        request.setOutId("123456");
+
+        //hint 此处可能会抛出异常，注意catch
+        SendSmsResponse sendSmsResponse = acsClient.getAcsResponse(request);
+
+        logger.info("发送短信状态：{}", sendSmsResponse.getCode());
+        logger.info("发送短信消息：{}", sendSmsResponse.getMessage());
+
+        return sendSmsResponse;
+    }
+}
+```
+
+属性加载：
+
+```java
+@ConfigurationProperties(prefix = "leyou.sms")
+public class SmsProperties {
+
+    String accessKeyId;
+
+    String accessKeySecret;
+
+    String signName;
+
+    String verifyCodeTemplate;
+
+    public String getAccessKeyId() {
+        return accessKeyId;
+    }
+
+    public void setAccessKeyId(String accessKeyId) {
+        this.accessKeyId = accessKeyId;
+    }
+
+    public String getAccessKeySecret() {
+        return accessKeySecret;
+    }
+
+    public void setAccessKeySecret(String accessKeySecret) {
+        this.accessKeySecret = accessKeySecret;
+    }
+
+    public String getSignName() {
+        return signName;
+    }
+
+    public void setSignName(String signName) {
+        this.signName = signName;
+    }
+
+    public String getVerifyCodeTemplate() {
+        return verifyCodeTemplate;
+    }
+
+    public void setVerifyCodeTemplate(String verifyCodeTemplate) {
+        this.verifyCodeTemplate = verifyCodeTemplate;
+    }
+}
+```
+
+
+
+
+
+## 4.4.编写消息监听器
+
+接下来，编写消息监听器，当接收到消息后，我们发送短信。
+
+```java
+@Component
+@EnableConfigurationProperties(SmsProperties.class)
+public class SmsListener {
+
+    @Autowired
+    private SmsUtils smsUtils;
+
+    @Autowired
+    private SmsProperties prop;
+
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(value = "leyou.sms.queue", durable = "true"),
+            exchange = @Exchange(value = "leyou.sms.exchange", 
+                                 ignoreDeclarationExceptions = "true"),
+            key = {"sms.verify.code"}))
+    public void listenSms(Map<String, String> msg) throws Exception {
+        if (msg == null || msg.size() <= 0) {
+            // 放弃处理
+            return;
+        }
+        String phone = msg.get("phone");
+        String code = msg.get("code");
+
+        if (StringUtils.isBlank(phone) || StringUtils.isBlank(code)) {
+            // 放弃处理
+            return;
+        }
+        // 发送消息
+        SendSmsResponse resp = this.smsUtils.sendSms(phone, code, 
+                                                     prop.getSignName(),
+                                                     prop.getVerifyCodeTemplate());
+        // 发送失败
+        throw new RuntimeException();
+    }
+}
+```
+
+
+
+我们注意到，消息体是一个Map，里面有两个属性：
+
+- phone：电话号码
+- code：短信验证码
+
+## 4.5.启动
+
+启动项目，然后查看RabbitMQ控制台，发现交换机已经创建：
+
+ ![1527239600218](/images/leyou/1527239600218.png)
+
+队列也已经创建：
+
+ ![1527239658153](/images/leyou/1527239658153.png)
+
+并且绑定：
+
+ ![1527239743836](/images/leyou/1527239743836.png)
+
+
+
+# 5.发送短信功能
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+短信微服务已经准备好，我们就可以继续编写用户中心接口了。
+
+## 5.1.接口说明
+
+![1527238127932](/images/leyou/1527238127932.png)
+
+
+
+这里的业务逻辑是这样的：
+
+- 1）我们接收页面发送来的手机号码
+- 2）生成一个随机验证码
+- 3）将验证码保存在服务端
+- 4）发送短信，将验证码发送到用户手机
+
+
+
+那么问题来了：验证码保存在哪里呢？
+
+验证码有一定有效期，一般是5分钟，我们可以利用Redis的过期机制来保存。
+
+## 5.2.Redis
+
+### 5.2.1.安装
+
+参考课前资料中的：《centos下的redis安装配置.md》
+
+
+
+### 5.2.2.Spring Data Redis
+
+官网：<http://projects.spring.io/spring-data-redis/>
+
+ ![1527250056698](/images/leyou/1527250056698.png)                                    
+
+Spring Data Redis，是Spring Data 家族的一部分。 对Jedis客户端进行了封装，与spring进行了整合。可以非常方便的来实现redis的配置和操作。 
+
+### 5.2.3.RedisTemplate基本操作
+
+Spring Data Redis 提供了一个工具类：RedisTemplate。里面封装了对于Redis的五种数据结构的各种操作，包括：
+
+- redisTemplate.opsForValue() ：操作字符串
+- redisTemplate.opsForHash() ：操作hash
+- redisTemplate.opsForList()：操作list
+- redisTemplate.opsForSet()：操作set
+- redisTemplate.opsForZSet()：操作zset
+
+其它一些通用命令，如expire，可以通过redisTemplate.xx()来直接调用
+
+5种结构：
+
+- String：等同于java中的，`Map<String,String>`
+- list：等同于java中的`Map<String,List<String>>`
+- set：等同于java中的`Map<String,Set<String>>`
+- sort_set：可排序的set
+- hash：等同于java中的：`Map<String,Map<String,String>>
+
+
+
+### 5.2.4.StringRedisTemplate
+
+RedisTemplate在创建时，可以指定其泛型类型：
+
+- K：代表key 的数据类型
+- V: 代表value的数据类型
+
+注意：这里的类型不是Redis中存储的数据类型，而是Java中的数据类型，RedisTemplate会自动将Java类型转为Redis支持的数据类型：字符串、字节、二进制等等。
+
+![1527250218215](/images/leyou/1527250218215.png)
+
+不过RedisTemplate默认会采用JDK自带的序列化（Serialize）来对对象进行转换。生成的数据十分庞大，因此一般我们都会指定key和value为String类型，这样就由我们自己把对象序列化为json字符串来存储即可。
+
+
+
+因为大部分情况下，我们都会使用key和value都为String的RedisTemplate，因此Spring就默认提供了这样一个实现： ![1527256139407](/images/leyou/1527256139407.png)
+
+### 5.2.5.测试
+
+我们在项目中编写一个测试案例：
+
+首先在项目中引入Redis启动器：
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+```
+
+然后在配置文件中指定Redis地址：
+
+```yaml
+spring:
+  redis:
+    host: 192.168.56.101
+```
+
+然后就可以直接注入`StringRedisTemplate`对象了：
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = LyUserService.class)
+public class RedisTest {
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    @Test
+    public void testRedis() {
+        // 存储数据
+        this.redisTemplate.opsForValue().set("key1", "value1");
+        // 获取数据
+        String val = this.redisTemplate.opsForValue().get("key1");
+        System.out.println("val = " + val);
+    }
+
+    @Test
+    public void testRedis2() {
+        // 存储数据，并指定剩余生命时间,5小时
+        this.redisTemplate.opsForValue().set("key2", "value2",
+                5, TimeUnit.HOURS);
+    }
+
+    @Test
+    public void testHash(){
+        BoundHashOperations<String, Object, Object> hashOps =
+                this.redisTemplate.boundHashOps("user");
+        // 操作hash数据
+        hashOps.put("name", "jack");
+        hashOps.put("age", "21");
+
+        // 获取单个数据
+        Object name = hashOps.get("name");
+        System.out.println("name = " + name);
+
+        // 获取所有数据
+        Map<Object, Object> map = hashOps.entries();
+        for (Map.Entry<Object, Object> me : map.entrySet()) {
+            System.out.println(me.getKey() + " : " + me.getValue());
+        }
+    }
+}
+```
+
+
+
+## 5.3.controller
+
+```java
+/**
+ * 发送手机验证码
+ * @param phone
+ * @return
+ */
+@PostMapping("code")
+public ResponseEntity<Void> sendVerifyCode(String phone) {
+    Boolean boo = this.userService.sendVerifyCode(phone);
+    if (boo == null || !boo) {
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return new ResponseEntity<>(HttpStatus.CREATED);
+}
+```
+
+## 5.4.service
+
+这里的逻辑会稍微复杂：
+
+- 生成随机验证码
+- 将验证码保存到Redis中，用来在注册的时候验证
+- 发送验证码到`leyou-sms-service`服务，发送短信
+
+因此，我们需要引入Redis和AMQP：
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+```
+
+添加RabbitMQ和Redis配置：
+
+```yaml
+spring:
+  redis:
+    host: 192.168.56.101
+  rabbitmq:
+    host: 192.168.56.101
+    username: leyou
+    password: leyou
+    virtual-host: /leyou
+    template:
+      retry:
+        enabled: true
+        initial-interval: 10000ms
+        max-interval: 210000ms
+        multiplier: 2
+    publisher-confirms: true
+```
+
+
+
+
+
+另外还要用到工具类，生成6位随机码，这个我们封装到了`leyou-common`中，因此需要引入依赖：
+
+```xml
+<dependency>
+    <groupId>com.leyou.common</groupId>
+    <artifactId>ly-common</artifactId>
+    <version>${leyou.latest.version}</version>
+</dependency>
+```
+
+生成随机码的工具：
+
+```java
+/**
+ * 生成指定位数的随机数字
+ * @param len 随机数的位数
+ * @return 生成的随机数
+ */
+public static String generateCode(int len){
+    len = Math.min(len, 8);
+    int min = Double.valueOf(Math.pow(10, len - 1)).intValue();
+    int num = new Random().nextInt(
+        Double.valueOf(Math.pow(10, len + 1)).intValue() - 1) + min;
+    return String.valueOf(num).substring(0,len);
+}
+```
+
+
+
+Service代码：
+
+```java
+@Autowired
+private StringRedisTemplate redisTemplate;
+
+@Autowired
+private AmqpTemplate amqpTemplate;
+
+static final String KEY_PREFIX = "user:code:phone:";
+
+static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
+public Boolean sendVerifyCode(String phone) {
+    // 生成验证码
+    String code = NumberUtils.generateCode(6);
+    try {
+        // 发送短信
+        Map<String, String> msg = new HashMap<>();
+        msg.put("phone", phone);
+        msg.put("code", code);
+        this.amqpTemplate.convertAndSend("ly.sms.exchange", "sms.verify.code", msg);
+        // 将code存入redis
+        this.redisTemplate.opsForValue().set(KEY_PREFIX + phone, code, 5, TimeUnit.MINUTES);
+        return true;
+    } catch (Exception e) {
+        logger.error("发送短信失败。phone：{}， code：{}", phone, code);
+        return false;
+    }
+}
+```
+
+注意：要设置短信验证码在Redis的缓存时间为5分钟
+
+
+
+## 5.5.测试
+
+通过RestClient发送请求试试：
+
+ ![1527240486327](//images/leyou/1527240486327.png)
+
+查看Redis中的数据：
+
+ ![1527240610713](/images/leyou/1527240610713.png)
+
+查看短信：
+
+ ![1527240770470](/images/leyou/1527240770470.png)
+
+
+
+# 6.注册功能
+
+## 6.1.接口说明
+
+![1527240855176](/images/leyou/1527240855176.png)
+
+## 6.2.controller
+
+```java
+/**
+ * 注册
+ * @param user
+ * @param code
+ * @return
+ */
+@PostMapping("register")
+public ResponseEntity<Void> register(User user, @RequestParam("code") String code) {
+    Boolean boo = this.userService.register(user, code);
+    if (boo == null || !boo) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+    return new ResponseEntity<>(HttpStatus.CREATED);
+}
+```
+
+## 6.3.service
+
+基本逻辑：
+
+- 1）校验短信验证码
+- 2）生成盐
+- 3）对密码加密
+- 4）写入数据库
+- 5）删除Redis中的验证码
+
+```java
+public Boolean register(User user, String code) {
+    String key = KEY_PREFIX + user.getPhone();
+    // 从redis取出验证码
+    String codeCache = this.redisTemplate.opsForValue().get(key);
+    // 检查验证码是否正确
+    if (!code.equals(codeCache)) {
+        // 不正确，返回
+        return false;
+    }
+    user.setId(null);
+    user.setCreated(new Date());
+    // 生成盐
+    String salt = CodecUtils.generateSalt();
+    user.setSalt(salt);
+    // 对密码进行加密
+    user.setPassword(CodecUtils.md5Hex(user.getPassword(), salt));
+    // 写入数据库
+    boolean boo = this.userMapper.insertSelective(user) == 1;
+
+    // 如果注册成功，删除redis中的code
+    if (boo) {
+        try {
+            this.redisTemplate.delete(key);
+        } catch (Exception e) {
+            logger.error("删除缓存验证码失败，code：{}", code, e);
+        }
+    }
+    return boo;
+}
+```
+
+## 6.4.测试
+
+我们通过RestClient测试：
+
+![1527241936160](/images/leyou/1527241936160.png)
+
+查看数据库：
+
+ ![1527241966575](/images/leyou/1527241966575.png)
+
+
+
+## 6.5.服务端数据校验
+
+刚才虽然实现了注册，但是服务端并没有进行数据校验，而前端的校验是很容易被有心人绕过的。所以我们必须在后台添加数据校验功能：
+
+我们这里会使用Hibernate-Validator框架完成数据校验：
+
+而SpringBoot的web启动器中已经集成了相关依赖：
+
+ ![1527244265451](/images/leyou/1527244265451.png)
+
+### 6.5.1.什么是Hibernate Validator
+
+Hibernate Validator是Hibernate提供的一个开源框架，使用注解方式非常方便的实现服务端的数据校验。
+
+官网：http://hibernate.org/validator/
+
+![1527244393041](/images/leyou/1527244393041.png)
+
+
+
+**hibernate Validator** 是 Bean Validation 的参考实现 。
+
+Hibernate Validator 提供了 JSR 303 规范中所有内置 constraint（约束） 的实现，除此之外还有一些附加的 constraint。
+
+在日常开发中，Hibernate Validator经常用来验证bean的字段，基于注解，方便快捷高效。
+
+### 6.5.2.Bean校验的注解
+
+常用注解如下：
+
+| **Constraint**                                     | **详细信息**                                                 |
+| -------------------------------------------------- | ------------------------------------------------------------ |
+| **@Valid**                                         | 被注释的元素是一个对象，需要检查此对象的所有字段值           |
+| **@Null**                                          | 被注释的元素必须为 null                                      |
+| **@NotNull**                                       | 被注释的元素必须不为 null                                    |
+| **@AssertTrue**                                    | 被注释的元素必须为 true                                      |
+| **@AssertFalse**                                   | 被注释的元素必须为 false                                     |
+| **@Min(value)**                                    | 被注释的元素必须是一个数字，其值必须大于等于指定的最小值     |
+| **@Max(value)**                                    | 被注释的元素必须是一个数字，其值必须小于等于指定的最大值     |
+| **@DecimalMin(value)**                             | 被注释的元素必须是一个数字，其值必须大于等于指定的最小值     |
+| **@DecimalMax(value)**                             | 被注释的元素必须是一个数字，其值必须小于等于指定的最大值     |
+| **@Size(max,   min)**                              | 被注释的元素的大小必须在指定的范围内                         |
+| **@Digits   (integer, fraction)**                  | 被注释的元素必须是一个数字，其值必须在可接受的范围内         |
+| **@Past**                                          | 被注释的元素必须是一个过去的日期                             |
+| **@Future**                                        | 被注释的元素必须是一个将来的日期                             |
+| **@Pattern(value)**                                | 被注释的元素必须符合指定的正则表达式                         |
+| **@Email**                                         | 被注释的元素必须是电子邮箱地址                               |
+| **@Length**                                        | 被注释的字符串的大小必须在指定的范围内                       |
+| **@NotEmpty**                                      | 被注释的字符串的必须非空                                     |
+| **@Range**                                         | 被注释的元素必须在合适的范围内                               |
+| **@NotBlank**                                      | 被注释的字符串的必须非空                                     |
+| **@URL(protocol=,host=,   port=,regexp=, flags=)** | 被注释的字符串必须是一个有效的url                            |
+| **@CreditCardNumber**                              | 被注释的字符串必须通过Luhn校验算法，银行卡，信用卡等号码一般都用Luhn计算合法性 |
+
+### 6.5.3.给User添加校验
+
+我们在`ly-user-interface`中添加Hibernate-Validator依赖：
+
+```xml
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+        </dependency>
+```
+
+
+
+我们在User对象的部分属性上添加注解：
+
+```java
+@Table(name = "tb_user")
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Length(min = 4, max = 30, message = "用户名只能在4~30位之间")
+    private String username;// 用户名
+
+    @JsonIgnore
+    @Length(min = 4, max = 30, message = "用户名只能在4~30位之间")
+    private String password;// 密码
+
+    @Pattern(regexp = "^1[35678]\\d{9}$", message = "手机号格式不正确")
+    private String phone;// 电话
+
+    private Date created;// 创建时间
+
+    @JsonIgnore
+    private String salt;// 密码的盐值
+}
+```
+
+
+
+### 6.5.4.在controller上进行控制
+
+在controller中只需要给User添加 @Valid注解即可。
+
+ ![1527247334410](/images/leyou/1527247334410.png)
+
+
+
+### 6.5.5.测试
+
+我们故意填错：
+
+ ![1527247422251](/images/leyou/1527247422251.png)
+
+然后SpringMVC会自动返回错误信息：
+
+ ![1527247492172](/images/leyou/1527247492172.png)
+
+
+
+# 7.根据用户名和密码查询用户
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 7.1.接口说明
+
+### 功能说明
+
+查询功能，根据参数中的用户名和密码查询指定用户
+
+### 接口路径
+
+```
+GET /query
+
+```
+
+### 参数说明：
+
+form表单格式
+
+| 参数     | 说明                                     | 是否必须 | 数据类型 | 默认值 |
+| -------- | ---------------------------------------- | -------- | -------- | ------ |
+| username | 用户名，格式为4~30位字母、数字、下划线   | 是       | String   | 无     |
+| password | 用户密码，格式为4~30位字母、数字、下划线 | 是       | String   | 无     |
+
+### 返回结果：
+
+用户的json格式数据
+
+```json
+{
+    "id": 6572312,
+    "username":"test",
+    "phone":"13688886666",
+    "created": 1342432424
+}
+```
+
+
+
+状态码：
+
+- 200：注册成功
+- 400：用户名或密码错误
+- 500：服务器内部异常，注册失败
+
+## 7.2.controller
+
+```java
+/**
+ * 根据用户名和密码查询用户
+ * @param username
+ * @param password
+ * @return
+ */
+@GetMapping("query")
+public ResponseEntity<User> queryUser(
+    @RequestParam("username") String username,
+    @RequestParam("password") String password
+    ) {
+        User user = this.userService.queryUser(username, password);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        return ResponseEntity.ok(user);
+    }
+```
+
+## 7.3.service
+
+```java
+public User queryUser(String username, String password) {
+    // 查询
+    User record = new User();
+    record.setUsername(username);
+    User user = this.userMapper.selectOne(record);
+    // 校验用户名
+    if (user == null) {
+        return null;
+    }
+    // 校验密码
+    if (!user.getPassword().equals(CodecUtils.md5Hex(password, user.getSalt()))) {
+        return null;
+    }
+    // 用户名密码都正确
+    return user;
+}
+```
+
+要注意，查询时也要对密码进行加密后判断是否一致。
+
+## 7.4.测试
+
+我们通过RestClient测试：
+
+ ![1527242841777](/images/leyou/1527242841777.png)
+
+# 8.在注册页进行测试
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+在注册页填写信息：
+
+ ![1527243288933](/images/leyou/1527243288933.png)
+
+提交发现页面自动跳转到了登录页，查看数据库：
+
+ ![1527243354160](/images/leyou/1527243354160.png)
+---
+layout: post
+title:  授权中心
+categories: 乐优
+description: 授权中心
+keywords: 乐优
+---
+# 0.学习目标
+
+
+
+# 1.无状态登录原理
+
+## 1.1.什么是有状态？
+
+有状态服务，即服务端需要记录每次会话的客户端信息，从而识别客户端身份，根据用户身份进行请求的处理，典型的设计如tomcat中的session。
+
+例如登录：用户登录后，我们把登录者的信息保存在服务端session中，并且给用户一个cookie值，记录对应的session。然后下次请求，用户携带cookie值来，我们就能识别到对应session，从而找到用户的信息。
+
+缺点是什么？
+
+- 服务端保存大量数据，增加服务端压力
+- 服务端保存用户状态，无法进行水平扩展
+- 客户端请求依赖服务端，多次请求必须访问同一台服务器
+
+
+
+## 1.2.什么是无状态
+
+微服务集群中的每个服务，对外提供的都是Rest风格的接口。而Rest风格的一个最重要的规范就是：服务的无状态性，即：
+
+- 服务端不保存任何客户端请求者信息
+- 客户端的每次请求必须具备自描述信息，通过这些信息识别客户端身份
+
+带来的好处是什么呢？
+
+- 客户端请求不依赖服务端的信息，任何多次请求不需要必须访问到同一台服务
+- 服务端的集群和状态对客户端透明
+- 服务端可以任意的迁移和伸缩
+- 减小服务端存储压力
+
+
+
+## 1.3.如何实现无状态
+
+无状态登录的流程：
+
+- 当客户端第一次请求服务时，服务端对用户进行信息认证（登录）
+- 认证通过，将用户信息进行加密形成token，返回给客户端，作为登录凭证
+- 以后每次请求，客户端都携带认证的token
+- 服务端对token进行解密，判断是否有效。
+
+流程图：
+
+ ![](/images/leyou/1527300483893.png)
+
+
+
+整个登录过程中，最关键的点是什么？
+
+**token的安全性**
+
+token是识别客户端身份的唯一标示，如果加密不够严密，被人伪造那就完蛋了。
+
+采用何种方式加密才是安全可靠的呢？
+
+我们将采用`JWT + RSA非对称加密`
+
+
+
+## 1.4.JWT
+
+### 1.4.1.简介
+
+JWT，全称是Json Web Token， 是JSON风格轻量级的授权和身份认证规范，可实现无状态、分布式的Web应用授权；官网：https://jwt.io
+
+![1533033734163](/images/leyou/1533033734163.png)
+
+GitHub上jwt的java客户端：https://github.com/jwtk/jjwt
+
+
+
+### 1.4.2.数据格式
+
+JWT包含三部分数据：
+
+- Header：头部，通常头部有两部分信息：
+
+  - 声明类型，这里是JWT
+  - 加密算法，自定义
+
+  我们会对头部进行base64加密（可解密），得到第一部分数据
+
+- Payload：载荷，就是有效数据，一般包含下面信息：
+
+  - 用户身份信息（注意，这里因为采用base64加密，可解密，因此不要存放敏感信息）
+  - 注册声明：如token的签发时间，过期时间，签发人等
+
+  这部分也会采用base64加密，得到第二部分数据
+
+- Signature：签名，是整个数据的认证信息。一般根据前两步的数据，再加上服务的的密钥（secret）（不要泄漏，最好周期性更换），通过加密算法生成。用于验证整个数据完整和可靠性
+
+生成的数据格式：
+
+![1527322512370](/images/leyou/1527322512370.png)
+
+可以看到分为3段，每段就是上面的一部分数据
+
+
+
+### 1.4.3.JWT交互流程
+
+流程图：
+
+ ![1527305891424](/images/leyou/1527305891424.png)
+
+步骤翻译：
+
+- 1、用户登录
+- 2、服务的认证，通过后根据secret生成token
+- 3、将生成的token返回给浏览器
+- 4、用户每次请求携带token
+- 5、服务端利用公钥解读jwt签名，判断签名有效后，从Payload中获取用户信息
+- 6、处理请求，返回响应结果
+
+因为JWT签发的token中已经包含了用户的身份信息，并且每次请求都会携带，这样服务的就无需保存用户信息，甚至无需去数据库查询，完全符合了Rest的无状态规范。
+
+
+
+### 1.4.4.非对称加密
+
+加密技术是对信息进行编码和解码的技术，编码是把原来可读信息（又称明文）译成代码形式（又称密文），其逆过程就是解码（解密），加密技术的要点是加密算法，加密算法可以分为三类：  
+
+- 对称加密，如AES
+  - 基本原理：将明文分成N个组，然后使用密钥对各个组进行加密，形成各自的密文，最后把所有的分组密文进行合并，形成最终的密文。
+  - 优势：算法公开、计算量小、加密速度快、加密效率高
+  - 缺陷：双方都使用同样密钥，安全性得不到保证 
+- 非对称加密，如RSA
+  - 基本原理：同时生成两把密钥：私钥和公钥，私钥隐秘保存，公钥可以下发给信任客户端
+    - 私钥加密，持有私钥或公钥才可以解密
+    - 公钥加密，持有私钥才可解密
+  - 优点：安全，难以破解
+  - 缺点：算法比较耗时
+- 不可逆加密，如MD5，SHA
+  - 基本原理：加密过程中不需要使用[密钥](https://baike.baidu.com/item/%E5%AF%86%E9%92%A5)，输入明文后由系统直接经过加密算法处理成密文，这种加密后的数据是无法被解密的，无法根据密文推算出明文。
+
+
+
+RSA算法历史：
+
+1977年，三位数学家Rivest、Shamir 和 Adleman 设计了一种算法，可以实现非对称加密。这种算法用他们三个人的名字缩写：RSA
+
+
+
+## 1.5.结合Zuul的鉴权流程
+
+我们逐步演进系统架构设计。需要注意的是：secret是签名的关键，因此一定要保密，我们放到鉴权中心保存，其它任何服务中都不能获取secret。
+
+
+
+### 1.5.1.没有RSA加密时
+
+在微服务架构中，我们可以把服务的鉴权操作放到网关中，将未通过鉴权的请求直接拦截，如图：
+
+![1527312464328](/images/leyou/1527312464328.png)
+
+- 1、用户请求登录
+- 2、Zuul将请求转发到授权中心，请求授权
+- 3、授权中心校验完成，颁发JWT凭证
+- 4、客户端请求其它功能，携带JWT
+- 5、Zuul将jwt交给授权中心校验，通过后放行
+- 6、用户请求到达微服务
+- 7、微服务将jwt交给鉴权中心，鉴权同时解析用户信息
+- 8、鉴权中心返回用户数据给微服务
+- 9、微服务处理请求，返回响应
+
+发现什么问题了？
+
+每次鉴权都需要访问鉴权中心，系统间的网络请求频率过高，效率略差，鉴权中心的压力较大。
+
+
+
+### 1.5.2.结合RSA的鉴权
+
+直接看图：
+
+![1527313765010](/images/leyou/1527313765010.png)
+
+- 我们首先利用RSA生成公钥和私钥。私钥保存在授权中心，公钥保存在Zuul和各个微服务
+- 用户请求登录
+- 授权中心校验，通过后用私钥对JWT进行签名加密
+- 返回jwt给用户
+- 用户携带JWT访问
+- Zuul直接通过公钥解密JWT，进行验证，验证通过则放行
+- 请求到达微服务，微服务直接用公钥解析JWT，获取用户信息，无需访问授权中心
+
+
+
+# 2.授权中心
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 2.1.创建授权中心
+
+授权中心的主要职责：
+
+- 用户鉴权：
+  - 接收用户的登录请求，通过用户中心的接口进行校验，通过后生成JWT
+  - 使用私钥生成JWT并返回
+- 服务鉴权：微服务间的调用不经过Zuul，会有风险，需要鉴权中心进行认证
+  - 原理与用户鉴权类似，但逻辑稍微复杂一些（此处我们不做实现）
+
+因为生成jwt，解析jwt这样的行为以后在其它微服务中也会用到，因此我们会抽取成工具。我们把鉴权中心进行聚合，一个工具module，一个提供服务的module
+
+### 2.1.1.创建父module
+
+我们先创建父module，名称为：leyou-auth
+
+![1533263572529](/images/leyou/1533263572529.png)
+
+![1533263656410](/images/leyou/1533263656410.png)
+
+将pom打包方式改为pom：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>leyou</artifactId>
+        <groupId>com.leyou.parent</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leyou.auth</groupId>
+    <artifactId>leyou-auth</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+</project>
+```
+
+
+
+### 2.1.2.通用module
+
+然后是授权服务的通用模块：leyou-auth-common：
+
+![1533264701684](/images/leyou/1533264701684.png)
+
+![1533264779361](/images/leyou/1533264779361.png)
+
+pom.xml：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>leyou-auth</artifactId>
+        <groupId>com.leyou.auth</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leyou.auth</groupId>
+    <artifactId>leyou-auth-common</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    
+</project>
+```
+
+结构：
+
+ ![1533264903853](/images/leyou/1533264903853.png)
+
+
+
+### 2.1.3.授权服务
+
+![1533265001140](/images/leyou/1533265001140.png)
+
+![1533265056671](/images/leyou/1533265056671.png)
+
+pom.xml：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>leyou-auth</artifactId>
+        <groupId>com.leyou.auth</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leyou.auth</groupId>
+    <artifactId>leyou-auth-service</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.leyou.auth</groupId>
+            <artifactId>leyou-auth-common</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.leyou.common</groupId>
+            <artifactId>leyou-common</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>
+```
+
+
+
+引导类：
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+@EnableFeignClients
+public class LeyouAuthApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(LeyouAuthApplication.class, args);
+    }
+}
+```
+
+
+
+application.yml
+
+```yaml
+server:
+  port: 8087
+spring:
+  application:
+    name: auth-service
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+    registry-fetch-interval-seconds: 10
+  instance:
+    lease-renewal-interval-in-seconds: 5 # 每隔5秒发送一次心跳
+    lease-expiration-duration-in-seconds: 10 # 10秒不发送就过期
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+    instance-id: ${spring.application.name}:${server.port}
+```
+
+ 结构：
+
+ ![1533266035185](/images/leyou/1533266035185.png)
+
+在leyou-gateway工程的application.yml中，修改路由：
+
+```yaml
+zuul:
+  prefix: /api # 路由路径前缀
+  routes:
+    item-service: /item/** # 商品微服务的映射路径
+    search-service: /search/** # 搜索微服务
+    user-service: /user/** # 用户微服务
+    auth-service: /auth/** # 授权中心微服务
+```
+
+
+
+## 2.2.JWT工具类
+
+我们在`leyou-auth-common`中导入课前资料中的工具类：
+
+ ![1533268835892](/images/leyou/1533268835892.png)
+
+
+
+需要在`leyou-auth-common`中引入JWT依赖：
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt</artifactId>
+        <version>0.9.0</version>
+    </dependency>
+    <dependency>
+        <groupId>joda-time</groupId>
+        <artifactId>joda-time</artifactId>
+    </dependency>
+</dependencies>
+```
+
+
+
+## 2.3.测试工具类
+
+我们在`leyou-auth-common`中编写测试类：
+
+ ![1533282579972](/images/leyou/1533282579972.png)
+
+
+
+```java
+public class JwtTest {
+
+    private static final String pubKeyPath = "C:\\tmp\\rsa\\rsa.pub";
+
+    private static final String priKeyPath = "C:\\tmp\\rsa\\rsa.pri";
+
+    private PublicKey publicKey;
+
+    private PrivateKey privateKey;
+
+    @Test
+    public void testRsa() throws Exception {
+        RsaUtils.generateKey(pubKeyPath, priKeyPath, "234");
+    }
+
+    @Before
+    public void testGetRsa() throws Exception {
+        this.publicKey = RsaUtils.getPublicKey(pubKeyPath);
+        this.privateKey = RsaUtils.getPrivateKey(priKeyPath);
+    }
+
+    @Test
+    public void testGenerateToken() throws Exception {
+        // 生成token
+        String token = JwtUtils.generateToken(new UserInfo(20L, "jack"), privateKey, 5);
+        System.out.println("token = " + token);
+    }
+
+    @Test
+    public void testParseToken() throws Exception {
+        String token = "eyJhbGciOiJSUzI1NiJ9.eyJpZCI6MjAsInVzZXJuYW1lIjoiamFjayIsImV4cCI6MTUzMzI4MjQ3N30.EPo35Vyg1IwZAtXvAx2TCWuOPnRwPclRNAM4ody5CHk8RF55wdfKKJxjeGh4H3zgruRed9mEOQzWy79iF1nGAnvbkraGlD6iM-9zDW8M1G9if4MX579Mv1x57lFewzEo-zKnPdFJgGlAPtNWDPv4iKvbKOk1-U7NUtRmMsF1Wcg";
+
+        // 解析token
+        UserInfo user = JwtUtils.getInfoFromToken(token, publicKey);
+        System.out.println("id: " + user.getId());
+        System.out.println("userName: " + user.getUsername());
+    }
+}
+```
+
+
+
+测试生成公钥和私钥，我们运行这段代码：
+
+![1533282630089](/images/leyou/1533282630089.png)
+
+运行之后，查看目标目录：
+
+![1533282665940](/images/leyou/1533282665940.png)
+
+公钥和私钥已经生成了！
+
+
+
+测试生成token，把@Before的注释去掉的：
+
+![1533282760203](/images/leyou/1533282760203.png)
+
+![1533282875434](/images/leyou/1533282875434.png)
+
+
+
+测试解析token：
+
+![1533282931796](/images/leyou/1533282931796.png)
+
+正常情况：
+
+![1533282968301](/images/leyou/1533282968301.png)
+
+任意改动token，发现报错了：
+
+![1533283024844](/images/leyou/1533283024844.png)
+
+
+
+## 2.3.编写登录授权接口
+
+接下来，我们需要在`leyou-auth-servcice`编写一个接口，对外提供登录授权服务。基本流程如下：
+
+- 客户端携带用户名和密码请求登录
+- 授权中心调用客户中心接口，根据用户名和密码查询用户信息
+- 如果用户名密码正确，能获取用户，否则为空，则登录失败
+- 如果校验成功，则生成JWT并返回
+
+
+
+### 2.3.1.生成公钥和私钥
+
+我们需要在授权中心生成真正的公钥和私钥。我们必须有一个生成公钥和私钥的secret，这个可以配置到`application.yml`中：
+
+```yaml
+leyou:
+  jwt:
+    secret: leyou@Login(Auth}*^31)&heiMa% # 登录校验的密钥
+    pubKeyPath: C:\\tmp\\rsa\\rsa.pub # 公钥地址
+    priKeyPath: C:\\tmp\\rsa\\rsa.pri # 私钥地址
+    expire: 30 # 过期时间,单位分钟
+```
+
+然后编写属性类，加载这些数据：
+
+```java
+@ConfigurationProperties(prefix = "ly.jwt")
+public class JwtProperties {
+
+    private String secret; // 密钥
+
+    private String pubKeyPath;// 公钥
+
+    private String priKeyPath;// 私钥
+
+    private int expire;// token过期时间
+
+    private PublicKey publicKey; // 公钥
+
+    private PrivateKey privateKey; // 私钥
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtProperties.class);
+
+    /**
+     * @PostContruct：在构造方法执行之后执行该方法
+     */
+    @PostConstruct
+    public void init(){
+        try {
+            File pubKey = new File(pubKeyPath);
+            File priKey = new File(priKeyPath);
+            if (!pubKey.exists() || !priKey.exists()) {
+                // 生成公钥和私钥
+                RsaUtils.generateKey(pubKeyPath, priKeyPath, secret);
+            }
+            // 获取公钥和私钥
+            this.publicKey = RsaUtils.getPublicKey(pubKeyPath);
+            this.privateKey = RsaUtils.getPrivateKey(priKeyPath);
+        } catch (Exception e) {
+            logger.error("初始化公钥和私钥失败！", e);
+            throw new RuntimeException();
+        }
+    }
+    
+    // getter setter ...
+}
+```
+
+
+
+### 2.3.2.Controller
+
+编写授权接口，我们接收用户名和密码，校验成功后，写入cookie中。
+
+- 请求方式：post
+- 请求路径：/accredit
+- 请求参数：username和password
+- 返回结果：无
+
+代码：
+
+```java
+@RestController
+@EnableConfigurationProperties(JwtProperties.class)
+public class AuthController {
+
+    @Autowired
+    private AuthService authService;
+
+    @Autowired
+    private JwtProperties prop;
+
+    /**
+     * 登录授权
+     *
+     * @param username
+     * @param password
+     * @return
+     */
+    @PostMapping("accredit")
+    public ResponseEntity<Void> authentication(
+            @RequestParam("username") String username,
+            @RequestParam("password") String password,
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        // 登录校验
+        String token = this.authService.authentication(username, password);
+        if (StringUtils.isBlank(token)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        // 将token写入cookie,并指定httpOnly为true，防止通过JS获取和修改
+        CookieUtils.setCookie(request, response, prop.getCookieName(),
+                token, prop.getCookieMaxAge(), null, true);
+        return ResponseEntity.ok().build();
+    }
+}
+```
+
+这里的cookie的name和生存时间，我们配置到属性文件：application.yml：
+
+![1533295409903](/images/leyou/1533295409903.png)
+
+然后在`JwtProperties`中添加属性：
+
+![1533295465634](/images/leyou/1533295465634.png)
+
+
+
+### 2.3.3.CookieUtils
+
+要注意，这里我们使用了一个工具类，CookieUtils，可以在课前资料中找到，我们把它添加到`leyou-common`中，然后引入servlet相关依赖即可：
+
+```xml
+<dependency>
+    <groupId>org.apache.tomcat.embed</groupId>
+    <artifactId>tomcat-embed-core</artifactId>
+</dependency>
+```
+
+代码：略
+
+ ![1533295716082](/images/leyou/1533295716082.png)
+
+
+
+### 2.3.3.UserClient
+
+接下来我们肯定要对用户密码进行校验，所以我们需要通过FeignClient去访问 user-service微服务：
+
+引入user-service依赖：
+
+```xml
+<dependency>
+    <groupId>com.leyou.user</groupId>
+    <artifactId>leyou-user-interface</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+编写FeignClient：
+
+```java
+@FeignClient(value = "user-service")
+public interface UserClient extends UserApi {
+}
+```
+
+在leyou-user-interface工程中添加api接口：
+
+ ![1533296452053](/images/leyou/1533296452053.png)
+
+内容：
+
+```java
+@RequestMapping("user")
+public interface UserApi {
+
+    @GetMapping("query")
+    public User queryUser(
+            @RequestParam("username") String username,
+            @RequestParam("password") String password);
+}
+```
+
+
+
+### 2.3.4.Service
+
+```java
+@Service
+public class AuthService {
+
+    @Autowired
+    private UserClient userClient;
+
+    @Autowired
+    private JwtProperties properties;
+
+    public String authentication(String username, String password) {
+
+        try {
+            // 调用微服务，执行查询
+            User user = this.userClient.queryUser(username, password);
+
+            // 如果查询结果为null，则直接返回null
+            if (user == null) {
+                return null;
+            }
+
+            // 如果有查询结果，则生成token
+            String token = JwtUtils.generateToken(new UserInfo(user.getId(), user.getUsername()),
+                    properties.getPrivateKey(), properties.getExpire());
+            return token;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+}
+```
+
+
+
+### 2.3.5.项目结构
+
+ ![1533301291420](/images/leyou/1533301291420.png)
+
+
+
+### 2.3.6.测试
+
+![1533301145953](/images/leyou/1533301145953.png)
+
+
+
+## 2.4.登录页面
+
+接下来，我们看看登录页面，是否能够正确的发出请求。
+
+我们在页面输入登录信息，然后点击登录：
+
+ ![1533301466739](/images/leyou/1533301466739.png)
+
+查看控制台：
+
+![1533301495759](/images/leyou/1533301495759.png)
+
+发现请求的路径不对，我们的认证接口是：
+
+```
+/api/auth/accredit
+```
+
+我们打开login.html，修改路径信息：
+
+ ![1527517811770](/images/leyou/1527517811770.png)
+
+页面ajax请求：
+
+ ![1527517866435](/images/leyou/1527517866435.png)
+
+然后再次测试，成功跳转到了首页：
+
+![1527518012727](/images/leyou/1527518012727.png)
+
+
+
+## 2.5.解决cookie写入问题
+
+接下来我们查看首页cookie：
+
+![1533302034190](/images/leyou/1533302034190.png)
+
+什么都没有，为什么？
+
+
+
+### 2.5.1.问题分析
+
+我们在之前测试时，清晰的看到了响应头中，有Set-Cookie属性，为什么在这里却什么都没有？
+
+我们之前在讲cors跨域时，讲到过跨域请求cookie生效的条件：
+
+- 服务的响应头中需要携带Access-Control-Allow-Credentials并且为true。
+- 响应头中的Access-Control-Allow-Origin一定不能为*，必须是指定的域名
+- 浏览器发起ajax需要指定withCredentials 为true
+
+看看我们的服务端cors配置：
+
+ ![1527518456220](/images/leyou/1527518456220.png)
+
+没有任何问题。
+
+再看客户端浏览器的ajax配置，我们在`js/common.js`中对axios进行了统一配置：
+
+ ![1527518532739](/images/leyou/1527518532739.png)
+
+一切OK。
+
+那说明，问题一定出在响应的set-cookie头中。我们再次仔细看看刚才的响应头：
+
+![1527518649379](/images/leyou/1527518649379.png)
+
+我们发现cookie的 `domain`属性似乎不太对。
+
+cookie也是有`域` 的限制，**一个网页，只能操作当前域名下的cookie**，但是现在我们看到的地址是0.0.1，而页面是www.leyou.com,域名不匹配，cookie设置肯定失败了！
+
+
+
+### 2.5.2.跟踪CookieUtils
+
+我们去Debug跟踪CookieUtils，看看到底是怎么回事：
+
+我们发现内部有一个方法，用来获取Domain：
+
+![1533303181817](/images/leyou/1533303181817.png)
+
+它获取domain是通过服务器的host来计算的，然而我们的地址竟然是：127.0.0.1:8087，因此后续的运算，最终得到的domain就变成了：
+
+![1533303213902](/images/leyou/1533303213902.png)
+
+问题找到了：我们请求时的serverName明明是：api.leyou.com，现在却被变成了：127.0.0.1，因此计算domain是错误的，从而导致cookie设置失败！
+
+
+
+### 2.5.3.解决host地址的变化
+
+那么问题来了：为什么我们这里的请求serverName变成了：127.0.0.1:8087呢？
+
+这里的server name其实就是请求时的主机名：Host，之所以改变，有两个原因：
+
+- 我们使用了nginx反向代理，当监听到api.leyou.com的时候，会自动将请求转发至127.0.0.1:10010，即Zuul。
+- 而后请求到达我们的网关Zuul，Zuul就会根据路径匹配，我们的请求是/api/auth，根据规则被转发到了 127.0.0.1:8087 ，即我们的授权中心。
+
+我们首先去更改nginx配置，让它不要修改我们的host：`proxy_set_header Host $host;`
+
+![1533303544219](/images/leyou/1533303544219.png)
+
+把nginx进行reload：
+
+```
+nginx -s reload
+```
+
+
+
+这样就解决了nginx这里的问题。但是Zuul还会有一次转发，所以要去修改网关的配置（leyou-gateway工程）：
+
+![1533303659673](/images/leyou/1533303659673.png)
+
+
+
+重启后，我们再次测试。
+
+![1533716093162](/images/leyou/1533716093162.png)
+
+最后计算得到的domain：
+
+![1533716136698](/images/leyou/1533716136698.png)
+
+完美！
+
+
+
+### 2.5.4.再次测试
+
+我们再次登录，发现依然没有cookie！！
+
+![img](/images/leyou/01348FC2.gif) 
+
+怎么回事呢？
+
+我们通过RestClient访问下看看：
+
+![1527520407803](/images/leyou/1527520407803.png)
+
+发现，响应头中根本没有`set-cookie`了。
+
+这是怎么回事？？
+
+
+
+### 2.5.5.Zuul的敏感头过滤
+
+Zuul内部有默认的过滤器，会对请求和响应头信息进行重组，过滤掉敏感的头信息：
+
+![1533732985089](/images/leyou/1533732985089.png)
+
+会发现，这里会通过一个属性为`SensitiveHeaders`的属性，来获取敏感头列表，然后添加到`IgnoredHeaders`中，这些头信息就会被忽略。
+
+而这个`SensitiveHeaders`的默认值就包含了`set-cookie`：
+
+![1533733081367](/images/leyou/1533733081367.png)
+
+解决方案有两种：
+
+全局设置：
+
+- `zuul.sensitive-headers=` 
+
+指定路由设置：
+
+- `zuul.routes.<routeName>.sensitive-headers=`
+- `zuul.routes.<routeName>.custom-sensitive-headers=true`
+
+思路都是把敏感头设置为null
+
+![1533733356133](/images/leyou/1533733356133.png)
+
+
+
+### 2.5.6.最后的测试
+
+再次重启后测试：
+
+![1533733550548](/images/leyou/1533733550548.png)
+
+
+
+# 3.首页判断登录状态
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+虽然cookie已经成功写入，但是我们首页的顶部，登录状态依然没能判断出用户信息：
+
+![1533733618901](/images/leyou/1533733618901.png)
+
+这里需要向后台发起请求，根据cookie获取当前用户的信息。
+
+我们先看页面实现
+
+## 3.1.页面JS代码
+
+页面的顶部已经被我们封装为一个独立的Vue组件，在`/js/pages/shortcut.js`中
+
+ ![1533733732779](/images/leyou/1533733732779.png)
+
+打开js，发现里面已经定义好了Vue组件，并且在created函数中，查询用户信息：
+
+![1533733810408](/images/leyou/1533733810408.png)
+
+查看网络控制台，发现发起了请求：
+
+![1533733946470](/images/leyou/1533733946470.png)
+
+因为token在cookie中，因此本次请求肯定会携带token信息在头中。
+
+
+
+## 3.2.后台实现校验用户接口
+
+我们在`leyou-auth-service`中定义用户的校验接口，通过cookie获取token，然后校验通过返回用户信息。
+
+- 请求方式：GET
+- 请求路径：/verify
+- 请求参数：无，不过我们需要从cookie中获取token信息
+- 返回结果：UserInfo，校验成功返回用户信息；校验失败，则返回401
+
+代码：
+
+```java
+/**
+  * 验证用户信息
+  * @param token
+  * @return
+  */
+@GetMapping("verify")
+public ResponseEntity<UserInfo> verifyUser(@CookieValue("LY_TOKEN")String token){
+    try {
+        // 从token中解析token信息
+        UserInfo userInfo = JwtUtils.getInfoFromToken(token, this.properties.getPublicKey());
+        // 解析成功返回用户信息
+        return ResponseEntity.ok(userInfo);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    // 出现异常则，响应500
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+}
+```
+
+
+
+## 3.3.测试
+
+![1533734761745](/images/leyou/1533734761745.png)
+
+![1533734803538](/images/leyou/1533734803538.png)
+
+页面效果：
+
+![1533734834479](/images/leyou/1533734834479.png)
+
+
+
+## 3.4.刷新token
+
+每当用户在页面进行新的操作，都应该刷新token的过期时间，否则30分钟后用户的登录信息就无效了。而刷新其实就是重新生成一份token，然后写入cookie即可。
+
+那么问题来了：我们怎么知道用户有操作呢？
+
+事实上，每当用户来查询其个人信息，就证明他正在浏览网页，此时刷新cookie是比较合适的时机。因此我们可以对刚刚的校验用户登录状态的接口进行改进，加入刷新token的逻辑。
+
+```java
+/**
+  * 验证用户信息
+  * @param token
+  * @return
+  */
+@GetMapping("verify")
+public ResponseEntity<UserInfo> verifyUser(@CookieValue("LY_TOKEN")String token, HttpServletRequest request, HttpServletResponse response){
+    try {
+        // 从token中解析token信息
+        UserInfo userInfo = JwtUtils.getInfoFromToken(token, this.properties.getPublicKey());
+        // 解析成功要重新刷新token
+        token = JwtUtils.generateToken(userInfo, this.properties.getPrivateKey(), this.properties.getExpire());
+        // 更新cookie中的token
+        CookieUtils.setCookie(request, response, this.properties.getCookieName(), token, this.properties.getCookieMaxAge());
+
+        // 解析成功返回用户信息
+        return ResponseEntity.ok(userInfo);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    // 出现异常则，响应500
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+}
+```
+
+
+
+# 4.网关的登录拦截器
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+接下来，我们在Zuul编写拦截器，对用户的token进行校验，如果发现未登录，则进行拦截。
+
+
+
+## 4.1.引入jwt相关配置
+
+既然是登录拦截，一定是前置拦截器，我们在`leyou-gateway`中定义。
+
+首先在pom.xml中，引入所需要的依赖：
+
+```xml
+<dependency>
+    <groupId>com.leyou.common</groupId>
+    <artifactId>leyou-common</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+<dependency>
+    <groupId>com.leyou.auth</groupId>
+    <artifactId>leyou-auth-common</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+然后编写application.yml属性文件，添加如下内容：
+
+```yaml
+leyou:
+  jwt:
+    pubKeyPath:  C:\\tmp\\rsa\\rsa.pub # 公钥地址
+    cookieName: LY_TOKEN # cookie的名称
+```
+
+编写属性类，读取公钥：
+
+ ![1533736124053](/images/leyou/1533736124053.png)
+
+```java
+@ConfigurationProperties(prefix = "leyou.jwt")
+public class JwtProperties {
+
+    private String pubKeyPath;// 公钥
+
+    private PublicKey publicKey; // 公钥
+
+    private String cookieName;
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtProperties.class);
+
+    @PostConstruct
+    public void init(){
+        try {
+            // 获取公钥和私钥
+            this.publicKey = RsaUtils.getPublicKey(pubKeyPath);
+        } catch (Exception e) {
+            logger.error("初始化公钥失败！", e);
+            throw new RuntimeException();
+        }
+    }
+
+    public String getPubKeyPath() {
+        return pubKeyPath;
+    }
+
+    public void setPubKeyPath(String pubKeyPath) {
+        this.pubKeyPath = pubKeyPath;
+    }
+
+    public PublicKey getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(PublicKey publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public String getCookieName() {
+        return cookieName;
+    }
+
+    public void setCookieName(String cookieName) {
+        this.cookieName = cookieName;
+    }
+}
+```
+
+
+
+## 4.2.编写过滤器逻辑
+
+基本逻辑：
+
+- 获取cookie中的token
+- 通过JWT对token进行校验
+- 通过：则放行；不通过：则重定向到登录页
+
+ ![1527557510032](/images/leyou/1527557510032.png)
+
+```java
+@Component
+@EnableConfigurationProperties(JwtProperties.class)
+public class LoginFilter extends ZuulFilter {
+
+    @Autowired
+    private JwtProperties properties;
+
+    @Override
+    public String filterType() {
+        return "pre";
+    }
+
+    @Override
+    public int filterOrder() {
+        return 5;
+    }
+
+    @Override
+    public boolean shouldFilter() {
+        return true;
+    }
+
+    @Override
+    public Object run() throws ZuulException {
+        // 获取上下文
+        RequestContext context = RequestContext.getCurrentContext();
+        // 获取request
+        HttpServletRequest request = context.getRequest();
+        // 获取token
+        String token = CookieUtils.getCookieValue(request, this.properties.getCookieName());
+        // 校验
+        try {
+            // 校验通过什么都不做，即放行
+            JwtUtils.getInfoFromToken(token, this.properties.getPublicKey());
+        } catch (Exception e) {
+            // 校验出现异常，返回403
+            context.setSendZuulResponse(false);
+            context.setResponseStatusCode(HttpStatus.FORBIDDEN.value());
+        }
+        return null;
+    }
+}
+```
+
+
+
+重启，刷新页面，发现请求校验的接口也被拦截了：
+
+![1533737074966](/images/leyou/1533737074966.png)
+
+证明我们的拦截器生效了，但是，似乎有什么不对的。这个路径似乎不应该被拦截啊！
+
+
+
+## 4.3.白名单
+
+要注意，并不是所有的路径我们都需要拦截，例如：
+
+- 登录校验接口：`/auth/**`
+- 注册接口：`/user/register`
+- 数据校验接口：`/user/check/**`
+- 发送验证码接口：`/user/code`
+- 搜索接口：`/search/**`
+
+另外，跟后台管理相关的接口，因为我们没有做登录和权限，因此暂时都放行，但是生产环境中要做登录校验：
+
+- 后台商品服务：`/item/**`
+
+
+
+所以，我们需要在拦截时，配置一个白名单，如果在名单内，则不进行拦截。
+
+在`application.yaml`中添加规则：
+
+```yaml
+leyou:
+  filter:
+    allowPaths:
+      - /api/auth
+      - /api/search
+      - /api/user/register
+      - /api/user/check
+      - /api/user/code
+      - /api/item
+```
+
+然后读取这些属性：
+
+ ![1533737234087](/images/leyou/1533737234087.png)
+
+内容：
+
+```java
+@ConfigurationProperties(prefix = "leyou.filter")
+public class FilterProperties {
+
+    private List<String> allowPaths;
+
+    public List<String> getAllowPaths() {
+        return allowPaths;
+    }
+
+    public void setAllowPaths(List<String> allowPaths) {
+        this.allowPaths = allowPaths;
+    }
+}
+```
+
+在过滤器中的`shouldFilter`方法中添加判断逻辑：
+
+![1533737832161](/images/leyou/1533737832161.png)
+
+代码：
+
+```java
+@Component
+@EnableConfigurationProperties({JwtProperties.class, FilterProperties.class})
+public class LoginFilter extends ZuulFilter {
+
+    @Autowired
+    private JwtProperties jwtProp;
+
+    @Autowired
+    private FilterProperties filterProp;
+
+    private static final Logger logger = LoggerFactory.getLogger(LoginFilter.class);
+
+    @Override
+    public String filterType() {
+        return "pre";
+    }
+
+    @Override
+    public int filterOrder() {
+        return 5;
+    }
+
+    @Override
+    public boolean shouldFilter() {
+        // 获取上下文
+        RequestContext ctx = RequestContext.getCurrentContext();
+        // 获取request
+        HttpServletRequest req = ctx.getRequest();
+        // 获取路径
+        String requestURI = req.getRequestURI();
+        // 判断白名单
+        return !isAllowPath(requestURI);
+    }
+
+    private boolean isAllowPath(String requestURI) {
+        // 定义一个标记
+        boolean flag = false;
+        // 遍历允许访问的路径
+        for (String path : this.filterProp.getAllowPaths()) {
+            // 然后判断是否是符合
+            if(requestURI.startsWith(path)){
+                flag = true;
+                break;
+            }
+        }
+        return flag;
+    }
+
+    @Override
+    public Object run() throws ZuulException {
+        // 获取上下文
+        RequestContext ctx = RequestContext.getCurrentContext();
+        // 获取request
+        HttpServletRequest request = ctx.getRequest();
+        // 获取token
+        String token = CookieUtils.getCookieValue(request, jwtProp.getCookieName());
+        // 校验
+        try {
+            // 校验通过什么都不做，即放行
+            JwtUtils.getInfoFromToken(token, jwtProp.getPublicKey());
+        } catch (Exception e) {
+            // 校验出现异常，返回403
+            ctx.setSendZuulResponse(false);
+            ctx.setResponseStatusCode(403);
+            logger.error("非法访问，未登录，地址：{}", request.getRemoteHost(), e );
+        }
+        return null;
+    }
+}
+```
+
+
+
+再次测试：
+
+![1533737743491](/images/leyou/1533737743491.png)
+---
+layout: post
+title:  购物车
+categories: 乐优
+description: 购物车
+keywords: 乐优
+---
+# 0.学习目标
+
+
+
+
+
+# 1.搭建购物车服务
+
+## 1.1.创建module
+
+![1533738258872](/images/leyou/1533738258872.png)
+
+![1533738278599](/images/leyou/1533738278599.png)
+
+
+
+## 1.2.pom依赖
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>leyou</artifactId>
+        <groupId>com.leyou.parent</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.leyou.service</groupId>
+    <artifactId>ly-cart</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+
+
+## 1.3.配置文件
+
+```yaml
+server:
+  port: 8088
+spring:
+  application:
+    name: cart-service
+  redis:
+    host: 192.168.56.101
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+    registry-fetch-interval-seconds: 10
+  instance:
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+    instance-id: ${eureka.instance.ip-address}.${server.port}
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 15
+```
+
+
+
+## 1.4.启动类
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+@EnableFeignClients
+public class LeyouCartApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(LeyouCartApplication.class, args);
+    }
+}
+```
+
+
+
+# 2.购物车功能分析
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 2.1.需求
+
+需求描述：
+
+- 用户可以在登录状态下将商品添加到购物车
+  - 放入数据库
+  - 放入redis（采用）
+- 用户可以在未登录状态下将商品添加到购物车
+  - 放入localstorage
+- 用户可以使用购物车一起结算下单
+- 用户可以查询自己的购物车
+- 用户可以在购物车中修改购买商品的数量。
+- 用户可以在购物车中删除商品。
+- 在购物车中展示商品优惠信息
+- 提示购物车商品价格变化
+
+
+
+## 2.2.流程图
+
+![1527585343248](/images/leyou/1527585343248.png)
+
+
+
+这幅图主要描述了两个功能：新增商品到购物车、查询购物车。
+
+新增商品：
+
+- 判断是否登录
+  - 是：则添加商品到后台Redis中
+  - 否：则添加商品到本地的Localstorage
+
+无论哪种新增，完成后都需要查询购物车列表：
+
+- 判断是否登录
+  - 否：直接查询localstorage中数据并展示
+  - 是：已登录，则需要先看本地是否有数据，
+    - 有：需要提交到后台添加到redis，合并数据，而后查询
+    - 否：直接去后台查询redis，而后返回
+
+
+
+# 3.未登录购物车
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 3.1.准备
+
+### 3.1.1购物车的数据结构
+
+首先分析一下未登录购物车的数据结构。
+
+我们看下页面展示需要什么数据：
+
+![1527737419294](/images/leyou/1527737419294.png)
+
+因此每一个购物车信息，都是一个对象，包含：
+
+```js
+{
+    skuId:2131241,
+    title:"小米6",
+    image:"",
+    price:190000,
+    num:1,
+    ownSpec:"{"机身颜色":"陶瓷黑尊享版","内存":"6GB","机身存储":"128GB"}"
+}
+```
+
+另外，购物车中不止一条数据，因此最终会是对象的数组。即：
+
+```js
+[
+    {...},{...},{...}
+]
+```
+
+
+
+### 3.1.2.web本地存储
+
+知道了数据结构，下一个问题，就是如何保存购物车数据。前面我们分析过，可以使用Localstorage来实现。Localstorage是web本地存储的一种，那么，什么是web本地存储呢？
+
+#### 什么是web本地存储？
+
+![1527587496457](/images/leyou/1527587496457.png)
+
+
+
+web本地存储主要有两种方式：
+
+- LocalStorage：localStorage 方法存储的数据没有时间限制。第二天、第二周或下一年之后，数据依然可用。 
+- SessionStorage：sessionStorage 方法针对一个 session 进行数据存储。当用户关闭浏览器窗口后，数据会被删除。 
+
+
+
+#### LocalStorage的用法
+
+语法非常简单：
+
+![1533739711101](/images/leyou/1533739711101.png)
+
+```js
+localStorage.setItem("key","value"); // 存储数据
+localStorage.getItem("key"); // 获取数据
+localStorage.removeItem("key"); // 删除数据
+```
+
+注意：**localStorage和SessionStorage都只能保存字符串**。
+
+不过，在我们的common.js中，已经对localStorage进行了简单的封装：
+
+![1533739810927](/images/leyou/1533739810927.png)
+
+
+
+示例：
+
+![1533739929733](/images/leyou/1533739929733.png)
+
+
+
+### 3.1.3.获取num
+
+添加购物车需要知道购物的数量，所以我们需要获取数量大小。我们在Vue中定义num，保存数量：
+
+![1533740236299](/images/leyou/1533740236299.png)
+
+然后将num与页面的input框绑定，同时给`+`和`-`的按钮绑定事件：
+
+![1533742284781](/images/leyou/1533742284781.png)
+
+编写方法：
+
+![1533742493645](/images/leyou/1533742493645.png)
+
+
+
+## 3.2.添加购物车
+
+### 3.2.1.点击事件
+
+我们看下商品详情页：
+
+![1527585864482](/images/leyou/1527585864482.png)
+
+现在点击加入购物车会跳转到购物车成功页面。
+
+不过我们不这么做，我们绑定点击事件，然后实现添加购物车功能。
+
+![1533745246878](/images/leyou/1533745246878.png)
+
+addCart方法中判断用户的登录状态：
+
+```js
+addCart(){
+   ly.http.get("/auth/verify").then(res=>{
+       // 已登录发送信息到后台，保存到redis中
+   }).catch(()=>{
+       // 未登录保存在浏览器本地的localStorage中
+   })
+}
+```
+
+
+
+### 3.2.2.获取数量，添加购物车
+
+```js
+addCart(){
+    ly.verifyUser().then(res=>{
+        // 已登录发送信息到后台，保存到redis中
+
+    }).catch(()=>{
+        // 未登录保存在浏览器本地的localStorage中
+        // 1、查询本地购物车
+        let carts = ly.store.get("carts") || [];
+        let cart = carts.find(c=>c.skuId===this.sku.id);
+        // 2、判断是否存在
+        if (cart) {
+            // 3、存在更新数量
+            cart.num += this.num;
+        } else {
+            // 4、不存在，新增
+            cart = {
+                skuId: this.sku.id,
+                title: this.sku.title,
+                price: this.sku.price,
+                image: this.sku.images,
+                num: this.num,
+                ownSpec: JSON.stringify(this.ownSpec)
+            }
+            carts.push(cart);
+        }
+        // 把carts写回localstorage
+        ly.store.set("carts", carts);
+        // 跳转
+        window.location.href = "http://www.leyou.com/cart.html";
+    });
+}
+```
+
+结果：
+
+![1533785968759](/images/leyou/1533785968759.png)
+
+添加完成后，页面会跳转到购物车结算页面：cart.html
+
+
+
+## 3.3.查询购物车
+
+### 3.3.1.校验用户登录
+
+因为会多次校验用户登录状态，因此我们封装一个校验的方法：
+
+在common.js中：
+
+![1533788637942](/images/leyou/1533788637942.png)
+
+在页面item.html中使用该方法：
+
+![1533788722957](/images/leyou/1533788722957.png)
+
+
+
+### 3.3.2.查询购物车
+
+页面加载时，就应该去查询购物车。
+
+```java
+var cartVm = new Vue({
+    el: "#cartApp",
+    data: {
+        ly,
+        carts: [],// 购物车数据
+    },
+    created() {
+        this.loadCarts();
+    },
+    methods: {
+        loadCarts() {
+            // 先判断登录状态
+            ly.verifyUser().then(() => {
+                    // 已登录
+
+                }).catch(() => {
+                    // 未登录
+                    this.carts = ly.store.get("carts") || [];
+                    this.selected = this.carts;
+                })
+           }
+    }
+    components: {
+        shortcut: () => import("/js/pages/shortcut.js")
+    }
+})
+```
+
+刷新页面，查看控制台Vue实例：
+
+![1533806610234](/images/leyou/1533806610234.png)
+
+
+
+### 3.5.2.渲染到页面
+
+接下来，我们在页面中展示carts的数据：
+
+![1533806563740](/images/leyou/1533806563740.png)
+
+要注意，价格的展示需要进行格式化，这里使用的是我们在common.js中定义的formatPrice方法
+
+效果：
+
+![1533806670775](/images/leyou/1533806670775.png)
+
+
+
+## 3.6.修改数量
+
+我们给页面的 `+` 和 `-`绑定点击事件，修改num 的值：
+
+![1533806715698](/images/leyou/1533806715698.png)
+
+两个事件：
+
+```js
+    increment(c) {
+        c.num++;
+        ly.verifyUser().then(() => {
+            // TODO 已登录，向后台发起请求
+        }).catch(() => {
+            // 未登录，直接操作本地数据
+            ly.store.set("carts", this.carts);
+        })
+    },
+    decrement(c) {
+        if (c.num <= 1) {
+            return;
+        }
+        c.num--;
+        ly.verifyUser().then(() => {
+            // TODO 已登录，向后台发起请求
+        }).catch(() => {
+            // 未登录，直接操作本地数据
+            ly.store.set("carts", this.carts);
+        })
+    }
+```
+
+
+
+## 3.7.删除商品
+
+给删除按钮绑定事件：
+
+![1533807671462](/images/leyou/1533807671462.png)
+
+
+
+点击事件中删除商品：
+
+```js
+deleteCart(i){
+    ly.verifyUser().then(res=>{
+        // TODO，已登录购物车
+    }).catch(()=>{
+        // 未登录购物车
+        this.carts.splice(i, 1);
+        ly.store.set("carts", this.carts);
+    })
+}
+```
+
+
+
+## 3.8.选中商品
+
+在页面中，每个购物车商品左侧，都有一个复选框，用户可以选择部分商品进行下单，而不一定是全部：
+
+![1533808731995](/images/leyou/1533808731995.png)
+
+我们定义一个变量，记录所有被选中的商品：
+
+![1533816012100](/images/leyou/1533816012100.png)
+
+
+
+### 3.8.1.选中一个
+
+我们给商品前面的复选框与selected绑定，并且指定其值为当前购物车商品：
+
+![1533810163988](/images/leyou/1533810163988.png)
+
+
+
+### 3.8.2.初始化全选
+
+我们在加载完成购物车查询后，初始化全选：
+
+![1533809253022](/images/leyou/1533809253022.png)
+
+
+
+### 3.8.4.总价格
+
+然后编写一个计算属性，计算出选中商品总价格：
+
+```js
+computed: {
+    totalPrice() {
+        return ly.formatPrice(this.selected.reduce((c1, c2) => c1 + c2.num * c2.price, 0));
+    }
+}
+```
+
+在页面中展示总价格：
+
+![1533810788247](/images/leyou/1533810788247.png)
+
+效果：
+
+![1533810760802](/images/leyou/1533810760802.png)
+
+
+
+# 4.已登录购物车
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+接下来，我们完成已登录购物车。
+
+在刚才的未登录购物车编写时，我们已经预留好了编写代码的位置，逻辑也基本一致。
+
+## 4.1.添加登录校验
+
+购物车系统只负责登录状态的购物车处理，因此需要添加登录校验，我们通过JWT鉴权即可实现。
+
+### 4.1.1.引入JWT相关依赖
+
+我们引入之前写的鉴权工具：`leyou-auth-common`
+
+```xml
+<dependency>
+    <groupId>com.leyou.auth</groupId>
+    <artifactId>leyou-auth-common</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+### 4.1.2.配置公钥
+
+```yaml
+leyou:
+  jwt:
+    pubKeyPath: D:/heima/rsa/rsa.pub # 公钥地址
+    cookieName: LY_TOKEN # cookie的名称
+```
+
+### 4.1.3.加载公钥
+
+ ![1533811142851](/images/leyou/1533811142851.png)
+
+代码：
+
+```java
+@ConfigurationProperties(prefix = "leyou.jwt")
+public class JwtProperties {
+
+    private String pubKeyPath;// 公钥
+
+    private PublicKey publicKey; // 公钥
+
+    private String cookieName;
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtProperties.class);
+
+    @PostConstruct
+    public void init(){
+        try {
+            // 获取公钥和私钥
+            this.publicKey = RsaUtils.getPublicKey(pubKeyPath);
+        } catch (Exception e) {
+            logger.error("初始化公钥失败！", e);
+            throw new RuntimeException();
+        }
+    }
+
+    public String getPubKeyPath() {
+        return pubKeyPath;
+    }
+
+    public void setPubKeyPath(String pubKeyPath) {
+        this.pubKeyPath = pubKeyPath;
+    }
+
+    public PublicKey getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(PublicKey publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public String getCookieName() {
+        return cookieName;
+    }
+
+    public void setCookieName(String cookieName) {
+        this.cookieName = cookieName;
+    }
+}
+```
+
+
+
+### 4.1.4.编写拦截器
+
+因为很多接口都需要进行登录，我们直接编写SpringMVC拦截器，进行统一登录校验。同时，我们还要把解析得到的用户信息保存起来，以便后续的接口可以使用。
+
+ ![1533811351500](/images/leyou/1533811351500.png)
+
+代码：
+
+```java
+public class LoginInterceptor extends HandlerInterceptorAdapter {
+
+    private JwtProperties jwtProperties;
+
+    // 定义一个线程域，存放登录用户
+    private static final ThreadLocal<UserInfo> tl = new ThreadLocal<>();
+
+    public LoginInterceptor(JwtProperties jwtProperties) {
+        this.jwtProperties = jwtProperties;
+    }
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // 查询token
+        String token = CookieUtils.getCookieValue(request, "LY_TOKEN");
+        if (StringUtils.isBlank(token)) {
+            // 未登录,返回401
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            return false;
+        }
+        // 有token，查询用户信息
+        try {
+            // 解析成功，证明已经登录
+            UserInfo user = JwtUtils.getInfoFromToken(token, jwtProperties.getPublicKey());
+            // 放入线程域
+            tl.set(user);
+            return true;
+        } catch (Exception e){
+            // 抛出异常，证明未登录,返回401
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            return false;
+        }
+
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        tl.remove();
+    }
+
+    public static UserInfo getLoginUser() {
+        return tl.get();
+    }
+}
+```
+
+注意：
+
+- 这里我们使用了`ThreadLocal`来存储查询到的用户信息，线程内共享，因此请求到达`Controller`后可以共享User
+- 并且对外提供了静态的方法：`getLoginUser()`来获取User信息
+
+
+
+
+
+### 4.1.5.配置过滤器
+
+配置SpringMVC，使过滤器生效：
+
+ ![1533811609498](/images/leyou/1533811609498.png)
+
+```java
+@Configuration
+@EnableConfigurationProperties(JwtProperties.class)
+public class MvcConfig implements WebMvcConfigurer {
+
+    @Autowired
+    private JwtProperties jwtProperties;
+
+    @Bean
+    public LoginInterceptor loginInterceptor() {
+        return new LoginInterceptor(jwtProperties);
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(loginInterceptor()).addPathPatterns("/**");
+    }
+}
+```
+
+
+
+## 4.2.后台购物车设计
+
+当用户登录时，我们需要把购物车数据保存到后台，可以选择保存在数据库。但是购物车是一个读写频率很高的数据。因此我们这里选择读写效率比较高的Redis作为购物车存储。
+
+Redis有5种不同数据结构，这里选择哪一种比较合适呢？
+
+- 首先不同用户应该有独立的购物车，因此购物车应该以用户的作为key来存储，Value是用户的所有购物车信息。这样看来基本的`k-v`结构就可以了。
+- 但是，我们对购物车中的商品进行增、删、改操作，基本都需要根据商品id进行判断，为了方便后期处理，我们的购物车也应该是`k-v`结构，key是商品id，value才是这个商品的购物车信息。
+
+综上所述，我们的购物车结构是一个双层Map：Map<String,Map<String,String>>
+
+- 第一层Map，Key是用户id
+- 第二层Map，Key是购物车中商品id，值是购物车数据
+
+
+
+实体类：
+
+```java
+public class Cart {
+    private Long userId;// 用户id
+    private Long skuId;// 商品id
+    private String title;// 标题
+    private String image;// 图片
+    private Long price;// 加入购物车时的价格
+    private Integer num;// 购买数量
+    private String ownSpec;// 商品规格参数
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public Long getSkuId() {
+        return skuId;
+    }
+
+    public void setSkuId(Long skuId) {
+        this.skuId = skuId;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public Long getPrice() {
+        return price;
+    }
+
+    public void setPrice(Long price) {
+        this.price = price;
+    }
+
+    public Integer getNum() {
+        return num;
+    }
+
+    public void setNum(Integer num) {
+        this.num = num;
+    }
+
+    public String getOwnSpec() {
+        return ownSpec;
+    }
+
+    public void setOwnSpec(String ownSpec) {
+        this.ownSpec = ownSpec;
+    }
+}
+```
+
+
+
+## 4.3.添加商品到购物车
+
+### 4.3.1.页面发起请求
+
+已登录情况下，向后台添加购物车：
+
+![1533812224110](/images/leyou/1533812224110.png)
+
+```js
+ly.http.post("/cart", {skuId: this.sku.id, num: this.num}).then(res=>{
+    window.location = "http://www.leyou.com/cart.html";
+})
+```
+
+这里发起的是Json请求。那么我们后台也要以json接收。
+
+### 4.3.2.编写controller
+
+先分析一下：
+
+- 请求方式：新增，肯定是Post
+- 请求路径：/cart ，这个其实是Zuul路由的路径，我们可以不管
+- 请求参数：Json对象，包含skuId和num属性
+- 返回结果：无
+
+```java
+@Controller
+public class CartController {
+
+    @Autowired
+    private CartService cartService;
+
+    /**
+     * 添加购物车
+     *
+     * @return
+     */
+    @PostMapping
+    public ResponseEntity<Void> addCart(@RequestBody Cart cart) {
+        this.cartService.addCart(cart);
+        return ResponseEntity.ok().build();
+    }
+}
+```
+
+在leyou-gateway中添加路由配置：
+
+![1533814103369](/images/leyou/1533814103369.png)
+
+
+
+### 4.3.3.CartService
+
+这里我们不访问数据库，而是直接操作Redis。基本思路：
+
+- 先查询之前的购物车数据
+- 判断要添加的商品是否存在
+  - 存在：则直接修改数量后写回Redis
+  - 不存在：新建一条数据，然后写入Redis
+
+代码：
+
+```java
+@Service
+public class CartService {
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    @Autowired
+    private GoodsClient goodsClient;
+
+    static final String KEY_PREFIX = "ly:cart:uid:";
+
+    static final Logger logger = LoggerFactory.getLogger(CartService.class);
+
+    public void addCart(Cart cart) {
+        // 获取登录用户
+        UserInfo user = LoginInterceptor.getLoginUser();
+        // Redis的key
+        String key = KEY_PREFIX + user.getId();
+        // 获取hash操作对象
+        BoundHashOperations<String, Object, Object> hashOps = this.redisTemplate.boundHashOps(key);
+        // 查询是否存在
+        Long skuId = cart.getSkuId();
+        Integer num = cart.getNum();
+        Boolean boo = hashOps.hasKey(skuId.toString());
+        if (boo) {
+            // 存在，获取购物车数据
+            String json = hashOps.get(skuId.toString()).toString();
+            cart = JsonUtils.parse(json, Cart.class);
+            // 修改购物车数量
+            cart.setNum(cart.getNum() + num);
+        } else {
+            // 不存在，新增购物车数据
+            cart.setUserId(user.getId());
+            // 其它商品信息， 需要查询商品服务
+            Sku sku = this.goodsClient.querySkuById(skuId);
+            cart.setImage(StringUtils.isBlank(sku.getImages()) ? "" : StringUtils.split(sku.getImages(), ",")[0]);
+            cart.setPrice(sku.getPrice());
+            cart.setTitle(sku.getTitle());
+            cart.setOwnSpec(sku.getOwnSpec());
+        }
+        // 将购物车数据写入redis
+        hashOps.put(cart.getSkuId().toString(), JsonUtils.serialize(cart));
+    }
+}
+```
+
+需要引入leyou-item-interface依赖：
+
+```xml
+<dependency>
+    <groupId>com.leyou.item</groupId>
+    <artifactId>leyou-item-interface</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+
+
+### 4.3.4.GoodClient
+
+参照搜索工程，添加GoodClient，提供根据id查询sku的接口：
+
+ ![1533813101222](/images/leyou/1533813101222.png)
+
+```java
+@FeignClient("item-service")
+public interface GoodsClient extends GoodsApi {
+}
+```
+
+在leyou-item-service中的GoodsController添加方法：
+
+```java
+@GetMapping("sku/{id}")
+public ResponseEntity<Sku> querySkuById(@PathVariable("id")Long id){
+    Sku sku = this.goodsService.querySkuById(id);
+    if (sku == null){
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    return ResponseEntity.ok(sku);
+}
+```
+
+在leyou-item-service中的GoodsService添加方法：
+
+```java
+public Sku querySkuById(Long id) {
+    return this.skuMapper.selectByPrimaryKey(id);
+}
+```
+
+
+
+### 4.3.5.结果
+
+![1533815211788](/images/leyou/1533815211788.png)
+
+
+
+## 4.4.查询购物车
+
+### 4.4.1.页面发起请求
+
+购物车页面：cart.html
+
+![1533816059966](/images/leyou/1533816059966.png)
+
+### 4.4.2.后台实现
+
+> Controller
+
+```java
+/**
+ * 查询购物车列表
+ *
+ * @return
+ */
+@GetMapping
+public ResponseEntity<List<Cart>> queryCartList() {
+    List<Cart> carts = this.cartService.queryCartList();
+    if (carts == null) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    }
+    return ResponseEntity.ok(carts);
+}
+```
+
+> Service
+
+```java
+public List<Cart> queryCartList() {
+    // 获取登录用户
+    UserInfo user = LoginInterceptor.getLoginUser();
+
+    // 判断是否存在购物车
+    String key = KEY_PREFIX + user.getId();
+    if(!this.redisTemplate.hasKey(key)){
+        // 不存在，直接返回
+        return null;
+    }
+    BoundHashOperations<String, Object, Object> hashOps = this.redisTemplate.boundHashOps(key);
+    List<Object> carts = hashOps.values();
+    // 判断是否有数据
+    if(CollectionUtils.isEmpty(carts)){
+        return null;
+    }
+    // 查询购物车数据
+    return carts.stream().map(o -> JsonUtils.parse(o.toString(), Cart.class)).collect(Collectors.toList());
+}
+```
+
+
+
+### 4.4.3.测试
+
+![1533815725920](/images/leyou/1533815725920.png)
+
+
+
+## 4.5.修改商品数量
+
+### 4.5.1.页面发起请求
+
+ ![1527996642442](/images/leyou/1527996642442.png)
+
+### 4.5.2.后台实现
+
+> Controller
+
+```java
+@PutMapping
+public ResponseEntity<Void> updateNum(@RequestParam("skuId") Long skuId, 
+                                      @RequestParam("num") Integer num) {
+    this.cartService.updateNum(skuId, num);
+    return ResponseEntity.ok().build();
+}
+```
+
+> Service
+
+```java
+public void updateNum(Long skuId, Integer num) {
+    // 获取登录用户
+    UserInfo user = LoginInterceptor.getLoginUser();
+    String key = KEY_PREFIX + user.getId();
+    BoundHashOperations<String, Object, Object> hashOps = this.redisTemplate.boundHashOps(key);
+    // 获取购物车
+    String json = hashOps.get(skuId.toString()).toString();
+    Cart cart = JsonUtils.parse(json, Cart.class);
+    cart.setNum(num);
+    // 写入购物车
+    hashOps.put(skuId.toString(), JsonUtils.serialize(cart));
+}
+```
+
+
+
+## 4.6.删除购物车商品
+
+### 4.6.1.页面发起请求
+
+![1533816356869](/images/leyou/1533816356869.png)
+
+注意：后台成功响应后，要把页面的购物车中数据也删除
+
+### 4.6.2.后台实现
+
+> Controller
+
+```java
+@DeleteMapping("{skuId}")
+public ResponseEntity<Void> deleteCart(@PathVariable("skuId") String skuId) {
+    this.cartService.deleteCart(skuId);
+    return ResponseEntity.ok().build();
+}
+```
+
+
+
+> Service
+
+```java
+public void deleteCart(String skuId) {
+    // 获取登录用户
+    UserInfo user = LoginInterceptor.getLoginUser();
+    String key = KEY_PREFIX + user.getId();
+    BoundHashOperations<String, Object, Object> hashOps = this.redisTemplate.boundHashOps(key);
+    hashOps.delete(skuId);
+}
+```
+
+
+
+# 5.登录后购物车合并（作业）
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+当跳转到购物车页面，查询购物车列表前，需要判断用户登录状态，
+
+- 如果登录：
+  - 首先检查用户的LocalStorage中是否有购物车信息，
+  - 如果有，则提交到后台保存，
+  - 清空LocalStorage
+- 如果未登录，直接查询即可
+---
+layout: post
+title:  下单
+categories: 乐优
+description: 下单
+keywords: 乐优
+---
+# 0.学习目标
+
+- 会调用订单系统接口
+- 实现订单结算功能
+- 实现微信支付功能
+
+
+
+# 1.订单系统接口
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+我们不做开发，只讲解
+
+## 1.1.导入订单服务
+
+把课前资料提供的`leyou-order`复制到`D:\heima\code\leyou`目录。
+
+然后在工程内导入：
+
+ ![1527849592739](/images/leyou/1527849592739.png)
+
+然后导入module：
+
+ ![1527849713858](/images/leyou/1527849713858.png)
+
+选择导入module：
+
+ ![1527849755740](/images/leyou/1527849755740.png)
+
+选择目录中的 `ly-order`：
+
+ ![1527988253596](/images/leyou/1527988253596.png)
+
+打开父工程leyou的pom文件，添加`ly-order`模块：
+
+![1527988384844](/images/leyou/1527988384844.png)
+
+## 1.2.Swagger-UI
+
+丝袜哥
+
+### 1.2.1.什么是OpenAPI
+
+随着互联网技术的发展，现在的网站架构基本都由原来的后端渲染，变成了：前端渲染、前后端分离的形态，而且前端技术和后端技术在各自的道路上越走越远。  前端和后端的唯一联系，变成了API接口；API文档变成了前后端开发人员联系的纽带，变得越来越重要。
+
+没有API文档工具之前，大家都是手写API文档的，在什么地方书写的都有，而且API文档没有统一规范和格式，每个公司都不一样。这无疑给开发带来了灾难。
+
+OpenAPI规范（OpenAPI Specification 简称OAS）是Linux基金会的一个项目，试图通过定义一种用来描述API格式或API定义的语言，来规范RESTful服务开发过程。目前V3.0版本的OpenAPI规范已经发布并开源在github上 。
+
+官网：https://github.com/OAI/OpenAPI-Specification
+
+### 1.2.2.什么是swagger？
+
+OpenAPI是一个编写API文档的规范，然而如果手动去编写OpenAPI规范的文档，是非常麻烦的。而Swagger就是一个实现了OpenAPI规范的工具集。
+
+官网：https://swagger.io/
+
+看官方的说明：
+
+ ![1528724925709](/images/leyou/1528724925709.png)
+
+Swagger包含的工具集：
+
+- **Swagger编辑器：** Swagger Editor允许您在浏览器中编辑YAML中的OpenAPI规范并实时预览文档。
+- **Swagger UI：** Swagger UI是HTML，Javascript和CSS资产的集合，可以从符合OAS标准的API动态生成漂亮的文档。
+- **Swagger Codegen：**允许根据OpenAPI规范自动生成API客户端库（SDK生成），服务器存根和文档。
+- **Swagger Parser：**用于解析来自Java的OpenAPI定义的独立库
+- **Swagger Core：**与Java相关的库，用于创建，使用和使用OpenAPI定义
+- **Swagger Inspector（免费）：** API测试工具，可让您验证您的API并从现有API生成OpenAPI定义
+- **SwaggerHub（免费和商业）：** API设计和文档，为使用OpenAPI的团队构建。
+
+
+
+### 1.2.3.快速入门
+
+SpringBoot已经集成了Swagger，使用简单注解即可生成swagger的API文档。
+
+#### 1）引入依赖
+
+```xml
+<dependency>
+    <groupId>io.springfox</groupId>
+    <artifactId>springfox-swagger2</artifactId>
+    <version>2.8.0</version>
+</dependency>
+<dependency>
+    <groupId>io.springfox</groupId>
+    <artifactId>springfox-swagger-ui</artifactId>
+    <version>2.8.0</version>
+</dependency>
+```
+
+#### 2）编写配置
+
+```java
+@Configuration
+@EnableSwagger2
+public class SwaggerConfig {
+    @Bean
+    public Docket api() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .host("http://order.leyou.com")
+                .apiInfo(apiInfo())
+                .select()
+                .apis(RequestHandlerSelectors.basePackage("com.leyou.order.controller"))
+                .paths(PathSelectors.any())
+                .build();
+    }
+
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                .title("乐优商城订单系统")
+                .description("乐优商城订单系统接口文档")
+                .version("1.0")
+                .build();
+    }
+}
+```
+
+#### 3）接口声明
+
+在controller的每个handler上添加接口说明注解：
+
+```java
+@RestController
+@RequestMapping("order")
+@Api("订单服务接口")
+public class OrderController {
+
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private PayHelper payHelper;
+
+    /**
+     * 创建订单
+     *
+     * @param order 订单对象
+     * @return 订单编号
+     */
+    @PostMapping
+    @ApiOperation(value = "创建订单接口，返回订单编号", notes = "创建订单")
+    @ApiImplicitParam(name = "order", required = true, value = "订单的json对象,包含订单条目和物流信息")
+    public ResponseEntity<Long> createOrder(@RequestBody @Valid Order order) {
+        Long id = this.orderService.createOrder(order);
+        return new ResponseEntity<>(id, HttpStatus.CREATED);
+    }
+
+    /**
+     * 分页查询当前用户订单
+     *
+     * @param status 订单状态
+     * @return 分页订单数据
+     */
+    @GetMapping("list")
+    @ApiOperation(value = "分页查询当前用户订单，并且可以根据订单状态过滤", 
+                  notes = "分页查询当前用户订单")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "page", value = "当前页", 
+                          defaultValue = "1", type = "Integer"),
+        @ApiImplicitParam(name = "rows", value = "每页大小", 
+                          defaultValue = "5", type = "Integer"),
+        @ApiImplicitParam(
+            name = "status", 
+            value = "订单状态：1未付款，2已付款未发货，3已发货未确认，4已确认未评价，5交易关闭，6交易成功，已评价", type = "Integer"),
+    })
+    public ResponseEntity<PageResult<Order>> queryUserOrderList(
+        @RequestParam(value = "page", defaultValue = "1") Integer page,
+        @RequestParam(value = "rows", defaultValue = "5") Integer rows,
+        @RequestParam(value = "status", required = false) Integer status) {
+        PageResult<Order> result = this.orderService.queryUserOrderList(page, rows, status);
+        if (result == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(result);
+    }
+}
+```
+
+常用注解说明：
+
+```java
+/**
+ @Api：修饰整个类，描述Controller的作用
+ @ApiOperation：描述一个类的一个方法，或者说一个接口
+ @ApiParam：单个参数描述
+ @ApiModel：用对象来接收参数
+ @ApiProperty：用对象接收参数时，描述对象的一个字段
+ @ApiResponse：HTTP响应其中1个描述
+ @ApiResponses：HTTP响应整体描述
+ @ApiIgnore：使用该注解忽略这个API
+ @ApiError ：发生错误返回的信息
+ @ApiImplicitParam：一个请求参数
+ @ApiImplicitParams：多个请求参数
+ */
+```
+
+#### 4）启动测试
+
+启动服务，然后访问：http://localhost:8089/swagger-ui.html
+
+![1534050474425](/images/leyou/1534050474425.png)
+
+点击order-controller，查看接口信息：
+
+![1534050501639](/images/leyou/1534050501639.png)
+
+点击任意一个接口，即可看到详细信息：
+
+![1534050571547](/images/leyou/1534050571547.png)
+
+
+
+## 1.3.测试接口
+
+### 1.3.1.创建订单接口
+
+可以通过页面看到接口信息：
+
+- 请求方式：POST
+- 请求路径：/order
+- 请求参数：包含订单、订单详情等数据的json对象。
+- 返回结果：订单编号
+
+点击`Try It Out`来测试：
+
+![1528726383029](/images/leyou/1528726383029.png)
+
+输入数据：
+
+```json
+{
+  "totalPay": 236800,
+  "postFee": 0,
+  "paymentType": 2,
+  "actualPay": 236800,
+  "buyerMessage": null,
+  "buyerNick": "huge",
+  "orderDetails": [
+    {
+      "skuId": 3893493,
+      "num": 1,
+      "title": "苹果（Apple）iPhone 6 (A1586) 16GB 金色 移动联通电信4G手机3",
+      "price": 236800,
+      "ownSpec": "{\"机身颜色\":\"钻雕蓝\",\"内存\":\"4GB\",\"机身存储\":\"64GB\"}",
+      "image": "http://image.leyou.com/images/9/4/1524297342728.jpg"
+    }
+  ],
+  "receiver": "锋哥",
+  "receiverMobile": "15800000000",
+  "receiverState": "上海",
+  "receiverCity": "上海",
+  "receiverDistrict": "浦东新签",
+  "receiverAddress": "航头镇航头路18号传智播客3号楼",
+  "receiverZip": "210000",
+  "invoiceType": 0,
+  "sourceType":2
+}
+```
+
+
+
+然后点击execute：
+
+![1534050960735](/images/leyou/1534050960735.png)
+
+结果：
+
+![1534056625226](/images/leyou/1534056625226.png)
+
+下单需要登录，通过登录生成token：
+
+![1534056963545](/images/leyou/1534056963545.png)
+
+把token的值手动加入到浏览器的cookie中：
+
+![1534057111628](/images/leyou/1534057111628.png)
+
+![1534057197865](/images/leyou/1534057197865.png)
+
+添加成功，响应订单编号。但是和数据库保存的订单编号不太一样（后几位不一样，浏览器展示长整型会出现精度损失）
+
+
+
+### 1.3.2.生成ID的方式
+
+> 订单id的特殊性
+
+订单数据非常庞大，将来一定会做分库分表。那么这种情况下， 要保证id的唯一，就不能靠数据库自增，而是自己来实现算法，生成唯一id。
+
+> 雪花算法
+
+这里的订单id是通过一个工具类生成的：
+
+ ![1534057752285](/images/leyou/1534057752285.png)
+
+而工具类所采用的生成id算法，是由Twitter公司开源的snowflake（雪花）算法。
+
+> 简单原理
+
+雪花算法会生成一个64位的二进制数据，为一个Long型。(转换成字符串后长度最多19位) ，其基本结构：
+
+ ![1528729105237](/images/leyou/1528729105237.png)
+
+第一位：为未使用
+
+第二部分：41位为毫秒级时间(41位的长度可以使用69年)
+
+第三部分：5位datacenterId和5位workerId(10位的长度最多支持部署1024个节点）
+
+第四部分：最后12位是毫秒内的计数（12位的计数顺序号支持每个节点每毫秒产生4096个ID序号）
+
+snowflake生成的ID整体上按照时间自增排序，并且整个分布式系统内不会产生ID碰撞（由datacenter和workerId作区分），并且效率较高。经测试snowflake每秒能够产生26万个ID。
+
+> 配置
+
+为了保证不重复，我们给每个部署的节点都配置机器id：
+
+```yaml
+leyou:
+  worker:
+    workerId: 1
+    datacenterId: 1
+```
+
+加载属性：
+
+```java
+@ConfigurationProperties(prefix = "leyou.worker")
+public class IdWorkerProperties {
+
+    private long workerId;// 当前机器id
+
+    private long datacenterId;// 序列号
+
+    public long getWorkerId() {
+        return workerId;
+    }
+
+    public void setWorkerId(long workerId) {
+        this.workerId = workerId;
+    }
+
+    public long getDatacenterId() {
+        return datacenterId;
+    }
+
+    public void setDatacenterId(long datacenterId) {
+        this.datacenterId = datacenterId;
+    }
+}
+```
+
+编写配置类：
+
+```java
+@Configuration
+@EnableConfigurationProperties(IdWorkerProperties.class)
+public class IdWorkerConfig {
+
+    @Bean
+    public IdWorker idWorker(IdWorkerProperties prop) {
+        return new IdWorker(prop.getWorkerId(), prop.getDatacenterId());
+    }
+}
+```
+
+> 使用：
+
+![1534057869509](/images/leyou/1534057869509.png)
+
+
+
+### 1.3.2.查询订单接口
+
+接口说明：
+
+- 请求方式：GET
+- 请求路径：/order/{id}
+- 请求参数：id，订单编号
+- 返回结果：Order，订单的json对象
+
+测试：
+
+![1534058725566](/images/leyou/1534058725566.png)
+
+结果：
+
+![1534058696076](/images/leyou/1534058696076.png)
+
+
+
+### 1.3.3.更新订单状态
+
+接口说明：
+
+- 请求参数：PUT
+- 请求路径：/order/{id}/{status}
+- 请求参数：
+  - id：订单编号，String类型，不能为空
+  - status：订单状态，不能为空
+- 返回结果：null
+
+测试：
+
+![1534059150417](/images/leyou/1534059150417.png)
+
+结果：
+
+![1534059488506](/images/leyou/1534059488506.png)
+
+数据库中也发生了改变：
+
+![1534059550338](/images/leyou/1534059550338.png)
+
+
+
+### 1.3.4.分页查询订单
+
+接口说明：
+
+- 请求方式：Get
+- 请求路径：/order/list
+- 请求参数：
+  - page：当前页，Integer类型，默认为1
+  - rows：每页大小，Integer类型，默认为5
+  - status：订单状态，String类型，默认查询全部状态订单
+- 返回结果：PageResult   对象，包含下面属性：
+  - total：总条数
+  - items：当前页订单数组
+    - 订单对象
+
+测试：
+
+![1534059762431](/images/leyou/1534059762431.png)
+
+结果：
+
+![1534059802562](/images/leyou/1534059802562.png)
+
+
+
+### 1.3.5.生成微信付款链接
+
+接口说明：
+
+- 请求方式：Get
+- 请求路径：/order/url/{id}
+- 请求参数：id，订单编号
+- 返回结果：String类型，生成的微信支付链接
+
+
+
+测试：
+
+![1534059974834](/images/leyou/1534059974834.png)
+
+结果：
+
+![1534060051812](/images/leyou/1534060051812.png)
+
+
+
+#### 微信支付工具
+
+> PayHelper
+
+```java
+@Component
+public class PayHelper {
+
+    private WXPay wxPay;
+
+    private static final Logger logger = LoggerFactory.getLogger(PayHelper.class);
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    @Autowired
+    private OrderService orderService;
+
+    public PayHelper(PayConfig payConfig) {
+        // 真实开发时
+        wxPay = new WXPay(payConfig);
+        // 测试时
+        // wxPay = new WXPay(payConfig, WXPayConstants.SignType.MD5, true);
+    }
+
+    public String createPayUrl(Long orderId) {
+        String key = "ly.pay.url." + orderId;
+        try {
+            String url = this.redisTemplate.opsForValue().get(key);
+            if (StringUtils.isNotBlank(url)) {
+                return url;
+            }
+        } catch (Exception e) {
+            logger.error("查询缓存付款链接异常,订单编号：{}", orderId, e);
+        }
+
+        try {
+            Map<String, String> data = new HashMap<>();
+            // 商品描述
+            data.put("body", "乐优商城测试");
+            // 订单号
+            data.put("out_trade_no", orderId.toString());
+            //货币
+            data.put("fee_type", "CNY");
+            //金额，单位是分
+            data.put("total_fee", "1");
+            //调用微信支付的终端IP（estore商城的IP）
+            data.put("spbill_create_ip", "127.0.0.1");
+            //回调地址
+            data.put("notify_url", "http://test.leyou.com/wxpay/notify");
+            // 交易类型为扫码支付
+            data.put("trade_type", "NATIVE");
+            //商品id,使用假数据
+            data.put("product_id", "1234567");
+
+            Map<String, String> result = this.wxPay.unifiedOrder(data);
+
+            if ("SUCCESS".equals(result.get("return_code"))) {
+                String url = result.get("code_url");
+                // 将付款地址缓存，时间为10分钟
+                try {
+                    this.redisTemplate.opsForValue().set(key, url, 10, TimeUnit.MINUTES);
+                } catch (Exception e) {
+                    logger.error("缓存付款链接异常,订单编号：{}", orderId, e);
+                }
+                return url;
+            } else {
+                logger.error("创建预交易订单失败，错误信息：{}", result.get("return_msg"));
+                return null;
+            }
+        } catch (Exception e) {
+            logger.error("创建预交易订单异常", e);
+            return null;
+        }
+    }
+
+    /**
+     * 查询订单状态
+     *
+     * @param orderId
+     * @return
+     */
+    public PayState queryOrder(Long orderId) {
+        Map<String, String> data = new HashMap<>();
+        // 订单号
+        data.put("out_trade_no", orderId.toString());
+        try {
+            Map<String, String> result = this.wxPay.orderQuery(data);
+            if (result == null) {
+                // 未查询到结果，认为是未付款
+                return PayState.NOT_PAY;
+            }
+            String state = result.get("trade_state");
+            if ("SUCCESS".equals(state)) {
+                // success，则认为付款成功
+
+                // 修改订单状态
+                this.orderService.updateStatus(orderId, 2);
+                return PayState.SUCCESS;
+            } else if (StringUtils.equals("USERPAYING", state)
+                       || StringUtils.equals("NOTPAY", state)) {
+                // 未付款或正在付款，都认为是未付款
+                return PayState.NOT_PAY;
+            } else {
+                // 其它状态认为是付款失败
+                return PayState.FAIL;
+            }
+        } catch (Exception e) {
+            logger.error("查询订单状态异常", e);
+            return PayState.NOT_PAY;
+        }
+    }
+}
+```
+
+跟支付相关的其它几个类：
+
+ ![1528796883071](/images/leyou/1528796883071.png)
+
+
+
+### 1.3.6.查询支付状态
+
+接口说明：
+
+- 请求方式： Get
+- 请求路径： /state/{id}
+- 请求参数： id，订单编号
+- 返回结果：0, 未查询到支付信息 1,支付成功 2,支付失败（查询失败，或者订单过期）
+
+
+
+#### 1.3.6.1.未付款
+
+未付款时查询，测试：
+
+![1534060875467](/images/leyou/1534060875467.png)
+
+结果：
+
+![1534061834503](/images/leyou/1534061834503.png)
+
+因为尚未付款，所以查询返回0。
+
+
+
+#### 1.3.6.2.付款
+
+通过JS把链接变成二维码。
+
+找到课前资料提供的JS页面：
+
+![1534061965270](/images/leyou/1534061965270.png)
+
+进入，并输入刚刚生成的地址：
+
+![1534062028046](/images/leyou/1534062028046.png)
+
+#### 1.3.6.3.已付款
+
+扫码支付，然后再次查询：
+
+![1534062115599](/images/leyou/1534062115599.png)
+
+状态码为1，代表支付成功了！
+
+
+
+
+
+# 2.订单结算页
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 2.1.页面跳转
+
+在购物车页面的最下方，有一个去结算按钮：
+
+![1527990452791](/images/leyou/1527990452791.png)
+
+当点击结算，我们应该跳转到订单结算页，即：`getOrderInfo.html`
+
+ ![1534062458952](/images/leyou/1534062458952.png)
+
+查看购物车的`结算`按钮：
+
+![1534063127883](/images/leyou/1534063127883.png)
+
+可以看到，地址是正确的。但是只有登录用户才可以去结算付款，因此我们不能直接跳转，而是在跳转前校验用户的登录状态，如果发现是未登录，应该重定向到登录页！
+
+我们给这个按钮绑定点击事件：
+
+![1534063368728](/images/leyou/1534063368728.png)
+
+事件中判断登录状态，进行页面跳转：
+
+```js
+toOrderInfo() {
+    // 判断是否登录
+    ly.verifyUser().then(() => {
+        // 已登录
+        window.location.href = "/getOrderInfo.html"
+    }).catch(() => {
+        // 未登录
+        window.location.href = "/login.html?returnUrl=" + window.location.href;
+    })
+}
+```
+
+
+
+登录后测试：
+
+![1534068627040](/images/leyou/1534068627040.png)
+
+
+
+此处页面需要渲染的内容主要包含3部分：
+
+- 收货人信息
+- 支付方式
+- 商品信息
+
+
+
+## 2.2.收货人信息（作业）
+
+![1528011713709](/images/leyou/1528011713709.png)
+
+这里的收货人信息肯定是当前登录用户的收货地址。所以需要根据当前登录用户去查询，目前我们在页面是写的假数据：
+
+![1534070259673](/images/leyou/1534070259673.png)
+
+大家可以在在后台提供地址的增删改查接口，然后页面加载时根据当前登录用户查询，而后赋值给addresses即可。
+
+
+
+## 2.3.支付方式
+
+支付方式有2种：
+
+- 微信支付
+- 货到付款
+
+与我们订单数据中的`paymentType`关联：
+
+![1528012065388](/images/leyou/1528012065388.png)
+
+所以我们可以在Vue实例中定义一个属性来记录支付方式：
+
+![1534070467947](/images/leyou/1534070467947.png)
+
+然后在页面渲染时与这个变量关联：
+
+![1534070743780](/images/leyou/1534070743780.png)
+
+
+
+## 2.4.商品列表
+
+效果图：
+
+![1528012881735](/images/leyou/1528012881735.png)
+
+这里的送货清单，其实就是购物车中用户选择的要付款的商品
+
+因此，我们需要在购物车跳转过来的同时，携带选中的购物车的信息
+
+
+
+### 2.4.1.购物车信息获取
+
+我们修改`cart.html`中的页面跳转逻辑，把用户选中的购物车信息传递过来：
+
+![1534071010391](/images/leyou/1534071010391.png)
+
+然后在`created`钩子函数中获取购物车数据，保存到本地属性，要注意的是，我们应该在获取数据前校验用户登录状态，如果发现未登录，则直接重定向到登录页：
+
+![1534071493245](/images/leyou/1534071493245.png)
+
+
+
+然后重新加载页面，查看控制台：
+
+![1534071647717](/images/leyou/1534071647717.png)
+
+
+
+### 2.4.2.页面渲染
+
+要修改的页面位置：每一个li就是一件商品
+
+![1534071794146](/images/leyou/1534071794146.png)
+
+我们修改为：
+
+```html
+<ul class="send-detail">
+    <li v-for="(cart,index) in carts" :key="index">
+        <div class="sendGoods">
+            <ul class="yui3-g">
+                <li class="yui3-u-1-6">
+                    <span><img width="70px" height="70px" :src="cart.image"/></span>
+                </li>
+                <li class="yui3-u-7-12">
+                    <div class="desc">{{cart.title}}</div>
+                    <div class="seven">
+                        <span v-for="(v) in JSON.parse(cart.ownSpec)">{{v + "  "}} </span>
+                    </div>
+                </li>
+                <li class="yui3-u-1-12">
+                    <div class="price">￥{{ly.formatPrice(cart.price * cart.num)}}</div>
+                </li>
+                <li class="yui3-u-1-12">
+                    <div class="num">{{cart.num}}</div>
+                </li>
+                <li class="yui3-u-1-12">
+                    <div class="exit">有货</div>
+                </li>
+            </ul>
+        </div>
+    </li>
+</ul>
+```
+
+
+
+## 2.5.总金额
+
+另外在商品列表下面，还有一个总金额的计算：
+
+![1534072483208](/images/leyou/1534072483208.png)
+
+可以看出这里主要有4个数据：
+
+- 总金额：totalPay
+- 优惠返现：discount
+- 运费：postFee
+- 实付金额：actualPay
+
+不过我们没有做优惠活动，另外运费需要结合物流系统来计算，暂时我们都设置为0，在order属性中写死：
+
+![1534072753146](/images/leyou/1534072753146.png)
+
+我们通过计算属性来得到`totalPay`和`actualPay`值：
+
+```js
+computed: {
+    totalNum(){
+        return this.carts.reduce((c1, c2) => c1 + c2.num, 0)
+    },
+    totalPay(){
+        return this.carts.reduce((c1, c2) => c1 + c2.price * c2.num, 0);
+    },
+    actualPay(){
+        return this.totalPay + this.order.postFee - this.order.discount;
+    }
+},
+```
+
+然后在页面渲染：
+
+![1534073678931](/images/leyou/1534073678931.png)
+
+效果：
+
+![1534073704731](/images/leyou/1534073704731.png)
+
+
+
+## 2.6.提交订单
+
+### 2.6.1.页面提交
+
+来看下订单接口所需要的数据：
+
+![1534074122199](/images/leyou/1534074122199.png)
+
+分为3部分，分别是
+
+- 订单本身的基本信息
+
+  - 总金额
+  - 实付金额
+  - 付款类型
+  - 买家信息就是当前用户
+
+- 订单详情
+
+  - 就是购物车中的商品，不过购物车数据会多出一个userId，我们去除即可：
+
+  ![1534074293296](/images/leyou/1534074293296.png)
+
+- 物流信息
+
+  - 当前用户选中的物流地址信息
+
+
+
+给提交按钮绑定事件：
+
+![1534074374101](/images/leyou/1534074374101.png)
+
+然后编写方法，组织数据并提交：
+
+```js
+methods: {
+    submit() {
+        // 把购物车数据处理成订单详情
+        const orderDetails = this.carts.map(({userId, ...rest}) => rest);
+        // 处理物流信息
+        const addr = this.addresses[this.selectedAddress];
+        const obj = {
+            receiver: addr.name,
+            receiverState: addr.state,
+            receiverCity: addr.city,
+            receiverAddress: addr.address,
+            receiverDistrict: addr.district,
+            receiverMobile: addr.phone,
+            receiverZip: addr.zipCode
+        };
+        // 复制到订单对象
+        Object.assign(this.order, obj, {
+            orderDetails,
+            totalPay: this.totalPay,
+            actualPay: this.actualPay,
+        });
+        // 提交订单
+        ly.http.post("/order", this.order).then(({data}) => {
+            // 在线支付，需要到付款页
+            window.location = "pay.html?orderId=" + data;
+        }).catch((resp) => {
+            alert("订单提交失败，可能是缺货!")
+        })
+    }
+},
+```
+
+### 2.6.2.精度损失问题
+
+在页面点击提交测试：
+
+ ![1528340102503](/images/leyou/1528340102503.png)
+
+成功生成订单！
+
+然后看页面跳转：
+
+ ![1528340136603](/images/leyou/1528340136603.png)
+
+好像有什么不对？订单号的最后2位不正确啊！
+
+这其实是因为JS的长整数精度有限，java的Long类型数据超出了范围，所以出现了精度损失。
+
+我们后台返回的是Json的字符串，在axios内部会自动调用 JSON.parse()方法把json字符串转为JS数据，就会出现进度损失。如果不进行转换，依然当做字符串来使用，就不会有问题了。
+
+因此，我们重写axios对响应的处理回调函数：
+
+ ![1528340413139](/images/leyou/1528340413139.png)
+
+再次测试，就OK了。
+
+接下来就轮到支付了。
+
+
+
+# 3.微信支付
+
+吾爱程序猿（www.52programer.com）打造专业优质的IT教程分享社区
+
+## 3.1.介绍
+
+微信支付官方文档：https://pay.weixin.qq.com/index.php/core/home/login?return_url=%2F
+
+![1527848350188](/images/leyou/1527848350188.png)
+
+我们选择开发文档，而后进入选择页面：
+
+![1527848358128](/images/leyou/1527848358128.png)
+
+选择扫码支付：
+
+![1527848368179](/images/leyou/1527848368179.png)
+
+此处我们使用模式二来开发：
+
+## 3.2.开发流程
+
+模式二与模式一相比，流程更为简单，不依赖设置的回调支付URL。
+
+商户后台系统先调用微信支付的统一下单接口，微信后台系统返回链接参数code_url；
+
+商户后台系统将code_url值生成二维码图片，用户使用微信客户端扫码后发起支付。
+
+注意：code_url有效期为2小时，过期后扫码不能再发起支付。 
+
+流程图：
+
+![2wa23131](/images/leyou/chapter6_5_1.png)
+
+这里我们把商户（我们）要做的事情总结一下：
+
+- 1、商户生成订单
+- 2、商户调用微信下单接口，获取预交易的链接
+- 3、商户将链接生成二维码图片，展示给用户；
+- 4、用户支付并确认
+- 5、支付结果通知：
+  - 微信异步通知商户支付结果，商户告知微信支付接收情况
+  - 商户如果没有收到通知，可以调用接口，查询支付状态
+- 6、如果支付成功，发货，修改订单状态
+
+
+
+在前面的业务中，我们已经完成了：
+
+- 1、生成订单
+
+接下来，我们需要做的是：
+
+- 2、调用微信接口，生成链接。
+- 3、并且生成二维码图片
+
+
+
+## 3.3.生成二维码
+
+### 3.3.1.生成预交易链接
+
+我们先根据订单的编号，调用后台服务，生成交易链接，而后才能根据链接生成二维码。
+
+在页面发起请求：
+
+```js
+var payVm = new Vue({
+    el:"#payVm",
+    data:{
+        ly,
+        orderId:0,// 订单编号
+    },
+    created(){
+        // 判断登录状态
+        ly.http.get("/auth/verify").then(() => {
+            // 获取订单编号
+            this.orderId = ly.getUrlParam("orderId");
+            // 获取请求链接
+            ly.http.get("/order/url/" + this.orderId)
+                .then(resp => {
+                    console.log(resp.data);
+                })
+        }.catch(() => {
+			// 未登录，跳转至登录页
+             location.href = "/login.html?returnUrl=" + location.href;
+        })
+    },
+    components: {
+        shortcut: () => import("./js/pages/shortcut.js")
+    }
+});
+```
+
+后台已经定义好生成付款地址的接口。
+
+ ![1528362159620](/images/leyou/1528362159620.png)
+
+刷新页面查看：
+
+ ![1528362220886](/images/leyou/1528362220886.png)
+
+
+
+### 3.3.2.生成二维码
+
+这里我们使用一个生成二维码的JS插件：qrcode，官网：https://github.com/davidshimjs/qrcodejs
+
+![1534313526721](/images/leyou/1534313526721.png)
+
+我们把课这个js脚本引入到项目中：
+
+ ![1528362348399](/images/leyou/1528362348399.png)
+
+官方使用案例：
+
+![1534313925398](/images/leyou/1534313925398.png)
+
+然后在页面引用：
+
+ ![1528362377494](/images/leyou/1528362377494.png)
+
+
+
+页面定义一个div，用于展示二维码：
+
+ ![1528362023061](/images/leyou/1528362023061.png)
+
+然后获取到付款链接后，根据链接生成二维码：
+
+ ![1528362420151](/images/leyou/1528362420151.png)
+
+```js
+// 判断登录状态
+ly.http.get("/auth/verify").then(() => {
+    // 获取订单编号
+    this.orderId = ly.getUrlParam("orderId");
+    // 获取请求链接
+    ly.http.get("/order/url/" + this.orderId)
+        .then(resp => {
+            new QRCode(document.getElementById("qrImage"), {
+                text: resp.data,
+                width: 250,
+                height: 250,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        })
+}).catch(() => {
+    // 未登录，跳转至登录页
+    location.href = "/login.html?returnUrl=" + location.href;
+})
+```
+
+
+
+刷新页面，查看效果：
+
+ ![1528362464276](/images/leyou/1528362464276.png)
+
+此时，客户用手机扫描二维码，可以看到付款页面。
+
+## 3.4.付款状态查询
+
+跳转到支付页面后，我们等待用户付款，付款完成则跳转到付款成功页面。
+
+### 3.4.1.页面循环查询支付状态
+
+不过，因为不清楚用户何时会付款，因此这里采用循环的方式，不断请求判断是否支付成功。
+
+```js
+// 开启定时任务，查询付款状态
+const taskId = setInterval(() => {
+    ly.http.get("/order/state/" + this.orderId)
+        .then(resp => {
+        let i = resp.data;
+        if (i === 1) {
+            // 付款成功
+            clearInterval(taskId);
+            // 跳转到付款成功页
+            location.href = "/paysuccess.html?orderId=" + this.orderId;
+        } else if (i === 2) {
+            // 付款失败
+            clearInterval(taskId);
+            // 跳转到付款失败页
+            location.href = "/payfail.html";
+        }
+    })
+}, 3000);
+```
+
+### 3.4.2.付款成功页面
+
+当付款成功后，自动跳转到付款成功页面：
+
+![1528376883924](/images/leyou/1528376883924.png)
+
+
+
+
