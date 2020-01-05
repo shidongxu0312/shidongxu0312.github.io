@@ -22,7 +22,7 @@ keywords: Mysql
 
 ### 购买并阅读本小册的建议
 
-![](https://user-gold-cdn.xitu.io/2019/2/22/169142638c71b5dc?w=1882&h=928&f=png&s=100464)
+![](http://user-gold-cdn.xitu.io/2019/2/22/169142638c71b5dc?w=1882&h=928&f=png&s=100464)
 
 *   本小册是一本待出版的纸质书籍，并非一些杂碎文章的集合，是非常有结构和套路的，所以大家阅读时千万不能当作厕所蹲坑、吃饭看手机时的所谓`碎片化读物`。碎片化阅读只适合听听矮大紧、罗胖子他们扯扯犊子，开阔一下视野用的。对于专业的技术知识来说，大家必须付出一个完整的时间段进行体系化学习，这样尊重知识，工资才能尊重你。
   
@@ -38,14 +38,14 @@ keywords: Mysql
   
 *   如果你真的是个小白的话，那这里头的数字都是假的：
   
-    ![](https://user-gold-cdn.xitu.io/2018/12/13/167a7aa1a8664c7c?w=1044&h=1156&f=png&s=200003)
+    ![](http://user-gold-cdn.xitu.io/2018/12/13/167a7aa1a8664c7c?w=1044&h=1156&f=png&s=200003)
     
     一篇文章能用2个小时左右的时间掌握就很不错了。说句扫大家兴的话，虽然我已经很努力的想让大家的学习效率提升n倍，但是不幸的是想掌握一门核心技术仍然需要大家多看几遍（不然工资那么好涨啊～）。
     
 
 ### 关于工具
 
-本小册中会涉及很多 InnoDB 的存储结构的知识，比如记录结构、页结构、索引结构、表空间结构等等，这些知识是所有后续知识的基础，所以是重中之重，需要大家认真对待。Jeremy Cole 已经使用 Ruby 开发了一个简易的解析这些基础结构的工具，github地址是：[innodb\_ruby的github地址](https://github.com/jeremycole/innodb_ruby)，大家可以按照说明安装上这个工具，可以更好的理解 InnoDB 中的一些存储结构（此工具虽然是针对`MySQL 5.6`的，但是幸好`MySQL`的基础存储结构基本没多大变化，所以大部分场景下这个`innodb_ruby`工具还是可以使用的）。
+本小册中会涉及很多 InnoDB 的存储结构的知识，比如记录结构、页结构、索引结构、表空间结构等等，这些知识是所有后续知识的基础，所以是重中之重，需要大家认真对待。Jeremy Cole 已经使用 Ruby 开发了一个简易的解析这些基础结构的工具，github地址是：[innodb\_ruby的github地址](http://github.com/jeremycole/innodb_ruby)，大家可以按照说明安装上这个工具，可以更好的理解 InnoDB 中的一些存储结构（此工具虽然是针对`MySQL 5.6`的，但是幸好`MySQL`的基础存储结构基本没多大变化，所以大部分场景下这个`innodb_ruby`工具还是可以使用的）。
 
 ### 关于盗版
 
@@ -77,7 +77,7 @@ keywords: Mysql
 
 虽然我觉得文章写的已经很清晰了，但毕竟只是“我觉得”，不是大家觉得。传道授业解惑，解惑很重要。在学习一门知识时，我们最容易让一些问题绊住脚步，大家在阅读小册时如果发现了任何你觉得让你很困惑的问题，都可以直接加微信问我，或者到群里提问题，我在力所能及的范围内尽力帮大家解答。
 
-![](https://user-gold-cdn.xitu.io/2019/3/4/169487afad179951?w=1480&h=486&f=jpeg&s=113652)
+![](http://user-gold-cdn.xitu.io/2019/3/4/169487afad179951?w=1480&h=486&f=jpeg&s=113652)
 
 加群途径
 
@@ -501,7 +501,7 @@ mysql -hlocalhost -uroot --socket=/tmp/a.txt -p
 
 其实不论客户端进程和服务器进程是采用哪种方式进行通信，最后实现的效果都是：客户端进程向服务器进程发送一段文本（MySQL语句），服务器进程处理后再向客户端进程发送一段文本（处理结果）。那服务器进程对客户端进程发送的请求做了什么处理，才能产生最后的处理结果呢？客户端可以向服务器发送增删改查各类请求，我们这里以比较复杂的查询请求为例来画个图展示一下大致的过程：
 
-![image_1c8d26fmg1af0ms81cpc7gm8lv39.png-97.9kB](https://user-gold-cdn.xitu.io/2018/12/28/167f4c7b99f87e1c?w=842&h=559&f=png&s=100231)
+![image_1c8d26fmg1af0ms81cpc7gm8lv39.png-97.9kB](http://user-gold-cdn.xitu.io/2018/12/28/167f4c7b99f87e1c?w=842&h=559&f=png&s=100231)
 
 从图中我们可以看出，服务器程序处理来自客户端的查询请求大致需要经过三个部分，分别是`连接管理`、`解析与优化`、`存储引擎`。下边我们来详细看一下这三个部分都干了什么。
 
@@ -2424,7 +2424,7 @@ SELECT * FROM t WHERE s = '我';
 
 如果你读上边的文字有点晕，可以参照这个图来仔细分析一下这几个步骤：
 
-![image_1c91mt04ll7suk01ej01fb067k9.png-89.7kB](https://user-gold-cdn.xitu.io/2018/12/6/167815b6f78145f8?w=892&h=470&f=png&s=91878)
+![image_1c91mt04ll7suk01ej01fb067k9.png-89.7kB](http://user-gold-cdn.xitu.io/2018/12/6/167815b6f78145f8?w=892&h=470&f=png&s=91878)
 
 从这个分析中我们可以得出这么几点需要注意的地方：
 
@@ -2760,7 +2760,7 @@ mysql>
 
 废话不多说，直接看图：
 
-![image_1c9g4t114n0j1gkro2r1h8h1d1t16.png-42.4kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5702043d7?w=783&h=250&f=png&s=43461)
+![image_1c9g4t114n0j1gkro2r1h8h1d1t16.png-42.4kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5702043d7?w=783&h=250&f=png&s=43461)
 
 大家从图中可以看出来，一条完整的记录其实可以被分为`记录的额外信息`和`记录的真实数据`两大部分，下边我们详细看一下这两部分的组成。
 
@@ -2820,7 +2820,7 @@ mysql>
 
 把这个字节串组成的`变长字段长度列表`填入上边的示意图中的效果就是：
 
-![image_1c9gbruvo504dlg1qsf19nbeu878.png-37kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f570f8ed73?w=1004&h=192&f=png&s=37847)
+![image_1c9gbruvo504dlg1qsf19nbeu878.png-37kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f570f8ed73?w=1004&h=192&f=png&s=37847)
 
 由于第一行记录中`c1`、`c2`、`c4`列中的字符串都比较短，也就是说内容占用的字节数比较小，用1个字节就可以表示，但是如果变长列的内容占用的字节数比较多，可能就需要用2个字节来表示。具体用1个还是2个字节来表示真实数据占用的字节数，`InnoDB`有它的一套规则，我们首先声明一下`W`、`M`和`L`的意思：
 
@@ -2851,7 +2851,7 @@ mysql>
 
 另外需要注意的一点是，变长字段长度列表中只存储值为 _**非NULL**_ 的列内容占用的长度，值为 _**NULL**_ 的列的长度是不储存的 。也就是说对于第二条记录来说，因为`c4`列的值为`NULL`，所以第二条记录的`变长字段长度列表`只需要存储`c1`和`c2`列的长度即可。其中`c1`列存储的值为`'eeee'`，占用的字节数为`4`，`c2`列存储的值为`'fff'`，占用的字节数为`3`，所以`变长字段长度列表`需2个字节。填充完`变长字段长度列表`的两条记录的对比图如下：
 
-![image_1c9grq2b2jok1062t8tov21lqjbj.png-42.6kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5719c4037?w=742&h=239&f=png&s=43624)
+![image_1c9grq2b2jok1062t8tov21lqjbj.png-42.6kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5719c4037?w=742&h=239&f=png&s=43624)
 
 > 小贴士： 并不是所有记录都有这个 变长字段长度列表 部分，比方说表中所有的列都不是变长的数据类型的话，这一部分就不需要有。
 
@@ -2870,7 +2870,7 @@ mysql>
     
     因为表`record_format_demo`有3个值允许为`NULL`的列，所以这3个列和二进制位的对应关系就是这样：
     
-    ![image_1c9g88mtt1tj51ua1qh51vjo12pg5k.png-10.4kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5728fdd01)
+    ![image_1c9g88mtt1tj51ua1qh51vjo12pg5k.png-10.4kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5728fdd01)
     
     再一次强调，二进制位按照列的顺序逆序排列，所以第一个列`c1`和最后一个二进制位对应。
     
@@ -2878,7 +2878,7 @@ mysql>
   
     表`record_format_demo`只有3个值允许为`NULL`的列，对应3个二进制位，不足一个字节，所以在字节的高位补`0`，效果就是这样：
     
-    ![image_1c9g8g27b1bdlu7t187emsc46s61.png-19.4kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f574d5df2e?w=374&h=301&f=png&s=19883)
+    ![image_1c9g8g27b1bdlu7t187emsc46s61.png-19.4kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f574d5df2e?w=374&h=301&f=png&s=19883)
     
     以此类推，如果一个表中有9个允许为`NULL`，那这个记录的`NULL`值列表部分就需要2个字节来表示了。
     
@@ -2887,26 +2887,26 @@ mysql>
 
 *   对于第一条记录来说，`c1`、`c3`、`c4`这3个列的值都不为`NULL`，所以它们对应的二进制位都是`0`，画个图就是这样：
   
-    ![image_1c9g8m05b19ge1c8v2bf163djre6e.png-21.5kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5756f3663?w=346&h=308&f=png&s=22040)
+    ![image_1c9g8m05b19ge1c8v2bf163djre6e.png-21.5kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5756f3663?w=346&h=308&f=png&s=22040)
     
     所以第一条记录的`NULL值列表`用十六进制表示就是：`0x00`。
     
 *   对于第二条记录来说，`c1`、`c3`、`c4`这3个列中`c3`和`c4`的值都为`NULL`，所以这3个列对应的二进制位的情况就是：
   
-    ![image_1c9g8ps5c1snv1bhj3m48151sfl6r.png-20.6kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5a46c082d?w=332&h=316&f=png&s=21067)
+    ![image_1c9g8ps5c1snv1bhj3m48151sfl6r.png-20.6kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5a46c082d?w=332&h=316&f=png&s=21067)
     
     所以第二条记录的`NULL值列表`用十六进制表示就是：`0x06`。
     
 
 所以这两条记录在填充了`NULL值列表`后的示意图就是这样：
 
-![image_1c9grs9m4co8134u1t2rjhm1q6rc0.png-39kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5a7c50032?w=729&h=233&f=png&s=39932)
+![image_1c9grs9m4co8134u1t2rjhm1q6rc0.png-39kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5a7c50032?w=729&h=233&f=png&s=39932)
 
 ##### 记录头信息
 
 除了`变长字段长度列表`、`NULL值列表`之外，还有一个用于描述记录的`记录头信息`，它是由固定的`5`个字节组成。`5`个字节也就是`40`个二进制位，不同的位代表不同的意思，如图：
 
-![image_1c9geiglj1ah31meo80ci8n1eli8f.png-29.5kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5a87e0271?w=1174&h=244&f=png&s=30222)
+![image_1c9geiglj1ah31meo80ci8n1eli8f.png-29.5kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5a87e0271?w=1174&h=244&f=png&s=30222)
 
 这些二进制位代表的详细信息如下表：
 
@@ -2968,7 +2968,7 @@ B+树的每层非叶子节点中的最小记录都会添加该标记
 
 因为我们并不清楚这些属性详细的用法，所以这里就不分析各个属性值是怎么产生的了，之后我们遇到会详细看的。所以我们现在直接看一下`record_format_demo`中的两条记录的`头信息`分别是什么：
 
-![image_1c9gruej1am71ph9refjli16lhct.png-149.8kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5a964cbf3?w=1078&h=525&f=png&s=153365)
+![image_1c9gruej1am71ph9refjli16lhct.png-149.8kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5a964cbf3?w=1078&h=525&f=png&s=153365)
 
 > 小贴士： 再一次强调，大家如果看不懂记录头信息里各个位代表的概念千万别纠结，我们后边会说的～
 
@@ -3014,7 +3014,7 @@ B+树的每层非叶子节点中的最小记录都会添加该标记
 
 因为表`record_format_demo`并没有定义主键，所以`MySQL`服务器会为每条记录增加上述的3个列。现在看一下加上`记录的真实数据`的两个记录长什么样吧：
 
-![image_1c9h256f9nke14311adhtu61ie2dn.png-92kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5aa08037c?w=1094&h=354&f=png&s=94249)
+![image_1c9h256f9nke14311adhtu61ie2dn.png-92kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5aa08037c?w=1094&h=354&f=png&s=94249)
 
 看这个图的时候我们需要注意几点：
 
@@ -3029,7 +3029,7 @@ B+树的每层非叶子节点中的最小记录都会添加该标记
 
 `record_format_demo`表的`c1`、`c2`、`c4`列的类型是`VARCHAR(10)`，而`c3`列的类型是`CHAR(10)`，我们说在`Compact`行格式下只会把变长类型的列的长度逆序存到`变长字段长度列表`中，就像这样：
 
-![image_1c9jdkga71kegkjs14o111ov1ce3kn.png-12.5kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5cfa6ef3d?w=322&h=152&f=png&s=12767)
+![image_1c9jdkga71kegkjs14o111ov1ce3kn.png-12.5kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5cfa6ef3d?w=322&h=152&f=png&s=12767)
 
 但是这只是因为我们的`record_format_demo`表采用的是`ascii`字符集，这个字符集是一个定长字符集，也就是说表示一个字符采用固定的一个字节，如果采用变长的字符集（也就是表示一个字符需要的字节数不确定，比如`gbk`表示一个字符要1~2个字节、`utf8`表示一个字符要1~3个字节等）的话，`c3`列的长度也会被存储到`变长字段长度列表`中，比如我们修改一下`record_format_demo`表的字符集：
 
@@ -3042,7 +3042,7 @@ Records: 2  Duplicates: 0  Warnings: 0
 
 修改该列字符集后记录的`变长字段长度列表`也发生了变化，如图：
 
-![image_1c9jeb6defgf1o981lgfciokjl4.png-43.1kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5d047e541?w=545&h=459&f=png&s=44156)
+![image_1c9jeb6defgf1o981lgfciokjl4.png-43.1kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5d047e541?w=545&h=459&f=png&s=44156)
 
 这就意味着：对于 _**CHAR(M)**_ 类型的列来说，当列采用的是定长字符集时，该列占用的字节数不会被加到变长字段长度列表，而如果采用变长字符集时，该列占用的字节数也会被加到变长字段长度列表。
 
@@ -3054,7 +3054,7 @@ Records: 2  Duplicates: 0  Warnings: 0
 
 画个图展示一下`Redundant`行格式的全貌：
 
-![image_1c9h896lcuqi16081qub1v8c12jkft.png-36.2kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5d1399d5f?w=618&h=251&f=png&s=37063)
+![image_1c9h896lcuqi16081qub1v8c12jkft.png-36.2kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5d1399d5f?w=618&h=251&f=png&s=37063)
 
 现在我们把表`record_format_demo`的行格式修改为`Redundant`：
 
@@ -3067,7 +3067,7 @@ Records: 0  Duplicates: 0  Warnings: 0
 
 为了方便大家理解和节省篇幅，我们直接把表`record_format_demo`在`Redundant`行格式下的两条记录的真实存储数据提供出来，之后我们着重分析两种行格式的不同即可。
 
-![image_1c9h8tnav166c187m1nhap61153qgn.png-91.6kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5d357a6e0?w=1046&h=337&f=png&s=93778)
+![image_1c9h8tnav166c187m1nhap61153qgn.png-91.6kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5d357a6e0?w=1046&h=337&f=png&s=93778)
 
 下边我们从各个方面看一下`Redundant`行格式有什么不同的地方：
 
@@ -3322,11 +3322,11 @@ Query OK, 1 row affected (0.00 sec)
 
 在`Compact`和`Reduntant`行格式中，对于占用存储空间非常大的列，在`记录的真实数据`处只会存储该列的一部分数据，把剩余的数据分散存储在几个其他的页中，然后`记录的真实数据`处用20个字节存储指向这些页的地址（当然这20个字节中还包括这些分散在其他页面中的数据的占用的字节数），从而可以找到剩余数据所在的页，如图所示：
 
-![image_1d48e3imu1vcp5rsh8cg0b1o169.png-149kB](https://user-gold-cdn.xitu.io/2019/2/22/16910e3fb544aed7?w=1160&h=627&f=png&s=152562)
+![image_1d48e3imu1vcp5rsh8cg0b1o169.png-149kB](http://user-gold-cdn.xitu.io/2019/2/22/16910e3fb544aed7?w=1160&h=627&f=png&s=152562)
 
 从图中可以看出来，对于`Compact`和`Reduntant`行格式来说，如果某一列中的数据非常多的话，在本记录的真实数据处只会存储该列的前`768`个字节的数据和一个指向其他页的地址，然后把剩下的数据存放到其他页中，这个过程也叫做`行溢出`，存储超出`768`字节的那些页面也被称为`溢出页`。画一个简图就是这样：
 
-![image_1conbskr7apj19ns1d194vs1buo1t.png-35.8kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5ff0a8b3c?w=951&h=213&f=png&s=36684)
+![image_1conbskr7apj19ns1d194vs1buo1t.png-35.8kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5ff0a8b3c?w=951&h=213&f=png&s=36684)
 
 最后需要注意的是，不只是 _**VARCHAR(M)**_ 类型的列，其他的 _**TEXT**_、_**BLOB**_ 类型的列在存储数据非常多的时候也会发生`行溢出`。
 
@@ -3362,7 +3362,7 @@ Query OK, 1 row affected (0.00 sec)
 
 下边要介绍另外两个行格式，`Dynamic`和`Compressed`行格式，我现在使用的`MySQL`版本是`5.7`，它的默认行格式就是`Dynamic`，这俩行格式和`Compact`行格式挺像，只不过在处理`行溢出`数据时有点儿分歧，它们不会在记录的真实数据处存储字段真实数据的前`768`个字节，而是把所有的字节都存储到其他页面中，只在记录的真实数据处存储其他页面的地址，就像这样：
 
-![image_1conbtnmr1sg1hao1nf41pi1eb72a.png-29.9kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5ff959467?w=791&h=219&f=png&s=30573)
+![image_1conbtnmr1sg1hao1nf41pi1eb72a.png-29.9kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5ff959467?w=791&h=219&f=png&s=30573)
 
 `Compressed`行格式和`Dynamic`不同的一点是，`Compressed`行格式会采用压缩算法对页面进行压缩，以节省空间。
 
@@ -3389,13 +3389,13 @@ Query OK, 1 row affected (0.00 sec)
       
         具体组成如图：
         
-        ![image_1c9g4t114n0j1gkro2r1h8h1d1t16.png-42.4kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5702043d7?w=783&h=250&f=png&s=43461)
+        ![image_1c9g4t114n0j1gkro2r1h8h1d1t16.png-42.4kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5702043d7?w=783&h=250&f=png&s=43461)
         
     *   Redundant行格式
       
         具体组成如图：
         
-        ![image_1ctfppb4c1cng1m8718l91760jde9.png-36.2kB](https://user-gold-cdn.xitu.io/2019/2/21/169104f5ffe017bf?w=618&h=251&f=png&s=37063)
+        ![image_1ctfppb4c1cng1m8718l91760jde9.png-36.2kB](http://user-gold-cdn.xitu.io/2019/2/21/169104f5ffe017bf?w=618&h=251&f=png&s=37063)
         
     *   Dynamic和Compressed行格式
       
@@ -3421,7 +3421,7 @@ Query OK, 1 row affected (0.00 sec)
 
 数据页代表的这块`16KB`大小的存储空间可以被划分为多个部分，不同部分有不同的功能，各个部分如图所示：
 
-![image_1crh8esga1j5l1d6f1idggech95p.png-69kB](https://user-gold-cdn.xitu.io/2019/2/22/16910faa7d2c1dfc?w=493&h=494&f=png&s=70700)
+![image_1crh8esga1j5l1d6f1idggech95p.png-69kB](http://user-gold-cdn.xitu.io/2019/2/22/16910faa7d2c1dfc?w=493&h=494&f=png&s=70700)
 
 从图中可以看出，一个`InnoDB`数据页的存储空间大致被划分成了`7`个部分，有的部分占用的字节数是确定的，有的部分占用的字节数是不确定的。下边我们用表格的方式来大致描述一下这7个部分都存储一些啥内容（快速的瞅一眼就行了，后边会详细唠叨的）：
 
@@ -3495,7 +3495,7 @@ Query OK, 1 row affected (0.00 sec)
 
 在页的7个组成部分中，我们自己存储的记录会按照我们指定的`行格式`存储到`User Records`部分。但是在一开始生成页的时候，其实并没有`User Records`这个部分，每当我们插入一条记录，都会从`Free Space`部分，也就是尚未使用的存储空间中申请一个记录大小的空间划分到`User Records`部分，当`Free Space`部分的空间全部被`User Records`部分替代掉之后，也就意味着这个页使用完了，如果还有新的记录插入的话，就需要去申请新的页了，这个过程的图示如下：
 
-![image_1cosvi1in9st476cdqfki1n39m.png-133.8kB](https://user-gold-cdn.xitu.io/2019/2/22/16910faa7f39b19b?w=1272&h=475&f=png&s=137021)
+![image_1cosvi1in9st476cdqfki1n39m.png-133.8kB](http://user-gold-cdn.xitu.io/2019/2/22/16910faa7f39b19b?w=1272&h=475&f=png&s=137021)
 
 为了更好的管理在`User Records`中的这些记录，`InnoDB`可费了一番力气呢，在哪费力气了呢？不就是把记录按照指定的行格式一条一条摆在`User Records`部分么？其实这话还得从记录行格式的`记录头信息`中说起。
 
@@ -3516,7 +3516,7 @@ Query OK, 0 rows affected (0.03 sec)
 
 这个新创建的`page_demo`表有3个列，其中`c1`和`c2`列是用来存储整数的，`c3`列是用来存储字符串的。需要注意的是，我们把 _**c1**_ 列指定为主键，所以在具体的行格式中InnoDB就没必要为我们去创建那个所谓的 _**row\_id**_ 隐藏列了。而且我们为这个表指定了`ascii`字符集以及`Compact`的行格式。所以这个表中记录的行格式示意图就是这样的：
 
-![image_1c9o2eib2vl11qnf1dfl1d2lco313.png-76.4kB](https://user-gold-cdn.xitu.io/2019/2/22/16910faa7fb96a2b?w=1121&h=474&f=png&s=78271)
+![image_1c9o2eib2vl11qnf1dfl1d2lco313.png-76.4kB](http://user-gold-cdn.xitu.io/2019/2/22/16910faa7fb96a2b?w=1121&h=474&f=png&s=78271)
 
 从图中可以看到，我们特意把`记录头信息`的5个字节的数据给标出来了，说明它很重要，我们再次先把这些`记录头信息`中各个属性的大体意思浏览一下（我们目前使用`Compact`行格式进行演示）：
 
@@ -3576,7 +3576,7 @@ B+树的每层非叶子节点中的最小记录都会添加该标记
 
 由于我们现在主要在唠叨`记录头信息`的作用，所以为了大家理解上的方便，我们只在`page_demo`表的行格式演示图中画出有关的头信息属性以及`c1`、`c2`、`c3`列的信息（其他信息没画不代表它们不存在啊，只是为了理解上的方便在图中省略了～），简化后的行格式示意图就是这样：
 
-![image_1c9o52lt41v5c7vk1vm91fsm174b2d.png-49.5kB](https://user-gold-cdn.xitu.io/2019/2/22/16910faa7fc922e1?w=759&h=347&f=png&s=50721)
+![image_1c9o52lt41v5c7vk1vm91fsm174b2d.png-49.5kB](http://user-gold-cdn.xitu.io/2019/2/22/16910faa7fc922e1?w=759&h=347&f=png&s=50721)
 
 下边我们试着向`page_demo`表中插入几条记录：
 
@@ -3589,7 +3589,7 @@ Records: 4  Duplicates: 0  Warnings: 0
 
 为了方便大家分析这些记录在`页`的`User Records`部分中是怎么表示的，我把记录中头信息和实际的列数据都用十进制表示出来了（其实是一堆二进制位），所以这些记录的示意图就是：
 
-![image_1c9qs0j281knc16hc1hqsgj01v0o2c.png-82.8kB](https://user-gold-cdn.xitu.io/2019/2/22/16910faa7fa53c71?w=948&h=333&f=png&s=84803)
+![image_1c9qs0j281knc16hc1hqsgj01v0o2c.png-82.8kB](http://user-gold-cdn.xitu.io/2019/2/22/16910faa7fa53c71?w=948&h=333&f=png&s=84803)
 
 看这个图的时候需要注意一下，各条记录在`User Records`中存储的时候并没有空隙，这里只是为了大家观看方便才把每条记录单独画在一行中。我们对照着这个图来看看记录头信息中的各个属性是啥意思：
 
@@ -3621,11 +3621,11 @@ Records: 4  Duplicates: 0  Warnings: 0
     
     但是不管我们向`页`中插入了多少自己的记录，设计`InnoDB`的大叔们都规定他们定义的两条伪记录分别为最小记录与最大记录。这两条记录的构造十分简单，都是由5字节大小的`记录头信息`和8字节大小的一个固定的部分组成的，如图所示
     
-    ![image_1c9ra45eam7t1mil9o1h3ucqdhv.png-50.4kB](https://user-gold-cdn.xitu.io/2019/2/22/16910faaae699d06?w=576&h=395&f=png&s=51648)
+    ![image_1c9ra45eam7t1mil9o1h3ucqdhv.png-50.4kB](http://user-gold-cdn.xitu.io/2019/2/22/16910faaae699d06?w=576&h=395&f=png&s=51648)
     
     由于这两条记录不是我们自己定义的记录，所以它们并不存放在`页`的`User Records`部分，他们被单独放在一个称为`Infimum + Supremum`的部分，如图所示：
     
-    ![image_1c9qs1mn2t3j1nt344116nk15uf2p.png-119.7kB](https://user-gold-cdn.xitu.io/2019/2/22/16910faa7fb8234e?w=1020&h=458&f=png&s=122559)
+    ![image_1c9qs1mn2t3j1nt344116nk15uf2p.png-119.7kB](http://user-gold-cdn.xitu.io/2019/2/22/16910faa7fb8234e?w=1020&h=458&f=png&s=122559)
     
     从图中我们可以看出来，最小记录和最大记录的`heap_no`值分别是`0`和`1`，也就是说它们的位置最靠前。
     
@@ -3639,7 +3639,7 @@ Records: 4  Duplicates: 0  Warnings: 0
   
     这玩意儿非常重要，它表示从当前记录的真实数据到下一条记录的真实数据的地址偏移量。比方说第一条记录的`next_record`值为`32`，意味着从第一条记录的真实数据的地址处向后找`32`个字节便是下一条记录的真实数据。如果你熟悉数据结构的话，就立即明白了，这其实是个`链表`，可以通过一条记录找到它的下一条记录。但是需要注意注意再注意的一点是，`下一条记录`指得并不是按照我们插入顺序的下一条记录，而是按照主键值由小到大的顺序的下一条记录。而且规定 _**Infimum记录（也就是最小记录）**_ 的下一条记录就本页中主键值最小的用户记录，而本页中主键值最大的用户记录的下一条记录就是 _**Supremum记录（也就是最大记录）**_ ，为了更形象的表示一下这个`next_record`起到的作用，我们用箭头来替代一下`next_record`中的地址偏移量：
     
-    ![image_1cot1r96210ph1jng1td41ouj85c13.png-120.5kB](https://user-gold-cdn.xitu.io/2019/2/22/16910faaae5618fb?w=1044&h=549&f=png&s=123443)
+    ![image_1cot1r96210ph1jng1td41ouj85c13.png-120.5kB](http://user-gold-cdn.xitu.io/2019/2/22/16910faaae5618fb?w=1044&h=549&f=png&s=123443)
     
     从图中可以看出来，我们的记录按照主键从小到大的顺序形成了一个单链表。`最大记录`的`next_record`的值为`0`，这也就是说最大记录是没有`下一条记录`了，它是这个单链表中的最后一个节点。如果从中删除掉一条记录，这个链表也是会跟着变化的，比如我们把第2条记录删掉：
     
@@ -3651,7 +3651,7 @@ Records: 4  Duplicates: 0  Warnings: 0
     
     删掉第2条记录后的示意图就是：
     
-    ![image_1cul8slbp1om0p31b3u1be11gco9.png-119.6kB](https://user-gold-cdn.xitu.io/2019/2/22/16910faaae709be3?w=1032&h=528&f=png&s=122514)
+    ![image_1cul8slbp1om0p31b3u1be11gco9.png-119.6kB](http://user-gold-cdn.xitu.io/2019/2/22/16910faaae709be3?w=1032&h=528&f=png&s=122514)
     
     从图中可以看出来，删除第2条记录前后主要发生了这些变化：
     
@@ -3675,7 +3675,7 @@ Query OK, 1 row affected (0.00 sec)
 
 我们看一下记录的存储情况：
 
-![image_1cot2j9n94a511jd15clrrfp6p1t.png-137.8kB](https://user-gold-cdn.xitu.io/2019/2/22/16910faaae8b46cd?w=1120&h=557&f=png&s=141111)
+![image_1cot2j9n94a511jd15clrrfp6p1t.png-137.8kB](http://user-gold-cdn.xitu.io/2019/2/22/16910faaae8b46cd?w=1120&h=557&f=png&s=141111)
 
 从图中可以看到，`InnoDB`并没有因为新记录的插入而为它申请新的存储空间，而是直接复用了原来被删除记录的存储空间。
 
@@ -3705,7 +3705,7 @@ SELECT * FROM page_demo WHERE c1 = 3;
 
 比方说现在的`page_demo`表中正常的记录共有6条，`InnoDB`会把它们分成两组，第一组中只有一个最小记录，第二组中是剩余的5条记录，看下边的示意图：
 
-![image_1couapvdmb5mvm1i0l5m0vcb2a.png-128.2kB](https://user-gold-cdn.xitu.io/2019/2/22/16910faaaea593a4?w=1011&h=540&f=png&s=131292)
+![image_1couapvdmb5mvm1i0l5m0vcb2a.png-128.2kB](http://user-gold-cdn.xitu.io/2019/2/22/16910faaaea593a4?w=1011&h=540&f=png&s=131292)
 
 从这个图中我们需要注意这么几点：
 
@@ -3718,11 +3718,11 @@ SELECT * FROM page_demo WHERE c1 = 3;
 
 `99`和`112`这样的地址偏移量很不直观，我们用箭头指向的方式替代数字，这样更易于我们理解，所以修改后的示意图就是这样：
 
-![image_1couarh4no6j1a8q9htilr13qc2n.png-105.1kB](https://user-gold-cdn.xitu.io/2019/2/22/16910faab125e162?w=1032&h=537&f=png&s=107616)
+![image_1couarh4no6j1a8q9htilr13qc2n.png-105.1kB](http://user-gold-cdn.xitu.io/2019/2/22/16910faab125e162?w=1032&h=537&f=png&s=107616)
 
 哎呀，咋看上去怪怪的，这么乱的图对于我这个强迫症真是不能忍，那我们就暂时不管各条记录在存储设备上的排列方式了，单纯从逻辑上看一下这些记录和页目录的关系：
 
-![image_1couate3jr19gc18gl1cva1fcg34.png-100.8kB](https://user-gold-cdn.xitu.io/2019/2/22/16910faacfbd4080?w=994&h=550&f=png&s=103256)
+![image_1couate3jr19gc18gl1cva1fcg34.png-100.8kB](http://user-gold-cdn.xitu.io/2019/2/22/16910faacfbd4080?w=994&h=550&f=png&s=103256)
 
 这样看就顺眼多了嘛！为什么最小记录的`n_owned`值为1，而最大记录的`n_owned`值为`5`呢，这里头有什么猫腻么？
 
@@ -3746,7 +3746,7 @@ Records: 12  Duplicates: 0  Warnings: 0
 
 哈，我们一口气又往表中添加了12条记录，现在就一共有16条正常的记录了（包括最小和最大记录），这些记录被分成了5个组，如图所示：
 
-![image_1coub0tq01b8scui9ia1fge124b3h.png-185.7kB](https://user-gold-cdn.xitu.io/2019/2/22/16910faad54ff9e6?w=1034&h=637&f=png&s=190111)
+![image_1coub0tq01b8scui9ia1fge124b3h.png-185.7kB](http://user-gold-cdn.xitu.io/2019/2/22/16910faad54ff9e6?w=1034&h=637&f=png&s=190111)
 
 因为把16条记录的全部信息都画在一张图里太占地方，让人眼花缭乱的，所以只保留了用户记录头信息中的`n_owned`和`next_record`属性，也省略了各个记录之间的箭头，我没画不等于没有啊！现在看怎么从这个`页目录`中查找记录。因为各个槽代表的记录的主键值都是从小到大排序的，所以我们可以使用所谓的`二分法`来进行快速查找。4个槽的编号分别是：`0`、`1`、`2`、`3`、`4`，所以初始情况下最低的槽就是`low=0`，最高的槽就是`high=4`。比方说我们想找主键值为`5`的记录，过程是这样的：
 
@@ -4025,7 +4025,7 @@ B+树非叶子段的头部信息，仅在B+树的Root页定义
   
     我们前边强调过，`InnoDB`都是以页为单位存放数据的，有时候我们存放某种类型的数据占用的空间非常大（比方说一张表中可以有成千上万条记录），`InnoDB`可能不可以一次性为这么多数据分配一个非常大的存储空间，如果分散到多个不连续的页中存储的话需要把这些页关联起来，`FIL_PAGE_PREV`和`FIL_PAGE_NEXT`就分别代表本页的上一个和下一个页的页号。这样通过建立一个双向链表把许许多多的页就都串联起来了，而无需这些页在物理上真正连着。需要注意的是，并不是所有类型的页都有上一个和下一个页的属性，不过我们本集中唠叨的`数据页`（也就是类型为`FIL_PAGE_INDEX`的页）是有这两个属性的，所以所有的数据页其实是一个双链表，就像这样：
     
-    ![image_1ca00fhg418pl1f1a1iav1uo3aou9.png-90.9kB](https://user-gold-cdn.xitu.io/2019/2/22/16910faad0e37047?w=898&h=365&f=png&s=93102)
+    ![image_1ca00fhg418pl1f1a1iav1uo3aou9.png-90.9kB](http://user-gold-cdn.xitu.io/2019/2/22/16910faad0e37047?w=898&h=365&f=png&s=93102)
     
 
 关于`File Header`的其他属性我们暂时用不到，等用到的时候再提哈～
@@ -4078,7 +4078,7 @@ B+树非叶子段的头部信息，仅在B+树的Root页定义
 
 前边我们详细唠叨了`InnoDB`数据页的7个组成部分，知道了各个数据页可以组成一个`双向链表`，而每个数据页中的记录会按照主键值从小到大的顺序组成一个`单向链表`，每个数据页都会为存储在它里边儿的记录生成一个`页目录`，在通过主键查找某条记录的时候可以在`页目录`中使用二分法快速定位到对应的槽，然后再遍历该槽对应分组中的记录即可快速找到指定的记录（如果你对这段话有一丁点儿疑惑，那么接下来的部分不适合你，返回去看一下数据页结构吧）。页和记录的关系示意图如下：
 
-![image_1cov976plf2u1j3g1jp8serjc616.png-87.7kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a904b33284?w=1092&h=340&f=png&s=89754)
+![image_1cov976plf2u1j3g1jp8serjc616.png-87.7kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a904b33284?w=1092&h=340&f=png&s=89754)
 
 其中页a、页b、页c ... 页n 这些页可以不在物理结构上相连，只要通过双向链表相关联即可。
 
@@ -4130,7 +4130,7 @@ Query OK, 0 rows affected (0.03 sec)
 
 这个新建的`index_demo`表中有2个`INT`类型的列，1个`CHAR(1)`类型的列，而且我们规定了`c1`列为主键，这个表使用`Compact`行格式来实际存储记录的。为了我们理解上的方便，我们简化了一下`index_demo`表的行格式示意图：
 
-![image_1caac8jr7hhcld017gd1lch1n1m33.png-97.1kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a904d072c4?w=1053&h=410&f=png&s=99439)
+![image_1caac8jr7hhcld017gd1lch1n1m33.png-97.1kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a904d072c4?w=1053&h=410&f=png&s=99439)
 
 我们只在示意图里展示记录的这几个部分：
 
@@ -4145,11 +4145,11 @@ Query OK, 0 rows affected (0.03 sec)
 
 为了节省篇幅，我们之后的示意图中会把记录的`其他信息`这个部分省略掉，因为它占地方并且不会有什么观赏效果。另外，为了方便理解，我们觉得把记录竖着放看起来感觉更好，所以将记录格式示意图的`其他信息`去掉并把它竖起来的效果就是这样：
 
-![image_1caacokob6ne1nv41meda0s7vk3g.png-68.1kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a9051511d9?w=642&h=471&f=png&s=69741)
+![image_1caacokob6ne1nv41meda0s7vk3g.png-68.1kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a9051511d9?w=642&h=471&f=png&s=69741)
 
 把一些记录放到页里边的示意图就是：
 
-![image_1caadhc4g1pb7hk81fcd4vt1u6r3t.png-79.8kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a90612d9f7?w=969&h=517&f=png&s=81754)
+![image_1caadhc4g1pb7hk81fcd4vt1u6r3t.png-79.8kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a90612d9f7?w=969&h=517&f=png&s=81754)
 
 ### 一个简单的索引方案
 
@@ -4168,7 +4168,7 @@ Query OK, 0 rows affected (0.03 sec)
     
     那么这些记录已经按照主键值的大小串联成一个单向链表了，如图所示：
     
-    ![image_1caaf26411d51bq7jtrvesr04a.png-29.5kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a9071559ed?w=507&h=399&f=png&s=30170)
+    ![image_1caaf26411d51bq7jtrvesr04a.png-29.5kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a9071559ed?w=507&h=399&f=png&s=30170)
     
     从图中可以看出来，`index_demo`表中的3条记录都被插入到了编号为`10`的数据页中了。此时我们再来插入一条记录：
     
@@ -4180,11 +4180,11 @@ Query OK, 0 rows affected (0.03 sec)
     
     因为`页10`最多只能放3条记录，所以我们不得不再分配一个新页：
     
-    ![image_1caafbcj1qpo1ad2j8q1ci4136s4n.png-44.5kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a908527d1a?w=876&h=397&f=png&s=45569)
+    ![image_1caafbcj1qpo1ad2j8q1ci4136s4n.png-44.5kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a908527d1a?w=876&h=397&f=png&s=45569)
     
     咦？怎么分配的页号是`28`呀，不应该是`11`么？再次强调一遍，新分配的数据页编号可能并不是连续的，也就是说我们使用的这些页在存储空间里可能并不挨着。它们只是通过维护着上一个页和下一个页的编号而建立了链表关系。另外，`页10`中用户记录最大的主键值是`5`，而`页28`中有一条记录的主键值是`4`，因为`5 > 4`，所以这就不符合下一个数据页中用户记录的主键值必须大于上一个页中用户记录的主键值的要求，所以在插入主键值为`4`的记录的时候需要伴随着一次记录移动，也就是把主键值为`5`的记录移动到`页28`中，然后再把主键值为`4`的记录插入到`页10`中，这个过程的示意图如下：
     
-    ![image_1caafkq3h1akv1mde14h2kjul6554.png-96.9kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a934270ad1?w=880&h=565&f=png&s=99219)
+    ![image_1caafkq3h1akv1mde14h2kjul6554.png-96.9kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a934270ad1?w=880&h=565&f=png&s=99219)
     
     这个过程表明了在对页中的记录进行增删改操作的过程中，我们必须通过一些诸如记录移动的操作来始终保证这个状态一直成立：下一个数据页中用户记录的主键值必须大于上一个页中用户记录的主键值。这个过程我们也可以称为`页分裂`。
     
@@ -4192,7 +4192,7 @@ Query OK, 0 rows affected (0.03 sec)
   
     由于数据页的编号可能并不是连续的，所以在向`index_demo`表中插入许多条记录后，可能是这样的效果：
     
-    ![image_1cab9u9midn61fgq1mi58j0gadm.png-65.7kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a9343577b3?w=1146&h=267&f=png&s=67255)
+    ![image_1cab9u9midn61fgq1mi58j0gadm.png-65.7kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a9343577b3?w=1146&h=267&f=png&s=67255)
     
     因为这些`16KB`的页在物理存储上可能并不挨着，所以如果想从这么多页中根据主键值快速定位某些记录所在的页，我们需要给它们做个目录，每个页对应一个目录项，每个目录项包括下边两个部分：
     
@@ -4201,7 +4201,7 @@ Query OK, 0 rows affected (0.03 sec)
     
     所以我们为上边几个页做好的目录就像这样子：
     
-    ![image_1caba0afo11fa1cli1nu070m16bg1j.png-119.1kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a93e0c8dfe?w=1098&h=573&f=png&s=121929)
+    ![image_1caba0afo11fa1cli1nu070m16bg1j.png-119.1kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a93e0c8dfe?w=1098&h=573&f=png&s=121929)
     
     以`页28`为例，它对应`目录项2`，这个目录项中包含着该页的页号`28`以及该页中用户记录的最小主键值`5`。我们只需要把几个目录项在物理存储器上连续存储，比如把他们放到一个数组里，就可以实现根据主键值快速查找某条记录的功能了。比方说我们想找主键值为`20`的记录，具体查找过程分两步：
     
@@ -4228,7 +4228,7 @@ Query OK, 0 rows affected (0.03 sec)
 
 哈哈，原来这个值为`1`的`record_type`是这个意思呀，我们把前边使用到的目录项放到数据页中的样子就是这样：
 
-![image_1caahuomf15m11e5k19v1bf21inq9.png-145.9kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a93e14c7be?w=1178&h=535&f=png&s=149447)
+![image_1caahuomf15m11e5k19v1bf21inq9.png-145.9kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a93e14c7be?w=1178&h=535&f=png&s=149447)
 
 从图中可以看出来，我们新分配了一个编号为`30`的页来专门存储`目录项记录`。这里再次强调一遍`目录项记录`和普通的`用户记录`的不同点：
 
@@ -4250,7 +4250,7 @@ Query OK, 0 rows affected (0.03 sec)
 
 当然是再多整一个存储`目录项记录`的页喽～ 为了大家更好的理解新分配一个`目录项记录`页的过程，我们假设一个存储`目录项记录`的页最多只能存放4条`目录项记录`（请注意是假设哦，真实情况下可以存放好多条的），所以如果此时我们再向上图中插入一条主键值为`320`的用户记录的话，那就需要分配一个新的存储`目录项记录`的页喽：
 
-![image_1cacabsrh17a5133q1otf725gi92q.png-135.7kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a93f82e166?w=1181&h=472&f=png&s=138985)
+![image_1cacabsrh17a5133q1otf725gi92q.png-135.7kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a93f82e166?w=1181&h=472&f=png&s=138985)
 
 从图中可以看出，我们插入了一条主键值为`320`的用户记录之后需要两个新的数据页：
 
@@ -4276,11 +4276,11 @@ Query OK, 0 rows affected (0.03 sec)
 
 那么问题来了，在这个查询步骤的第1步中我们需要定位存储`目录项记录`的页，但是这些页在存储空间中也可能不挨着，如果我们表中的数据非常多则会产生很多存储`目录项记录`的页，那我们怎么根据主键值快速定位一个存储`目录项记录`的页呢？其实也简单，为这些存储`目录项记录`的页再生成一个更高级的目录，就像是一个多级目录一样，大目录里嵌套小目录，小目录里才是实际的数据，所以现在各个页的示意图就是这样子：
 
-![image_1cacafpso19vpkik1j5rtrd17cm3a.png-158.1kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a9496cd230?w=1080&h=579&f=png&s=161941)
+![image_1cacafpso19vpkik1j5rtrd17cm3a.png-158.1kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a9496cd230?w=1080&h=579&f=png&s=161941)
 
 如图，我们生成了一个存储更高级目录项的`页33`，这个页中的两条记录分别代表`页30`和`页32`，如果用户记录的主键值在`[1, 320)`之间，则到`页30`中查找更详细的`目录项记录`，如果主键值不小于`320`的话，就到`页32`中查找更详细的`目录项记录`。不过这张图好漂亮喔，随着表中记录的增加，这个目录的层级会继续增加，如果简化一下，那么我们可以用下边这个图来描述它：
 
-![image_1ca80gps314u9121u1rdp9r7md8cm.png-55.6kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a961cd3016?w=1136&h=533&f=png&s=56890)
+![image_1ca80gps314u9121u1rdp9r7md8cm.png-55.6kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a961cd3016?w=1136&h=533&f=png&s=56890)
 
 这玩意儿像不像一个倒过来的`树`呀，上头是树根，下头是树叶！其实这是一种组织数据的形式，或者说是一种数据结构，它的名称是`B+`树。
 
@@ -4326,7 +4326,7 @@ Query OK, 0 rows affected (0.03 sec)
 
 不，我们可以多建几棵`B+`树，不同的`B+`树中的数据采用不同的排序规则。比方说我们用`c2`列的大小作为数据页、页中记录的排序规则，再建一棵`B+`树，效果如下图所示：
 
-![image_1cactc8jg14j91likvmd1h8cn3o4h.png-161.6kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a961fd74e7?w=1112&h=586&f=png&s=165483)
+![image_1cactc8jg14j91likvmd1h8cn3o4h.png-161.6kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a961fd74e7?w=1112&h=586&f=png&s=165483)
 
 这个`B+`树与上边介绍的聚簇索引有几处不同：
 
@@ -4373,7 +4373,7 @@ Query OK, 0 rows affected (0.03 sec)
 
 为`c2`和`c3`列建立的索引的示意图如下：
 
-![image_1cacvu3hmlr9m501r6b1809uo35o.png-165.1kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a9661391c4?w=1106&h=584&f=png&s=169103)
+![image_1cacvu3hmlr9m501r6b1809uo35o.png-165.1kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a9661391c4?w=1106&h=584&f=png&s=169103)
 
 如图所示，我们需要注意一下几点：
 
@@ -4442,7 +4442,7 @@ Query OK, 0 rows affected (0.03 sec)
 
 如果二级索引中目录项记录的内容只是`索引列 + 页号`的搭配的话，那么为`c2`列建立索引后的`B+`树应该长这样：
 
-![image_1cp9vthl71h9n8091dkdjek16qg1j.png-58.6kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a96625ebb1?w=533&h=563&f=png&s=60029)
+![image_1cp9vthl71h9n8091dkdjek16qg1j.png-58.6kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a96625ebb1?w=533&h=563&f=png&s=60029)
 
 如果我们想新插入一行记录，其中`c1`、`c2`、`c3`的值分别是：`9`、`1`、`'c'`，那么在修改这个为`c2`列建立的二级索引对应的`B+`树时便碰到了个大问题：由于`页3`中存储的目录项记录是由`c2列 + 页号`的值构成的，`页3`中的两条目录项记录对应的`c2`列的值都是`1`，而我们新插入的这条记录的`c2`列的值也是`1`，那我们这条新插入的记录到底应该放到`页4`中，还是应该放到`页5`中啊？答案是：对不起，懵逼了。
 
@@ -4454,7 +4454,7 @@ Query OK, 0 rows affected (0.03 sec)
 
 也就是我们把`主键值`也添加到二级索引内节点中的目录项记录了，这样就能保证`B+`树每一层节点中各条目录项记录除`页号`这个字段外是唯一的，所以我们为`c2`列建立二级索引后的示意图实际上应该是这样子的：
 
-![image_1cpb919suginpp7lbgsk0147f20.png-58.6kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a97d84ddee?w=536&h=555&f=png&s=60020)
+![image_1cpb919suginpp7lbgsk0147f20.png-58.6kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a97d84ddee?w=536&h=555&f=png&s=60020)
 
 这样我们再插入记录`(9, 1, 'c')`时，由于`页3`中存储的目录项记录是由`c2列 + 主键 + 页号`的值构成的，可以先把新记录的`c2`列的值和`页3`中各目录项记录的`c2`列的值作比较，如果`c2`列的值相同的话，可以接着比较主键值，因为`B+`树同一层中不同目录项记录的`c2列 + 主键`的值肯定是不一样的，所以最后肯定能定位唯一的一条目录项记录，在本例中最后确定新记录应该被插入到`页5`中。
 
@@ -4470,7 +4470,7 @@ Query OK, 0 rows affected (0.03 sec)
   
     `MyISAM`记录也需要记录头信息来存储一些额外数据，我们以上边唠叨过的`index_demo`表为例，看一下这个表中的记录使用`MyISAM`作为存储引擎在存储空间中的表示：
     
-    ![image_1cpc7go2o12t1ocd17nvr6msth9.png-58.9kB](https://user-gold-cdn.xitu.io/2018/11/30/167627a9871b342f?w=332&h=528&f=png&s=60362)
+    ![image_1cpc7go2o12t1ocd17nvr6msth9.png-58.9kB](http://user-gold-cdn.xitu.io/2018/11/30/167627a9871b342f?w=332&h=528&f=png&s=60362)
     
     由于在插入数据的时候并没有刻意按照主键大小排序，所以我们并不能在这些数据上使用二分法进行查找。
     
@@ -4618,7 +4618,7 @@ CREATE TABLE person_info(
 
 从这两点注意中我们可以再次看到，一个表中有多少索引就会建立多少棵`B+`树，`person_info`表会为聚簇索引和`idx_name_birthday_phone_number`索引建立2棵`B+`树。下边我们画一下索引`idx_name_birthday_phone_number`的示意图，不过既然我们已经掌握了`InnoDB`的`B+`树索引原理，那我们在画图的时候为了让图更加清晰，所以在省略一些不必要的部分，比如记录的额外信息，各页面的页号等等，其中内节点中目录项记录的页号信息我们用箭头来代替，在记录结构中只保留`name`、`birthday`、`phone_number`、`id`这四个列的真实数据值，所以示意图就长这样（留心的同学看出来了，这其实和《高性能MySQL》里举的例子的图差不多，我觉得这个例子特别好，所以就借鉴了一下）：
 
-![image_1cpk121ttgku1lj7n4l1g81152k9.png-141.1kB](https://user-gold-cdn.xitu.io/2018/12/4/16777d60a0b65741?w=1131&h=505&f=png&s=144440)
+![image_1cpk121ttgku1lj7n4l1g81152k9.png-141.1kB](http://user-gold-cdn.xitu.io/2018/12/4/16777d60a0b65741?w=1131&h=505&f=png&s=144440)
 
 为了方便大家理解，我们特意标明了哪些是内节点，哪些是叶子节点。再次强调一下，内节点中存储的是`目录项记录`，叶子节点中存储的是`用户记录`（由于不是聚簇索引，所以用户记录是不完整的，缺少`country`列的值）。从图中可以看出，这个`idx_name_birthday_phone_number`索引对应的`B+`树中页面和记录的排序方式就是这样的：
 
@@ -5117,11 +5117,11 @@ SELECT * FROM person_info ORDER BY name LIMIT 10;
 
 我们知道，对于一个使用`InnoDB`存储引擎的表来说，在我们没有显式的创建索引时，表中的数据实际上都是存储在`聚簇索引`的叶子节点的。而记录又是存储在数据页中的，数据页和记录又是按照记录主键值从小到大的顺序进行排序，所以如果我们插入的记录的主键值是依次增大的话，那我们每插满一个数据页就换到下一个数据页继续插，而如果我们插入的主键值忽大忽小的话，这就比较麻烦了，假设某个数据页存储的记录已经满了，它存储的主键值在`1~100`之间：
 
-![image_1capq3r1o1geqdck1cnc1fkihj39.png-28.1kB](https://user-gold-cdn.xitu.io/2018/12/4/16777d60a0cf8c4d?w=866&h=247&f=png&s=28810)
+![image_1capq3r1o1geqdck1cnc1fkihj39.png-28.1kB](http://user-gold-cdn.xitu.io/2018/12/4/16777d60a0cf8c4d?w=866&h=247&f=png&s=28810)
 
 如果此时再插入一条主键值为`9`的记录，那它插入的位置就如下图：
 
-![image_1capq7nnv13en8b31lvtj2i1e8lm.png-35.3kB](https://user-gold-cdn.xitu.io/2018/12/4/16777d60a104774b?w=836&h=401&f=png&s=36152)
+![image_1capq7nnv13en8b31lvtj2i1e8lm.png-35.3kB](http://user-gold-cdn.xitu.io/2018/12/4/16777d60a104774b?w=836&h=401&f=png&s=36152)
 
 可这个数据页已经满了啊，再插进来咋办呢？我们需要把当前页面分裂成两个页面，把本页中的一些记录移动到新创建的这个页中。页面分裂和记录移位意味着什么？意味着：性能损耗！所以如果我们想尽量避免这样无谓的性能损耗，最好让插入的记录的主键值依次递增，这样就不会发生这样的性能损耗了。所以我们建议：让主键具有`AUTO_INCREMENT`，让存储引擎自己为表生成主键，而不是我们手动插入 ，比方说我们可以这样定义`person_info`表：
 
@@ -5639,7 +5639,7 @@ BLOB页
 
 我们前边说过数据页，也就是`INDEX`类型的页由7个部分组成，其中的两个部分是所有类型的页面都通用的。当然我不能寄希望于你把我说的话都记住，所以在这里重新强调一遍，任何类型的页面都有下边这种通用的结构：
 
-![image_1crjupisqne61uer17ikh6l1v8k9.png-44.9kB](https://user-gold-cdn.xitu.io/2018/12/14/167ac6442f4e4edd?w=827&h=525&f=png&s=45934)
+![image_1crjupisqne61uer17ikh6l1v8k9.png-44.9kB](http://user-gold-cdn.xitu.io/2018/12/14/167ac6442f4e4edd?w=827&h=525&f=png&s=45934)
 
 从上图中可以看出，任何类型的页都会包含这两个部分：
 
@@ -5721,11 +5721,11 @@ BLOB页
 
 表空间中的页实在是太多了，为了更好的管理这些页面，设计`InnoDB`的大叔们提出了`区`（英文名：`extent`）的概念。对于16KB的页来说，连续的64个页就是一个`区`，也就是说一个区默认占用1MB空间大小。不论是系统表空间还是独立表空间，都可以看成是由若干个区组成的，每256个区被划分成一组。画个图表示就是这样：
 
-![image_1cri1nutcorp5ghf5c7vqagt1j.png-71.4kB](https://user-gold-cdn.xitu.io/2018/12/14/167ac6442f8e6644?w=662&h=547&f=png&s=73092)
+![image_1cri1nutcorp5ghf5c7vqagt1j.png-71.4kB](http://user-gold-cdn.xitu.io/2018/12/14/167ac6442f8e6644?w=662&h=547&f=png&s=73092)
 
 其中`extent 0` ~ `extent 255`这256个区算是第一个组，`extent 256` ~ `extent 511`这256个区算是第二个组，`extent 512` ~ `extent 767`这256个区算是第三个组（上图中并未画全第三个组全部的区，请自行脑补），依此类推可以划分更多的组。这些组的头几个页面的类型都是类似的，就像这样：
 
-![image_1crjo0hl4q8u1dkdofe187b10fa9.png-105.2kB](https://user-gold-cdn.xitu.io/2018/12/14/167ac6443071a286?w=826&h=657&f=png&s=107694)
+![image_1crjo0hl4q8u1dkdofe187b10fa9.png-105.2kB](http://user-gold-cdn.xitu.io/2018/12/14/167ac6443071a286?w=826&h=657&f=png&s=107694)
 
 从上图中我们能得到如下信息：
 
@@ -5812,7 +5812,7 @@ BLOB页
 
 为了方便管理这些区，设计`InnoDB`的大叔设计了一个称为`XDES Entry`的结构（全称就是Extent Descriptor Entry），每一个区都对应着一个`XDES Entry`结构，这个结构记录了对应的区的一些属性。我们先看图来对这个结构有个大致的了解：
 
-![image_1crre79uq9971bsdj9s1i0j11en8a.png-96.2kB](https://user-gold-cdn.xitu.io/2018/12/14/167ac6443128f22f?w=1086&h=473&f=png&s=98468)
+![image_1crre79uq9971bsdj9s1i0j11en8a.png-96.2kB](http://user-gold-cdn.xitu.io/2018/12/14/167ac6443128f22f?w=1086&h=473&f=png&s=98468)
 
 从图中我们可以看出，`XDES Entry`是一个40个字节的结构，大致分为4个部分，各个部分的释义如下：
 
@@ -5824,7 +5824,7 @@ BLOB页
   
     这个部分可以将若干个`XDES Entry`结构串联成一个链表，大家看一下这个`List Node`的结构：
     
-    ![image_1crre8tlh1vmqtfipk663l173q97.png-69.1kB](https://user-gold-cdn.xitu.io/2018/12/14/167ac64431fef247?w=694&h=345&f=png&s=70716)
+    ![image_1crre8tlh1vmqtfipk663l173q97.png-69.1kB](http://user-gold-cdn.xitu.io/2018/12/14/167ac64431fef247?w=694&h=345&f=png&s=70716)
     
     如果我们想定位表空间内的某一个位置的话，只需指定页号以及该位置在指定页号中的页内偏移量即可。所以：
     
@@ -5892,7 +5892,7 @@ BLOB页
 
 上边光是介绍了一堆链表，可我们怎么找到这些链表呢，或者说怎么找到某个链表的头节点或者尾节点在表空间中的位置呢？设计`InnoDB`的大叔当然考虑了这个问题，他们设计了一个叫`List Base Node`的结构，翻译成中文就是链表的基节点。这个结构中包含了链表的头节点和尾节点的指针以及这个链表中包含了多少节点的信息，我们画图看一下这个结构的示意图：
 
-![image_1crrehf6i1jsq1j5cubj1mdoh77a4.png-81.6kB](https://user-gold-cdn.xitu.io/2018/12/14/167ac64432dedff7?w=777&h=451&f=png&s=83511)
+![image_1crrehf6i1jsq1j5cubj1mdoh77a4.png-81.6kB](http://user-gold-cdn.xitu.io/2018/12/14/167ac64432dedff7?w=777&h=451&f=png&s=83511)
 
 我们上边介绍的每个链表都对应这么一个`List Base Node`结构，其中：
 
@@ -5913,7 +5913,7 @@ BLOB页
 
 我们前边说过，段其实不对应表空间中某一个连续的物理区域，而是一个逻辑上的概念，由若干个零散的页面以及一些完整的区组成。像每个区都有对应的`XDES Entry`来记录这个区中的属性一样，设计`InnoDB`的大叔为每个段都定义了一个`INODE Entry`结构来记录一下段中的属性。大家看一下示意图：
 
-![image_1crrju0cnji91a2fhv91ijb15hgb1.png-111.4kB](https://user-gold-cdn.xitu.io/2018/12/14/167ac644668c6cd1?w=863&h=535&f=png&s=114114)
+![image_1crrju0cnji91a2fhv91ijb15hgb1.png-111.4kB](http://user-gold-cdn.xitu.io/2018/12/14/167ac644668c6cd1?w=863&h=535&f=png&s=114114)
 
 它的各个部分释义如下：
 
@@ -5948,7 +5948,7 @@ BLOB页
 
 首先看第一个组的第一个页面，当然也是表空间的第一个页面，页号为`0`。这个页面的类型是`FSP_HDR`，它存储了表空间的一些整体属性以及第一个组内256个区的对应的`XDES Entry`结构，直接看这个类型的页面的示意图：
 
-![image_1crmfvigk938c8h1hahglr15329.png-146.8kB](https://user-gold-cdn.xitu.io/2018/12/14/167ac6446dbf2e3f?w=1136&h=553&f=png&s=150353)
+![image_1crmfvigk938c8h1hahglr15329.png-146.8kB](http://user-gold-cdn.xitu.io/2018/12/14/167ac6446dbf2e3f?w=1136&h=553&f=png&s=150353)
 
 从图中可以看出，一个完整的`FSP_HDR`类型的页面大致由5个部分组成，各个部分的具体释义如下表：
 
@@ -6006,7 +6006,7 @@ BLOB页
 
 从名字就可以看出来，这个部分是用来存储表空间的一些整体属性的，废话少说，看图：
 
-![image_1crrp2qp310rc10fd33ch716hcp.png-148.1kB](https://user-gold-cdn.xitu.io/2018/12/14/167ac6447c1d8805?w=912&h=557&f=png&s=151647)
+![image_1crrp2qp310rc10fd33ch716hcp.png-148.1kB](http://user-gold-cdn.xitu.io/2018/12/14/167ac6447c1d8805?w=912&h=557&f=png&s=151647)
 
 哇唔，字段有点儿多哦，不急一个一个慢慢看。下面是各个属性的简单描述：
 
@@ -6194,7 +6194,7 @@ SEG\_INODES\_FREE链表的基节点
 
 我们说过，每一个`XDES Entry`结构对应表空间的一个区，虽然一个`XDES Entry`结构只占用40字节，但你抵不住表空间的区的数量也多啊。在区的数量非常多时，一个单独的页可能就不够存放足够多的`XDES Entry`结构，所以我们把表空间的区分为了若干个组，每组开头的一个页面记录着本组内所有的区对应的`XDES Entry`结构。由于第一个组的第一个页面有些特殊，因为它也是整个表空间的第一个页面，所以除了记录本组中的所有区对应的`XDES Entry`结构以外，还记录着表空间的一些整体属性，这个页面的类型就是我们刚刚说完的`FSP_HDR`类型，整个表空间里只有一个这个类型的页面。除去第一个分组以外，之后的每个分组的第一个页面只需要记录本组内所有的区对应的`XDES Entry`结构即可，不需要再记录表空间的属性了，为了和`FSP_HDR`类型做区别，我们把之后每个分组的第一个页面的类型定义为`XDES`，它的结构和`FSP_HDR`类型是非常相似的：
 
-![image_1cs3vmoii1h971aje1iveack1l109.png-149.5kB](https://user-gold-cdn.xitu.io/2018/12/14/167ac64482356d3e?w=1257&h=599&f=png&s=153052)
+![image_1cs3vmoii1h971aje1iveack1l109.png-149.5kB](http://user-gold-cdn.xitu.io/2018/12/14/167ac64482356d3e?w=1257&h=599&f=png&s=153052)
 
 与`FSP_HDR`类型的页面对比，除了少了`File Space Header`部分之外，也就是除了少了记录表空间整体属性的部分之外，其余的部分是一样一样的。由于我们上边唠叨的已经够仔细了，对于`XDES`类型的页面也就不重复唠叨了哈。
 
@@ -6206,7 +6206,7 @@ SEG\_INODES\_FREE链表的基节点
 
 再次对比前边介绍表空间的图，第一个分组的第三个页面的类型是`INODE`。我们前边说过设计`InnoDB`的大叔为每个索引定义了两个段，而且为某些特殊功能定义了些特殊的段。为了方便管理，他们又为每个段设计了一个`INODE Entry`结构，这个结构中记录了关于这个段的相关属性。而我们这会儿要介绍的这个`INODE`类型的页就是为了存储`INODE Entry`结构而存在的。好了，废话少说，直接看图：
 
-![image_1cs41k0p51p7uaq81jitr2b12be13.png-171kB](https://user-gold-cdn.xitu.io/2018/12/14/167ac6448cef481c?w=1272&h=590&f=png&s=175126)
+![image_1cs41k0p51p7uaq81jitr2b12be13.png-171kB](http://user-gold-cdn.xitu.io/2018/12/14/167ac6448cef481c?w=1272&h=590&f=png&s=175126)
 
 从图中可以看出，一个`INODE`类型的页面是由这几部分构成的：
 
@@ -6306,7 +6306,7 @@ B+树非叶子段的头部信息，仅在B+树的根页定义
 
 其中的`PAGE_BTR_SEG_LEAF`和`PAGE_BTR_SEG_TOP`都占用10个字节，它们其实对应一个叫`Segment Header`的结构，该结构图示如下：
 
-![image_1csob472617uijtmc1c1k6lj9k9.png-62.2kB](https://user-gold-cdn.xitu.io/2018/12/14/167ac644922369a7?w=598&h=325&f=png&s=63645)
+![image_1csob472617uijtmc1c1k6lj9k9.png-62.2kB](http://user-gold-cdn.xitu.io/2018/12/14/167ac644922369a7?w=598&h=325&f=png&s=63645)
 
 各个部分的具体释义如下：
 
@@ -6350,7 +6350,7 @@ INODE Entry结构在该页面中的偏移量
 
 系统表空间与独立表空间的一个非常明显的不同之处就是在表空间开头有许多记录整个系统属性的页面，如图：
 
-![image_1csbied27ohe1rgg32gquulplm.png-147.4kB](https://user-gold-cdn.xitu.io/2018/12/14/167ac6449a441ffc?w=824&h=711&f=png&s=150901)
+![image_1csbied27ohe1rgg32gquulplm.png-147.4kB](http://user-gold-cdn.xitu.io/2018/12/14/167ac6449a441ffc?w=824&h=711&f=png&s=150901)
 
 可以看到，系统表空间和独立表空间的前三个页面（页号分别为`0`、`1`、`2`，类型分别是`FSP_HDR`、`IBUF_BITMAP`、`INODE`）的类型是一致的，只是页号为`3`～`7`的页面是系统表空间特有的，我们来看一下这些多出来的页面都是干啥使的：
 
@@ -6635,7 +6635,7 @@ InnoDB存储引擎中每个索引都有一个唯一的ID
 
 也就是说这4个表是表中之表，那这4个表的元数据去哪里获取呢？没法搞了，只能把这4个表的元数据，就是它们有哪些列、哪些索引等信息硬编码到代码中，然后设计`InnoDB`的大叔又拿出一个固定的页面来记录这4个表的聚簇索引和二级索引对应的`B+树`位置，这个页面就是页号为`7`的页面，类型为`SYS`，记录了`Data Dictionary Header`，也就是数据字典的头部信息。除了这4个表的5个索引的根页面信息外，这个页号为`7`的页面还记录了整个InnoDB存储引擎的一些全局属性，说话太啰嗦，直接看这个页面的示意图：
 
-![image_1cso838gk5vt14bv12so1ue4lod6l.png-201.1kB](https://user-gold-cdn.xitu.io/2018/12/14/167ac6449d8e1436?w=1224&h=653&f=png&s=205912)
+![image_1cso838gk5vt14bv12so1ue4lod6l.png-201.1kB](http://user-gold-cdn.xitu.io/2018/12/14/167ac6449d8e1436?w=1224&h=653&f=png&s=205912)
 
 可以看到这个页面由下边几个部分组成：
 
@@ -6824,7 +6824,7 @@ SELECT * FROM single_table WHERE id = 1438;
 
 `MySQL`会直接利用主键值在聚簇索引中定位对应的用户记录，就像这样：
 
-![image_1ctendl4319v659s1dfoj6lssl16.png-36.4kB](https://user-gold-cdn.xitu.io/2018/12/21/167cece536c16a14?w=600&h=491&f=png&s=37259)
+![image_1ctendl4319v659s1dfoj6lssl16.png-36.4kB](http://user-gold-cdn.xitu.io/2018/12/21/167cece536c16a14?w=600&h=491&f=png&s=37259)
 
 原谅我把聚簇索引对应的复杂的`B+`树结构搞了一个极度精简版，为了突出重点，我们忽略掉了`页`的结构，直接把所有的叶子节点的记录都放在一起展示，而且记录中只展示我们关心的索引列，对于`single_table`表的聚簇索引来说，展示的就是`id`列。我们想突出的重点就是：`B+`树叶子节点中的记录是按照索引列排序的，对于的聚簇索引来说，它对应的`B+`树叶子节点中的记录就是按照`id`列排序的。`B+`树本来就是一个矮矮的大胖子，所以这样根据主键值定位一条记录的速度贼快。类似的，我们根据唯一二级索引列来定位一条记录的速度也是贼快的，比如下边这个查询：
 
@@ -6835,7 +6835,7 @@ SELECT * FROM single_table WHERE key2 = 3841;
 
 这个查询的执行过程的示意图就是这样：
 
-![image_1cthurrlpbhlotsjru1dsjrrl30.png-110.2kB](https://user-gold-cdn.xitu.io/2018/12/21/167cece53760be3d?w=845&h=618&f=png&s=112848)
+![image_1cthurrlpbhlotsjru1dsjrrl30.png-110.2kB](http://user-gold-cdn.xitu.io/2018/12/21/167cece53760be3d?w=845&h=618&f=png&s=112848)
 
 可以看到这个查询的执行分两步，第一步先从`idx_key2`对应的`B+`树索引中根据`key2`列与常数的等值比较条件定位到一条二级索引记录，然后再根据该记录的`id`值到聚簇索引中获取到完整的用户记录。
 
@@ -6861,7 +6861,7 @@ SELECT * FROM single_table WHERE key1 = 'abc';
 
 对于这个查询，我们当然可以选择全表扫描来逐一对比搜索条件是否满足要求，我们也可以先使用二级索引找到对应记录的`id`值，然后再回表到聚簇索引中查找完整的用户记录。由于普通二级索引并不限制索引列值的唯一性，所以可能找到多条对应的记录，也就是说使用二级索引来执行查询的代价取决于等值匹配到的二级索引记录条数。如果匹配的记录较少，则回表的代价还是比较低的，所以`MySQL`可能选择使用索引而不是全表扫描的方式来执行查询。设计`MySQL`的大叔就把这种搜索条件为二级索引列与常数等值比较，采用二级索引来执行查询的访问方法称为：`ref`。我们看一下采用`ref`访问方法执行查询的图示：
 
-![image_1ctf14vso11cdclsmc6ac8pru9h.png-109.5kB](https://user-gold-cdn.xitu.io/2018/12/21/167cece5377ba4d7?w=762&h=606&f=png&s=112165)
+![image_1ctf14vso11cdclsmc6ac8pru9h.png-109.5kB](http://user-gold-cdn.xitu.io/2018/12/21/167cece5377ba4d7?w=762&h=606&f=png&s=112165)
 
 从图示中可以看出，对于普通的二级索引来说，通过索引列进行等值比较后可能匹配到多条连续的记录，而不是像主键或者唯一二级索引那样最多只能匹配1条记录，所以这种`ref`访问方法比`const`差了那么一丢丢，但是在二级索引等值比较时匹配的记录数较少时的效率还是很高的（如果匹配的二级索引记录太多那么回表的成本就太大了），跟坐高铁差不多。不过需要注意下边两种情况：
 
@@ -6899,7 +6899,7 @@ SELECT * FROM single_demo WHERE key1 = 'abc' OR key1 IS NULL;
 
 当使用二级索引而不是全表扫描的方式执行该查询时，这种类型的查询使用的访问方法就称为`ref_or_null`，这个`ref_or_null`访问方法的执行过程如下：
 
-![image_1ctf21uu8113m1ajm1rcitgf5eeco.png-122.5kB](https://user-gold-cdn.xitu.io/2018/12/21/167cece5375a11e7?w=757&h=597&f=png&s=125422)
+![image_1ctf21uu8113m1ajm1rcitgf5eeco.png-122.5kB](http://user-gold-cdn.xitu.io/2018/12/21/167cece5375a11e7?w=757&h=597&f=png&s=125422)
 
 可以看到，上边的查询相当于先分别从`idx_key1`索引对应的`B+`树中找出`key1 IS NULL`和`key1 = 'abc'`的两个连续的记录范围，然后根据这些二级索引记录中的`id`值再回表查找完整的用户记录。
 
@@ -6932,7 +6932,7 @@ SELECT * FROM single_table WHERE key2 IN (1438, 6328) OR (key2 >= 38 AND key2 <=
 
 如果把这几个所谓的`key2`列的值需要满足的`范围`在数轴上体现出来的话，那应该是这个样子：
 
-![image_1cth9mkf41li1dad1tnd6dm5139.png-9.2kB](https://user-gold-cdn.xitu.io/2018/12/21/167cece53770ba99?w=654&h=150&f=png&s=9381)
+![image_1cth9mkf41li1dad1tnd6dm5139.png-9.2kB](http://user-gold-cdn.xitu.io/2018/12/21/167cece53770ba99?w=654&h=150&f=png&s=9381)
 
 也就是从数学的角度看，每一个所谓的范围都是数轴上的一个`区间`，3个范围也就对应着3个区间：
 
@@ -7022,7 +7022,7 @@ SELECT * FROM single_table WHERE key2 > 100 AND key2 > 200;
 
 这个查询中的搜索条件都可以使用到`key2`，也就是说每个搜索条件都对应着一个`idx_key2`的范围区间。这两个小的搜索条件使用`AND`连接起来，也就是要取两个范围区间的交集，在我们使用`range`访问方法执行查询时，使用的`idx_key2`索引的范围区间的确定过程就如下图所示：
 
-![image_1ctia5p09rqss4413qq16gdbbj3q.png-44kB](https://user-gold-cdn.xitu.io/2018/12/21/167cece53fac75d6?w=937&h=306&f=png&s=45034)
+![image_1ctia5p09rqss4413qq16gdbbj3q.png-44kB](http://user-gold-cdn.xitu.io/2018/12/21/167cece53fac75d6?w=937&h=306&f=png&s=45034)
 
 `key2 > 100`和`key2 > 200`交集当然就是`key2 > 200`了，也就是说上边这个查询使用`idx_key2`的范围区间就是`(200, +∞)`。这东西小学都学过吧，再不济初中肯定都学过。我们再看一下使用`OR`将多个搜索条件连接在一起的情况：
 
@@ -7033,7 +7033,7 @@ SELECT * FROM single_table WHERE key2 > 100 OR key2 > 200;
 
 `OR`意味着需要取各个范围区间的并集，所以上边这个查询在我们使用`range`访问方法执行查询时，使用的`idx_key2`索引的范围区间的确定过程就如下图所示：
 
-![image_1ctia94i617ihr5ncku4ed1gg247.png-49.1kB](https://user-gold-cdn.xitu.io/2018/12/21/167cece5630e89ef?w=912&h=313&f=png&s=50244)
+![image_1ctia94i617ihr5ncku4ed1gg247.png-49.1kB](http://user-gold-cdn.xitu.io/2018/12/21/167cece5630e89ef?w=912&h=313&f=png&s=50244)
 
 也就是说上边这个查询使用`idx_key2`的范围区间就是`(100， +∞)`。
 
@@ -7451,7 +7451,7 @@ mysql> SELECT * FROM t2;
 
 `连接`的本质就是把各个连接表中的记录都取出来依次匹配的组合加入结果集并返回给用户。所以我们把`t1`和`t2`两个表连接起来的过程如下图所示：
 
-![image_1cql4ae7flug1itskat1ojgi7g3m.png-67.4kB](https://user-gold-cdn.xitu.io/2018/12/25/167e43ab3feccc29?w=1077&h=431&f=png&s=69015)
+![image_1cql4ae7flug1itskat1ojgi7g3m.png-67.4kB](http://user-gold-cdn.xitu.io/2018/12/25/167e43ab3feccc29?w=1077&h=431&f=png&s=69015)
 
 这个过程看起来就是把`t1`表的记录和`t2`的记录连起来组成新的更大的记录，所以这个查询过程称之为连接查询。连接查询的结果集中包含一个表中的每一条记录与另一个表中的每一条记录相互匹配的组合，像这样的结果集就可以称之为`笛卡尔积`。因为表`t1`中有3条记录，表`t2`中也有3条记录，所以这两个表连接之后的笛卡尔积就有`3×3=9`行记录。在`MySQL`中，连接查询的语法也很随意，只要在`FROM`语句后边跟多个表名就好了，比如我们把`t1`表和`t2`表连接起来的查询语句可以写成这样：
 
@@ -7507,7 +7507,7 @@ SELECT * FROM t1, t2 WHERE t1.m1 > 1 AND t1.m1 = t2.m2 AND t2.n2 < 'd';
 
 1.  首先确定第一个需要查询的表，这个表称之为`驱动表`。怎样在单表中执行查询语句我们在前一章都唠叨过了，只需要选取代价最小的那种访问方法去执行单表查询语句就好了（就是说从const、ref、ref\_or\_null、range、index、all这些执行方法中选取代价最小的去执行查询）。此处假设使用`t1`作为驱动表，那么就需要到`t1`表中找满足`t1.m1 > 1`的记录，因为表中的数据太少，我们也没在表上建立二级索引，所以此处查询`t1`表的访问方法就设定为`all`吧，也就是采用全表扫描的方式执行单表查询。关于如何提升连接查询的性能我们之后再说，现在先把基本概念捋清楚哈。所以查询过程就如下图所示：
   
-    ![image_1ctpnftbge08uf1ek61qor1fh14g.png-23.9kB](https://user-gold-cdn.xitu.io/2018/12/25/167e43ab3dfab5ed?w=855&h=306&f=png&s=24477)
+    ![image_1ctpnftbge08uf1ek61qor1fh14g.png-23.9kB](http://user-gold-cdn.xitu.io/2018/12/25/167e43ab3dfab5ed?w=855&h=306&f=png&s=24477)
     
     我们可以看到，`t1`表中符合`t1.m1 > 1`的记录有两条。
     
@@ -7520,7 +7520,7 @@ SELECT * FROM t1, t2 WHERE t1.m1 > 1 AND t1.m1 = t2.m2 AND t2.n2 < 'd';
     
     所以整个连接查询的执行过程就如下图所示：
     
-    ![image_1ctrsprar1bbh17lee79le63ls2m.png-49.6kB](https://user-gold-cdn.xitu.io/2018/12/25/167e43ab3a02660b?w=1060&h=435&f=png&s=50794)
+    ![image_1ctrsprar1bbh17lee79le63ls2m.png-49.6kB](http://user-gold-cdn.xitu.io/2018/12/25/167e43ab3a02660b?w=1060&h=435&f=png&s=50794)
     
     也就是说整个连接查询最后的结果只有两条符合过滤条件的记录：
     
@@ -7769,7 +7769,7 @@ mysql> SELECT * FROM t1 RIGHT JOIN t2 ON t1.m1 = t2.m2;
 
 通用的两表连接过程如下图所示：
 
-![image_1ctsr5ui2cdk1jduqafm7p1d3426.png-129.4kB](https://user-gold-cdn.xitu.io/2018/12/25/167e43ab3fa0f107?w=1144&h=632&f=png&s=132535)
+![image_1ctsr5ui2cdk1jduqafm7p1d3426.png-129.4kB](http://user-gold-cdn.xitu.io/2018/12/25/167e43ab3fa0f107?w=1144&h=632&f=png&s=132535)
 
 如果有3个表进行连接的话，那么`步骤2`中得到的结果集就像是新的驱动表，然后第三个表就成为了被驱动表，重复上边过程，也就是`步骤2`中得到的结果集中的每一条记录都需要到`t3`表中找一找有没有匹配的记录，用伪代码表示一下这个过程就是这样：
 
@@ -7799,7 +7799,7 @@ SELECT * FROM t1, t2 WHERE t1.m1 > 1 AND t1.m1 = t2.m2 AND t2.n2 < 'd';
 
 我们使用的其实是`嵌套循环连接`算法执行的连接查询，再把上边那个查询执行过程表拉下来给大家看一下：
 
-![image_1ctrsprar1bbh17lee79le63ls2m.png-49.6kB](https://user-gold-cdn.xitu.io/2018/12/25/167e43ab3a02660b?w=1060&h=435&f=png&s=50794)
+![image_1ctrsprar1bbh17lee79le63ls2m.png-49.6kB](http://user-gold-cdn.xitu.io/2018/12/25/167e43ab3a02660b?w=1060&h=435&f=png&s=50794)
 
 查询驱动表`t1`后的结果集中有两条记录，`嵌套循环连接`算法需要对被驱动表查询2次：
 
@@ -7837,7 +7837,7 @@ SELECT * FROM t1, t2 WHERE t1.m1 > 1 AND t1.m1 = t2.m2 AND t2.n2 < 'd';
 
 当被驱动表中的数据非常多时，每次访问被驱动表，被驱动表的记录会被加载到内存中，在内存中的每一条记录只会和驱动表结果集的一条记录做匹配，之后就会被从内存中清除掉。然后再从驱动表结果集中拿出另一条记录，再一次把被驱动表的记录加载到内存中一遍，周而复始，驱动表结果集中有多少条记录，就得把被驱动表从磁盘上加载到内存中多少次。所以我们可不可以在把被驱动表的记录加载到内存的时候，一次性和多条驱动表中的记录做匹配，这样就可以大大减少重复从磁盘上加载被驱动表的代价了。所以设计`MySQL`的大叔提出了一个`join buffer`的概念，`join buffer`就是执行连接查询前申请的一块固定大小的内存，先把若干条驱动表结果集中的记录装在这个`join buffer`中，然后开始扫描被驱动表，每一条被驱动表的记录一次性和`join buffer`中的多条驱动表记录做匹配，因为匹配的过程都是在内存中完成的，所以这样可以显著减少被驱动表的`I/O`代价。使用`join buffer`的过程如下图所示：
 
-![image_1ctuhe3t71ahd10gn19917fo1nft4g.png-57.7kB](https://user-gold-cdn.xitu.io/2018/12/25/167e43ab3e5fa2f6?w=826&h=479&f=png&s=59123)
+![image_1ctuhe3t71ahd10gn19917fo1nft4g.png-57.7kB](http://user-gold-cdn.xitu.io/2018/12/25/167e43ab3e5fa2f6?w=826&h=479&f=png&s=59123)
 
 最好的情况是`join buffer`足够大，能容纳驱动表结果集中的所有记录，这样只需要访问一次被驱动表就可以完成连接操作了。设计`MySQL`的大叔把这种加入了`join buffer`的嵌套循环连接算法称之为`基于块的嵌套连接`（Block Nested-Loop Join）算法。
 
@@ -8044,7 +8044,7 @@ Max_data_length: 0
 
 `idx_key2`对应的搜索条件是：`key2 > 10 AND key2 < 1000`，也就是说对应的范围区间就是：`(10, 1000)`，使用`idx_key2`搜索的示意图就是这样子：
 
-![image_1cudvercs1km11nu74fbckb1fl8m.png-117.5kB](https://user-gold-cdn.xitu.io/2018/12/13/167a79434866cf8f?w=810&h=639&f=png&s=120298)
+![image_1cudvercs1km11nu74fbckb1fl8m.png-117.5kB](http://user-gold-cdn.xitu.io/2018/12/13/167a79434866cf8f?w=810&h=639&f=png&s=120298)
 
 对于使用`二级索引 + 回表`方式的查询，设计`MySQL`的大叔计算这种查询的成本依赖两个方面的数据：
 
@@ -8067,7 +8067,7 @@ Max_data_length: 0
       
     *   步骤3：如果`区间最左记录`和`区间最右记录`相隔不太远（在`MySQL 5.7.21`这个版本里，只要相隔不大于10个页面即可），那就可以精确统计出满足`key2 > 10 AND key2 < 1000`条件的二级索引记录条数。否则只沿着`区间最左记录`向右读10个页面，计算平均每个页面中包含多少记录，然后用这个平均值乘以`区间最左记录`和`区间最右记录`之间的页面数量就可以了。那么问题又来了，怎么估计`区间最左记录`和`区间最右记录`之间有多少个页面呢？解决这个问题还得回到`B+`树索引的结构中来：
       
-        ![image_1cubndfil1i02ddfas1j3brq9m.png-85.3kB](https://user-gold-cdn.xitu.io/2018/12/13/167a79434ad70118?w=994&h=555&f=png&s=87303)
+        ![image_1cubndfil1i02ddfas1j3brq9m.png-85.3kB](http://user-gold-cdn.xitu.io/2018/12/13/167a79434ad70118?w=994&h=555&f=png&s=87303)
         
         如图，我们假设`区间最左记录`在`页b`中，`区间最右记录`在`页c`中，那么我们想计算`区间最左记录`和`区间最右记录`之间的页面数量就相当于计算`页b`和`页c`之间有多少页面，而每一条`目录项记录`都对应一个数据页，所以计算`页b`和`页c`之间有多少页面就相当于计算它们父节点（也就是页a）中对应的目录项记录之间隔着几条记录。在一个页面中统计两条记录之间有几条记录的成本就贼小了。
         
@@ -8144,7 +8144,7 @@ Max_data_length: 0
 
 使用`idx_key1`搜索的示意图就是这样子：
 
-![image_1cubvsars1i0rvdc11b3118th9830.png-124.1kB](https://user-gold-cdn.xitu.io/2018/12/13/167a79434b362e5e?w=818&h=637&f=png&s=127109)
+![image_1cubvsars1i0rvdc11b3118th9830.png-124.1kB](http://user-gold-cdn.xitu.io/2018/12/13/167a79434b362e5e?w=818&h=637&f=png&s=127109)
 
 与使用`idx_key2`的情况类似，我们也需要计算使用`idx_key1`时需要访问的范围区间数量以及需要回表的记录数：
 
@@ -9007,19 +9007,19 @@ mysql> SELECT * FROM mysql.innodb_table_stats;
   
     这个是`Segment Header`结构：
     
-    ![image_1cum7dbc812843ac192pfik1raep.png-107.3kB](https://user-gold-cdn.xitu.io/2018/12/26/167e94d5b165a91f?w=598&h=325&f=png&s=109882)
+    ![image_1cum7dbc812843ac192pfik1raep.png-107.3kB](http://user-gold-cdn.xitu.io/2018/12/26/167e94d5b165a91f?w=598&h=325&f=png&s=109882)
     
 *   从对应的`INODE Entry`结构中可以找到该段对应所有零散的页面地址以及`FREE`、`NOT_FULL`、`FULL`链表的基节点。
   
     这个是`INODE Entry`结构：
     
-    ![image_1cum7f49h1beg5uccbq197n1g1b16.png-173.9kB](https://user-gold-cdn.xitu.io/2018/12/26/167e94d5b1e44524?w=863&h=535&f=png&s=178111)
+    ![image_1cum7f49h1beg5uccbq197n1g1b16.png-173.9kB](http://user-gold-cdn.xitu.io/2018/12/26/167e94d5b1e44524?w=863&h=535&f=png&s=178111)
     
 *   直接统计零散的页面有多少个，然后从那三个链表的`List Length`字段中读出该段占用的区的大小，每个区占用`64`个页，所以就可以统计出整个段占用的页面。
   
     这个是链表基节点的示意图：
     
-    ![image_1cum7hkiihikm4b88j10461plc1j.png-129.9kB](https://user-gold-cdn.xitu.io/2018/12/26/167e94d5b17c24e3?w=777&h=451&f=png&s=133034)
+    ![image_1cum7hkiihikm4b88j10461plc1j.png-129.9kB](http://user-gold-cdn.xitu.io/2018/12/26/167e94d5b17c24e3?w=777&h=451&f=png&s=133034)
     
 *   分别计算聚簇索引的叶子结点段和非叶子节点段占用的页面数，它们的和就是`clustered_index_size`的值，按照同样的套路把其余索引占用的页面数都算出来，加起来之后就是`sum_of_other_index_sizes`的值。
   
@@ -10117,11 +10117,11 @@ SELECT * FROM s1
 
 *   从表`s1`的角度来看待，整个查询的意思其实是：对于`s1`表中的每条记录来说，如果该记录的`key1`列的值在子查询对应的物化表中，则该记录会被加入最终的结果集。画个图表示一下就是这样：
   
-    ![image_1cvfj9up26i518t91li5ooq1r0u2d.png-84.9kB](https://user-gold-cdn.xitu.io/2018/12/26/167e9e704abd19e4?w=741&h=566&f=png&s=86914)
+    ![image_1cvfj9up26i518t91li5ooq1r0u2d.png-84.9kB](http://user-gold-cdn.xitu.io/2018/12/26/167e9e704abd19e4?w=741&h=566&f=png&s=86914)
     
 *   从子查询物化表的角度来看待，整个查询的意思其实是：对于子查询物化表的每个值来说，如果能在`s1`表中找到对应的`key1`列的值与该值相等的记录，那么就把这些记录加入到最终的结果集。画个图表示一下就是这样：
   
-    ![image_1cvfjg3os1oh1e3o5c11dhd1odd2q.png-67.4kB](https://user-gold-cdn.xitu.io/2018/12/26/167e9e704f8befd2?w=730&h=509&f=png&s=68994)
+    ![image_1cvfjg3os1oh1e3o5c11dhd1odd2q.png-67.4kB](http://user-gold-cdn.xitu.io/2018/12/26/167e9e704f8befd2?w=730&h=509&f=png&s=68994)
     
 
 也就是说其实上边的查询就相当于表`s1`和子查询物化表`materialized_table`进行内连接：
@@ -10247,7 +10247,7 @@ SELECT s1.* FROM s1 SEMI JOIN s2
     
     在子查询中，对于`s2`表的访问可以使用到`key1`列的索引，而恰好子查询的查询列表处就是`key1`列，这样在将该查询转换为半连接查询后，如果将`s2`作为驱动表执行查询的话，那么执行过程就是这样：
     
-    ![image_1cvg8f3nst9n1amc14iljc3i4c37.png-110.3kB](https://user-gold-cdn.xitu.io/2018/12/26/167e9e704e05a551?w=959&h=440&f=png&s=112907)
+    ![image_1cvg8f3nst9n1amc14iljc3i4c37.png-110.3kB](http://user-gold-cdn.xitu.io/2018/12/26/167e9e704e05a551?w=959&h=440&f=png&s=112907)
     
     如图所示，在`s2`表的`idx_key1`索引中，值为`'aa'`的二级索引记录一共有3条，那么只需要取第一条的值到`s1`表中查找`s1.key3 = 'aa'`的记录，如果能在`s1`表中找到对应的记录，那么就把对应的记录加入到结果集。依此类推，其他值相同的二级索引记录，也只需要取第一条记录的值到`s1`表中找匹配的记录，这种虽然是扫描索引，但只取值相同的记录的第一条去做匹配操作的方式称之为`松散索引扫描`。
     
@@ -12548,7 +12548,7 @@ innodb_buffer_pool_size = 268435456
 
 每个缓存页对应的控制信息占用的内存大小是相同的，我们就把每个页对应的控制信息占用的一块内存称为一个`控制块`吧，控制块和缓存页是一一对应的，它们都被存放到 Buffer Pool 中，其中控制块被存放到 Buffer Pool 的前边，缓存页被存放到 Buffer Pool 后边，所以整个`Buffer Pool`对应的内存空间看起来就是这样的：
 
-![image_1d15mh3d4oadq0e1qpme22u8i61.png-47.4kB](https://user-gold-cdn.xitu.io/2019/3/2/1693e86e2b9d6dd1?w=1004&h=339&f=png&s=48567)
+![image_1d15mh3d4oadq0e1qpme22u8i61.png-47.4kB](http://user-gold-cdn.xitu.io/2019/3/2/1693e86e2b9d6dd1?w=1004&h=339&f=png&s=48567)
 
 咦？控制块和缓存页之间的那个`碎片`是个什么玩意儿？你想想啊，每一个控制块都对应一个缓存页，那在分配足够多的控制块和缓存页后，可能剩余的那点儿空间不够一对控制块和缓存页的大小，自然就用不到喽，这个用不到的那点儿内存空间就被称为`碎片`了。当然，如果你把`Buffer Pool`的大小设置的刚刚好的话，也可能不会产生`碎片`～
 
@@ -12558,7 +12558,7 @@ innodb_buffer_pool_size = 268435456
 
 当我们最初启动`MySQL`服务器的时候，需要完成对`Buffer Pool`的初始化过程，就是先向操作系统申请`Buffer Pool`的内存空间，然后把它划分成若干对控制块和缓存页。但是此时并没有真实的磁盘页被缓存到`Buffer Pool`中（因为还没有用到），之后随着程序的运行，会不断的有磁盘上的页被缓存到`Buffer Pool`中。那么问题来了，从磁盘上读取一个页到`Buffer Pool`中的时候该放到哪个缓存页的位置呢？或者说怎么区分`Buffer Pool`中哪些缓存页是空闲的，哪些已经被使用了呢？我们最好在某个地方记录一下Buffer Pool中哪些缓存页是可用的，这个时候缓存页对应的`控制块`就派上大用场了，我们可以把所有空闲的缓存页对应的控制块作为一个节点放到一个链表中，这个链表也可以被称作`free链表`（或者说空闲链表）。刚刚完成初始化的`Buffer Pool`中所有的缓存页都是空闲的，所以每一个缓存页对应的控制块都会被加入到`free链表`中，假设该`Buffer Pool`中可容纳的缓存页数量为`n`，那增加了`free链表`的效果图就是这样的：
 
-![image_1d155te021bmgjt09mo1lln17dum.png-132.6kB](https://user-gold-cdn.xitu.io/2019/3/2/1693e86e300173c1?w=1010&h=606&f=png&s=135745)
+![image_1d155te021bmgjt09mo1lln17dum.png-132.6kB](http://user-gold-cdn.xitu.io/2019/3/2/1693e86e300173c1?w=1010&h=606&f=png&s=135745)
 
 从图中可以看出，我们为了管理好这个`free链表`，特意为这个链表定义了一个`基节点`，里边儿包含着链表的头节点地址，尾节点地址，以及当前链表中节点的数量等信息。这里需要注意的是，链表的基节点占用的内存空间并不包含在为`Buffer Pool`申请的一大片连续内存空间之内，而是单独申请的一块内存空间。
 
@@ -12582,7 +12582,7 @@ innodb_buffer_pool_size = 268435456
 
 但是如果不立即同步到磁盘的话，那之后再同步的时候我们怎么知道`Buffer Pool`中哪些页是`脏页`，哪些页从来没被修改过呢？总不能把所有的缓存页都同步到磁盘上吧，假如`Buffer Pool`被设置的很大，比方说`300G`，那一次性同步这么多数据岂不是要慢死！所以，我们不得不再创建一个存储脏页的链表，凡是修改过的缓存页对应的控制块都会作为一个节点加入到一个链表中，因为这个链表节点对应的缓存页都是需要被刷新到磁盘上的，所以也叫`flush链表`。链表的构造和`free链表`差不多，假设某个时间点`Buffer Pool`中的脏页数量为`n`，那么对应的`flush链表`就长这样：
 
-![image_1d1589dpqmt5v1849s7614nu23.png-133.5kB](https://user-gold-cdn.xitu.io/2019/3/2/1693e86e2ec4572a?w=1010&h=591&f=png&s=136665)
+![image_1d1589dpqmt5v1849s7614nu23.png-133.5kB](http://user-gold-cdn.xitu.io/2019/3/2/1693e86e2ec4572a?w=1010&h=591&f=png&s=136665)
 
 ### LRU链表的管理
 
@@ -12643,7 +12643,7 @@ innodb_buffer_pool_size = 268435456
 
 为了方便大家理解，我们把示意图做了简化，各位领会精神就好：
 
-![image_1d15fb53d2lf13ovglg1rnv1h2n2g.png-116.5kB](https://user-gold-cdn.xitu.io/2019/3/2/1693e86e2a3fffa3?w=1097&h=460&f=png&s=119309)
+![image_1d15fb53d2lf13ovglg1rnv1h2n2g.png-116.5kB](http://user-gold-cdn.xitu.io/2019/3/2/1693e86e2a3fffa3?w=1097&h=460&f=png&s=119309)
 
 大家要特别注意一个事儿：我们是按照某个比例将LRU链表分成两半的，不是某些节点固定是young区域的，某些节点固定是old区域的，随着程序的运行，某个节点所属的区域也可能发生变化。那这个划分成两截的比例怎么确定呢？对于`InnoDB`存储引擎来说，我们可以通过查看系统变量`innodb_old_blocks_pct`的值来确定`old`区域在`LRU链表`中所占的比例，比方说这样：
 
@@ -12749,7 +12749,7 @@ innodb_buffer_pool_instances = 2
 
 这样就表明我们要创建2个`Buffer Pool`实例，示意图就是这样：
 
-![image_1d15nmrbi19mv1tbk191eoqbmb47e.png-87.2kB](https://user-gold-cdn.xitu.io/2019/3/2/1693e86e2abd79c1?w=1089&h=444&f=png&s=89286)
+![image_1d15nmrbi19mv1tbk191eoqbmb47e.png-87.2kB](http://user-gold-cdn.xitu.io/2019/3/2/1693e86e2abd79c1?w=1089&h=444&f=png&s=89286)
 
 > 小贴士： 为了简便，我只把各个链表的基节点画出来了，大家应该心里清楚这些链表的节点其实就是每个缓存页对应的控制块！
 
@@ -12768,7 +12768,7 @@ innodb_buffer_pool_size/innodb_buffer_pool_instances
 
 在`MySQL 5.7.5`之前，`Buffer Pool`的大小只能在服务器启动时通过配置`innodb_buffer_pool_size`启动参数来调整大小，在服务器运行过程中是不允许调整该值的。不过设计`MySQL`的大叔在`5.7.5`以及之后的版本中支持了在服务器运行过程中调整`Buffer Pool`大小的功能，但是有一个问题，就是每次当我们要重新调整`Buffer Pool`大小时，都需要重新向操作系统申请一块连续的内存空间，然后将旧的`Buffer Pool`中的内容复制到这一块新空间，这是极其耗时的。所以设计`MySQL`的大叔们决定不再一次性为某个`Buffer Pool`实例向操作系统申请一大片连续的内存空间，而是以一个所谓的`chunk`为单位向操作系统申请空间。也就是说一个`Buffer Pool`实例其实是由若干个`chunk`组成的，一个`chunk`就代表一片连续的内存空间，里边儿包含了若干缓存页与其对应的控制块，画个图表示就是这样：
 
-![image_1d15r7te41q58egj1b4plh615ug7r.png-125.5kB](https://user-gold-cdn.xitu.io/2019/3/2/1693e86e2a5de8f2?w=1112&h=553&f=png&s=128507)
+![image_1d15r7te41q58egj1b4plh615ug7r.png-125.5kB](http://user-gold-cdn.xitu.io/2019/3/2/1693e86e2a5de8f2?w=1112&h=553&f=png&s=128507)
 
 上图代表的`Buffer Pool`就是由2个实例组成的，每个实例中又包含2个`chunk`。
 
@@ -13050,12 +13050,12 @@ UPDATE account SET balance = balance + 10 WHERE id = 2;
 
 我们将狗哥向猫爷同时进行的两次转账操作分别称为`T1`和`T2`，在现实世界中`T1`和`T2`是应该没有关系的，可以先执行完`T1`，再执行`T2`，或者先执行完`T2`，再执行`T1`，对应的数据库操作就像这样：
 
-![image_1d1stskva1vp4a7f5kjdi7pf19.png-74.2kB](https://user-gold-cdn.xitu.io/2019/1/23/16879ea4c29fb05f?w=1041&h=519&f=png&s=75962)
+![image_1d1stskva1vp4a7f5kjdi7pf19.png-74.2kB](http://user-gold-cdn.xitu.io/2019/1/23/16879ea4c29fb05f?w=1041&h=519&f=png&s=75962)
 
 
 但是很不幸，真实的数据库中`T1`和`T2`的操作可能交替执行，比如这样：
 
-![image_1d1sut47o5tk13ul4gb1qibuct2j.png-67.9kB](https://user-gold-cdn.xitu.io/2019/1/23/16879f41669c8844?w=838&h=530&f=png&s=69515)
+![image_1d1sut47o5tk13ul4gb1qibuct2j.png-67.9kB](http://user-gold-cdn.xitu.io/2019/1/23/16879f41669c8844?w=838&h=530&f=png&s=69515)
 
 如果按照上图中的执行顺序来进行两次转账的话，最终狗哥的账户里还剩`6`元钱，相当于只扣了5元钱，但是猫爷的账户里却成了`12`元钱，相当于多了10元钱，这银行岂不是要亏死了？
 
@@ -13134,7 +13134,7 @@ UPDATE account SET balance = balance + 10 WHERE id = 2;
 
 随着事务对应的数据库操作执行到不同阶段，事务的状态也在不断变化，一个基本的状态转换图如下所示：
 
-![image_1d1vcal4q1ns81f5pcbb1cf6ojcp.png-69.9kB](https://user-gold-cdn.xitu.io/2019/3/4/169488b0a88f6569?w=872&h=527&f=png&s=71628)
+![image_1d1vcal4q1ns81f5pcbb1cf6ojcp.png-69.9kB](http://user-gold-cdn.xitu.io/2019/3/4/169488b0a88f6569?w=872&h=527&f=png&s=71628)
 
 从图中大家也可以看出了，只有当事务处于提交的或者中止的状态时，一个事务的生命周期才算是结束了。对于已经提交的事务来说，该事务对数据库所做的修改将永久生效，对于处于中止状态的事务，该事务对数据库所做的所有修改都会被回滚到没执行该事务之前的状态。
 
@@ -13540,7 +13540,7 @@ mysql> SELECT * FROM account;
 
 通过上边的内容我们知道，`redo`日志本质上只是记录了一下事务对数据库做了哪些修改。 设计`InnoDB`的大叔们针对事务对数据库的不同修改场景定义了多种类型的`redo`日志，但是绝大部分类型的`redo`日志都有下边这种通用的结构：
 
-![image_1d36k7d3412oo1c0qcuuben12l79.png-31.3kB](https://user-gold-cdn.xitu.io/2019/3/4/1694892fdec61898?w=982&h=253&f=png&s=32063)
+![image_1d36k7d3412oo1c0qcuuben12l79.png-31.3kB](http://user-gold-cdn.xitu.io/2019/3/4/1694892fdec61898?w=982&h=253&f=png&s=32063)
 
 各个部分的详细释义如下：
 
@@ -13581,11 +13581,11 @@ mysql> SELECT * FROM account;
 
 我们上边提到的`Max Row ID`属性实际占用8个字节的存储空间，所以在修改页面中的该属性时，会记录一条类型为`MLOG_8BYTE`的`redo`日志，`MLOG_8BYTE`的`redo`日志结构如下所示：
 
-![image_1d3fv01mv3jd7m719rpmn2jcsp.png-42.6kB](https://user-gold-cdn.xitu.io/2019/3/4/1694892fdf053082?w=839&h=291&f=png&s=43606)
+![image_1d3fv01mv3jd7m719rpmn2jcsp.png-42.6kB](http://user-gold-cdn.xitu.io/2019/3/4/1694892fdf053082?w=839&h=291&f=png&s=43606)
 
 其余`MLOG_1BYTE`、`MLOG_2BYTE`、`MLOG_4BYTE`类型的`redo`日志结构和`MLOG_8BYTE`的类似，只不过具体数据中包含对应个字节的数据罢了。`MLOG_WRITE_STRING`类型的`redo`日志表示写入一串数据，但是因为不能确定写入的具体数据占用多少字节，所以需要在日志结构中添加一个`len`字段：
 
-![image_1d3fv8at819jh1m7m1sfb1donvmu16.png-47.2kB](https://user-gold-cdn.xitu.io/2019/3/4/1694892fdf3da823?w=878&h=299&f=png&s=48358)
+![image_1d3fv8at819jh1m7m1sfb1donvmu16.png-47.2kB](http://user-gold-cdn.xitu.io/2019/3/4/1694892fdf3da823?w=878&h=299&f=png&s=48358)
 
 > 小贴士： 只要将MLOG\_WRITE\_STRING类型的redo日志的len字段填充上1、2、4、8这些数字，就可以分别替代MLOG\_1BYTE、MLOG\_2BYTE、MLOG\_4BYTE、MLOG\_8BYTE这些类型的redo日志，为啥还要多此一举设计这么多类型呢？还不是因为省空间啊，能不写len字段就不写len字段，省一个字节算一个字节。
 
@@ -13611,7 +13611,7 @@ mysql> SELECT * FROM account;
 
 画一个简易的示意图就像是这样：
 
-![image_1d3gv4i7vtsirf81ikl1q2140n2g.png-67.2kB](https://user-gold-cdn.xitu.io/2019/3/4/1694892fdfa7d8ce?w=1127&h=524&f=png&s=68863)
+![image_1d3gv4i7vtsirf81ikl1q2140n2g.png-67.2kB](http://user-gold-cdn.xitu.io/2019/3/4/1694892fdfa7d8ce?w=1127&h=524&f=png&s=68863)
 
 说了这么多，就是想表达：把一条记录插入到一个页面时需要更改的地方非常多。这时我们如果使用上边介绍的简单的物理`redo`日志来记录这些修改时，可以有两种解决方案：
 
@@ -13658,7 +13658,7 @@ mysql> SELECT * FROM account;
 
 大家看到这可能有些懵逼，我们还是以类型为`MLOG_COMP_REC_INSERT`这个代表插入一条使用紧凑行格式的记录时的`redo`日志为例来理解一下我们上边所说的`物理`层面和`逻辑`层面到底是个啥意思。废话少说，直接看一下这个类型为`MLOG_COMP_REC_INSERT`的`redo`日志的结构（由于字段太多了，我们把它们竖着看效果好些）：
 
-![image_1d3bn8tsq1ssp1nmdks8kdr17e31t.png-85.7kB](https://user-gold-cdn.xitu.io/2019/3/4/1694892fe02553d0?w=565&h=625&f=png&s=87737)
+![image_1d3bn8tsq1ssp1nmdks8kdr17e31t.png-85.7kB](http://user-gold-cdn.xitu.io/2019/3/4/1694892fe02553d0?w=565&h=625&f=png&s=87737)
 
 这个类型为`MLOG_COMP_REC_INSERT`的`redo`日志结构有几个地方需要大家注意：
 
@@ -13700,19 +13700,19 @@ mysql> SELECT * FROM account;
 
 *   情况一：该数据页的剩余的空闲空间充足，足够容纳这一条待插入记录，那么事情很简单，直接把记录插入到这个数据页中，记录一条类型为`MLOG_COMP_REC_INSERT`的`redo`日志就好了，我们把这种情况称之为`乐观插入`。假如某个索引对应的`B+`树长这样：
   
-    ![image_1d4fc7b6b1ftt16ji11as4a63h23.png-30.8kB](https://user-gold-cdn.xitu.io/2019/3/4/1694892fe05a2603?w=722&h=458&f=png&s=31490)
+    ![image_1d4fc7b6b1ftt16ji11as4a63h23.png-30.8kB](http://user-gold-cdn.xitu.io/2019/3/4/1694892fe05a2603?w=722&h=458&f=png&s=31490)
     
     现在我们要插入一条键值为`10`的记录，很显然需要被插入到`页b`中，由于`页b`现在有足够的空间容纳一条记录，所以直接将该记录插入到`页b`中就好了，就像这样：
     
-    ![image_1d4fcbg9e1m1b1qtj1emgphorrl2g.png-43.3kB](https://user-gold-cdn.xitu.io/2019/3/4/16948930120794a0?w=711&h=559&f=png&s=44305)
+    ![image_1d4fcbg9e1m1b1qtj1emgphorrl2g.png-43.3kB](http://user-gold-cdn.xitu.io/2019/3/4/16948930120794a0?w=711&h=559&f=png&s=44305)
     
 *   情况二：该数据页剩余的空闲空间不足，那么事情就悲剧了，我们前边说过，遇到这种情况要进行所谓的`页分裂`操作，也就是新建一个叶子节点，然后把原先数据页中的一部分记录复制到这个新的数据页中，然后再把记录插入进去，把这个叶子节点插入到叶子节点链表中，最后还要在内节点中添加一条`目录项记录`指向这个新创建的页面。很显然，这个过程要对多个页面进行修改，也就意味着会产生多条`redo`日志，我们把这种情况称之为`悲观插入`。假如某个索引对应的`B+`树长这样：
   
-    ![image_1d4fcomne1lpsp691hg2o416hh2t.png-44.5kB](https://user-gold-cdn.xitu.io/2019/3/4/1694893011fc216e?w=731&h=551&f=png&s=45566)
+    ![image_1d4fcomne1lpsp691hg2o416hh2t.png-44.5kB](http://user-gold-cdn.xitu.io/2019/3/4/1694893011fc216e?w=731&h=551&f=png&s=45566)
     
     现在我们要插入一条键值为`10`的记录，很显然需要被插入到`页b`中，但是从图中也可以看出来，此时`页b`已经塞满了记录，没有更多的空闲空间来容纳这条新记录了，所以我们需要进行页面的分裂操作，就像这样：
     
-    ![image_1d4fkn8gv1n7enuq23kt1n1uvk3n.png-96.9kB](https://user-gold-cdn.xitu.io/2019/3/4/16948930147d598e?w=951&h=570&f=png&s=99256)
+    ![image_1d4fkn8gv1n7enuq23kt1n1uvk3n.png-96.9kB](http://user-gold-cdn.xitu.io/2019/3/4/16948930147d598e?w=951&h=570&f=png&s=99256)
     
     如果作为内节点的`页a`的剩余空闲空间也不足以容纳增加一条`目录项记录`，那需要继续做内节点`页a`的分裂操作，也就意味着会修改更多的页面，从而产生更多的`redo`日志。另外，对于`悲观插入`来说，由于需要新申请数据页，还需要改动一些系统页面，比方说要修改各种段、区的统计信息信息，各种链表的统计信息（比如什么`FREE`链表、`FSP_FREE_FRAG`链表吧啦吧啦我们在唠叨表空间那一章中介绍过的各种东东）等等等等，反正总共需要记录的`redo`日志有二、三十条。
     
@@ -13725,11 +13725,11 @@ mysql> SELECT * FROM account;
   
     如何把这些`redo`日志划分到一个组里边儿呢？设计`InnoDB`的大叔做了一个很简单的小把戏，就是在该组中的最后一条`redo`日志后边加上一条特殊类型的`redo`日志，该类型名称为`MLOG_MULTI_REC_END`，`type`字段对应的十进制数字为`31`，该类型的`redo`日志结构很简单，只有一个`type`字段：
     
-    ![image_1d4fna6k51fok1mpd1tikkmihg144.png-15kB](https://user-gold-cdn.xitu.io/2019/3/4/16948930162d677f?w=539&h=199&f=png&s=15317)
+    ![image_1d4fna6k51fok1mpd1tikkmihg144.png-15kB](http://user-gold-cdn.xitu.io/2019/3/4/16948930162d677f?w=539&h=199&f=png&s=15317)
     
     所以某个需要保证原子性的操作产生的一系列`redo`日志必须要以一个类型为`MLOG_MULTI_REC_END`结尾，就像这样：
     
-    ![image_1d4fol2v71fjalphluu1kuf1d8t4h.png-41.4kB](https://user-gold-cdn.xitu.io/2019/3/4/16948930164d64a0?w=961&h=300&f=png&s=42384)
+    ![image_1d4fol2v71fjalphluu1kuf1d8t4h.png-41.4kB](http://user-gold-cdn.xitu.io/2019/3/4/16948930164d64a0?w=961&h=300&f=png&s=42384)
     
     这样在系统奔溃重启进行恢复时，只有当解析到类型为`MLOG_MULTI_REC_END`的`redo`日志，才认为解析到了一组完整的`redo`日志，才会进行恢复。否则的话直接放弃前边解析到的`redo`日志。
     
@@ -13737,7 +13737,7 @@ mysql> SELECT * FROM account;
   
     其实在一条日志后边跟一个类型为`MLOG_MULTI_REC_END`的`redo`日志也是可以的，不过设计`InnoDB`的大叔比较勤俭节约，它们不想浪费一个比特位。别忘了虽然`redo`日志的类型比较多，但撑死了也就是几十种，是小于`127`这个数字的，也就是说我们用7个比特位就足以包括所有的`redo`日志类型，而`type`字段其实是占用1个字节的，也就是说我们可以省出来一个比特位用来表示该需要保证原子性的操作只产生单一的一条`redo`日志，示意图如下：
     
-    ![image_1d4fqlji7md35pdmvvhvibqb4u.png-27.4kB](https://user-gold-cdn.xitu.io/2019/3/4/169489301685dcb4?w=869&h=282&f=png&s=28021)
+    ![image_1d4fqlji7md35pdmvvhvibqb4u.png-27.4kB](http://user-gold-cdn.xitu.io/2019/3/4/169489301685dcb4?w=869&h=282&f=png&s=28021)
     
     如果`type`字段的第一个比特为为`1`，代表该需要保证原子性的操作只产生了单一的一条`redo`日志，否则表示该需要保证原子性的操作产生了一系列的`redo`日志。
     
@@ -13748,7 +13748,7 @@ mysql> SELECT * FROM account;
 
 一个事务可以包含若干条语句，每一条语句其实是由若干个`mtr`组成，每一个`mtr`又可以包含若干条`redo`日志，画个图表示它们的关系就是这样：
 
-![image_1d4hgjr7t4es1v2mf2b1bt51rf95b.png-27.6kB](https://user-gold-cdn.xitu.io/2019/3/4/169489303b9e5c9f?w=619&h=559&f=png&s=28248)
+![image_1d4hgjr7t4es1v2mf2b1bt51rf95b.png-27.6kB](http://user-gold-cdn.xitu.io/2019/3/4/169489303b9e5c9f?w=619&h=559&f=png&s=28248)
 
 ## redo日志的写入过程
 
@@ -13756,11 +13756,11 @@ mysql> SELECT * FROM account;
 
 设计`InnoDB`的大叔为了更好的进行系统奔溃恢复，他们把通过`mtr`生成的`redo`日志都放在了大小为`512字节`的`页`中。为了和我们前边提到的表空间中的页做区别，我们这里把用来存储`redo`日志的页称为`block`（你心里清楚页和block的意思其实差不多就行了）。一个`redo log block`的示意图如下：
 
-![image_1d4hor6e7nq1mkm1sa41he71rif75.png-57.2kB](https://user-gold-cdn.xitu.io/2019/3/4/169489303bff8e20?w=785&h=416&f=png&s=58592)
+![image_1d4hor6e7nq1mkm1sa41he71rif75.png-57.2kB](http://user-gold-cdn.xitu.io/2019/3/4/169489303bff8e20?w=785&h=416&f=png&s=58592)
 
 真正的`redo`日志都是存储到占用`496`字节大小的`log block body`中，图中的`log block header`和`log block trailer`存储的是一些管理信息。我们来看看这些所谓的`管理信息`都是啥：
 
-![image_1d4hp4u8g13e317mkngoag21clv7i.png-113.9kB](https://user-gold-cdn.xitu.io/2019/3/4/169489303c1fb389?w=998&h=521&f=png&s=116667)
+![image_1d4hp4u8g13e317mkngoag21clv7i.png-113.9kB](http://user-gold-cdn.xitu.io/2019/3/4/169489303c1fb389?w=998&h=521&f=png&s=116667)
 
 其中`log block header`的几个属性的意思分别如下：
 
@@ -13781,7 +13781,7 @@ mysql> SELECT * FROM account;
 
 我们前边说过，设计`InnoDB`的大叔为了解决磁盘速度过慢的问题而引入了`Buffer Pool`。同理，写入`redo`日志时也不能直接直接写到磁盘上，实际上在服务器启动时就向操作系统申请了一大片称之为`redo log buffer`的连续内存空间，翻译成中文就是`redo日志缓冲区`，我们也可以简称为`log buffer`。这片内存空间被划分成若干个连续的`redo log block`，就像这样：
 
-![image_1d4i4orkr17vl1m5l3hl1l341pad1j.png-76.5kB](https://user-gold-cdn.xitu.io/2019/3/4/169489303ceeb982?w=995&h=459&f=png&s=78303)
+![image_1d4i4orkr17vl1m5l3hl1l341pad1j.png-76.5kB](http://user-gold-cdn.xitu.io/2019/3/4/169489303ceeb982?w=995&h=459&f=png&s=78303)
 
 我们可以通过启动参数`innodb_log_buffer_size`来指定`log buffer`的大小，在`MySQL 5.7.21`这个版本中，该启动参数的默认值为`16MB`。
 
@@ -13789,7 +13789,7 @@ mysql> SELECT * FROM account;
 
 向`log buffer`中写入`redo`日志的过程是顺序的，也就是先往前边的block中写，当该block的空闲空间用完之后再往下一个block中写。当我们想往`log buffer`中写入`redo`日志时，第一个遇到的问题就是应该写在哪个`block`的哪个偏移量处，所以设计`InnoDB`的大叔特意提供了一个称之为`buf_free`的全局变量，该变量指明后续写入的`redo`日志应该写入到`log buffer`中的哪个位置，如图所示：
 
-![image_1d4jsb3pac9t1pl76drruf1b0574.png-98.4kB](https://user-gold-cdn.xitu.io/2019/3/4/1694893043dc7344?w=842&h=542&f=png&s=100778)
+![image_1d4jsb3pac9t1pl76drruf1b0574.png-98.4kB](http://user-gold-cdn.xitu.io/2019/3/4/1694893043dc7344?w=842&h=542&f=png&s=100778)
 
 我们前边说过一个`mtr`执行过程中可能产生若干条`redo`日志，这些`redo`日志是一个不可分割的组，所以其实并不是每生成一条`redo`日志，就将其插入到`log buffer`中，而是每个`mtr`运行过程中产生的日志先暂时存到一个地方，当该`mtr`结束的时候，将过程中产生的一组`redo`日志再全部复制到`log buffer`中。我们现在假设有两个名为`T1`、`T2`的事务，每个事务都包含2个`mtr`，我们给这几个`mtr`命名一下：
 
@@ -13800,11 +13800,11 @@ mysql> SELECT * FROM account;
 
 每个`mtr`都会产生一组`redo`日志，用示意图来描述一下这些`mtr`产生的日志情况：
 
-![image_1d4ie92r31t57c94e661n861skv2t.png-95.1kB](https://user-gold-cdn.xitu.io/2019/2/25/1692548dcc3fe243?w=956&h=507&f=png&s=97414)
+![image_1d4ie92r31t57c94e661n861skv2t.png-95.1kB](http://user-gold-cdn.xitu.io/2019/2/25/1692548dcc3fe243?w=956&h=507&f=png&s=97414)
 
 不同的事务可能是并发执行的，所以`T1`、`T2`之间的`mtr`可能是交替执行的。每当一个`mtr`执行完成时，伴随该`mtr`生成的一组`redo`日志就需要被复制到`log buffer`中，也就是说不同事务的`mtr`可能是交替写入`log buffer`的，我们画个示意图（为了美观，我们把一个`mtr`中产生的所有的`redo`日志当作一个整体来画）：
 
-![image_1d4jsd7861q6dn9n17gs1cdd1kek7h.png-102.6kB](https://user-gold-cdn.xitu.io/2019/3/4/169489304969c9d7?w=823&h=419&f=png&s=105070)
+![image_1d4jsd7861q6dn9n17gs1cdd1kek7h.png-102.6kB](http://user-gold-cdn.xitu.io/2019/3/4/169489304969c9d7?w=823&h=419&f=png&s=105070)
 
 从示意图中我们可以看出来，不同的`mtr`产生的一组`redo`日志占用的存储空间可能不一样，有的`mtr`产生的`redo`日志量很少，比如`mtr_t1_1`、`mtr_t2_1`就被放到同一个block中存储，有的`mtr`产生的`redo`日志量非常大，比如`mtr_t1_2`产生的`redo`日志甚至占用了3个block来存储。
 
@@ -13863,7 +13863,7 @@ mysql> SELECT * FROM account;
 
 从上边的描述中可以看到，磁盘上的`redo`日志文件不只一个，而是以一个`日志文件组`的形式出现的。这些文件以`ib_logfile[数字]`（`数字`可以是`0`、`1`、`2`...）的形式进行命名。在将`redo`日志写入`日志文件组`时，是从`ib_logfile0`开始写，如果`ib_logfile0`写满了，就接着`ib_logfile1`写，同理，`ib_logfile1`写满了就去写`ib_logfile2`，依此类推。如果写到最后一个文件该咋办？那就重新转到`ib_logfile0`继续写，所以整个过程如下图所示：
 
-![image_1d4mu4s6f7491l7l1jcc6pc1rbk16.png-49.7kB](https://user-gold-cdn.xitu.io/2019/2/27/1692e62d5c67ac00?w=927&h=328&f=png&s=50859)
+![image_1d4mu4s6f7491l7l1jcc6pc1rbk16.png-49.7kB](http://user-gold-cdn.xitu.io/2019/2/27/1692e62d5c67ac00?w=927&h=328&f=png&s=50859)
 
 总共的`redo`日志文件大小其实就是：`innodb_log_file_size × innodb_log_files_in_group`。
 
@@ -13882,18 +13882,18 @@ mysql> SELECT * FROM account;
 
 所以我们前边所说的`循环`使用redo日志文件，其实是从每个日志文件的第2048个字节开始算，画个示意图就是这样：
 
-![image_1d4njgt351je21kitk7u1gbioa46j.png-64.9kB](https://user-gold-cdn.xitu.io/2019/2/28/16931df9929c0145?w=965&h=517&f=png&s=66461)
+![image_1d4njgt351je21kitk7u1gbioa46j.png-64.9kB](http://user-gold-cdn.xitu.io/2019/2/28/16931df9929c0145?w=965&h=517&f=png&s=66461)
 
 普通block的格式我们在唠叨`log buffer`的时候都说过了，就是`log block header`、`log block body`、`log block trialer`这三个部分，就不重复介绍了。这里需要介绍一下每个`redo`日志文件前2048个字节，也就是前4个特殊block的格式都是干嘛的，废话少说，先看图：
 
-![image_1d4n63euu1t3u1ten1tgicecsar4c.png-51.1kB](https://user-gold-cdn.xitu.io/2019/2/27/1692e62d5ce89bc7?w=1012&h=311&f=png&s=52334)
+![image_1d4n63euu1t3u1ten1tgicecsar4c.png-51.1kB](http://user-gold-cdn.xitu.io/2019/2/27/1692e62d5ce89bc7?w=1012&h=311&f=png&s=52334)
 
 
 从图中可以看出来，这4个block分别是：
 
 *   `log file header`：描述该`redo`日志文件的一些整体属性，看一下它的结构：
   
-    ![image_1d4nfhoa914vbne4kao7cstr95m.png-65.5kB](https://user-gold-cdn.xitu.io/2019/2/27/1692f2a88a081eb3?w=690&h=534&f=png&s=67070)
+    ![image_1d4nfhoa914vbne4kao7cstr95m.png-65.5kB](http://user-gold-cdn.xitu.io/2019/2/27/1692f2a88a081eb3?w=690&h=534&f=png&s=67070)
     
     各个属性的具体释义如下：
     
@@ -13937,7 +13937,7 @@ mysql> SELECT * FROM account;
     
 *   `checkpoint1`：记录关于`checkpoint`的一些属性，看一下它的结构：
   
-    ![image_1d4njq08pd2a5j9pc01qcn2ps7g.png-60.1kB](https://user-gold-cdn.xitu.io/2019/2/28/16931df99a4cb2c8?w=564&h=487&f=png&s=61493)
+    ![image_1d4njq08pd2a5j9pc01qcn2ps7g.png-60.1kB](http://user-gold-cdn.xitu.io/2019/2/28/16931df99a4cb2c8?w=564&h=487&f=png&s=61493)
     
     各个属性的具体释义如下：
     
@@ -13992,17 +13992,17 @@ mysql> SELECT * FROM account;
 
 *   系统第一次启动后初始化`log buffer`时，`buf_free`（就是标记下一条`redo`日志应该写入到`log buffer`的位置的变量）就会指向第一个`block`的偏移量为12字节（`log block header`的大小）的地方，那么`lsn`值也会跟着增加12：
   
-    ![image_1d4v2r59mr10jdl1vs4fk61huv79.png-50.9kB](https://user-gold-cdn.xitu.io/2019/3/3/169419c0706b589c?w=844&h=298&f=png&s=52083)
+    ![image_1d4v2r59mr10jdl1vs4fk61huv79.png-50.9kB](http://user-gold-cdn.xitu.io/2019/3/3/169419c0706b589c?w=844&h=298&f=png&s=52083)
     
 *   如果某个`mtr`产生的一组`redo`日志占用的存储空间比较小，也就是待插入的block剩余空闲空间能容纳这个`mtr`提交的日志时，`lsn`增长的量就是该`mtr`生成的`redo`日志占用的字节数，就像这样：
   
-    ![image_1d4v57vgl1obr1kfcfuunp44bo2t.png-54kB](https://user-gold-cdn.xitu.io/2019/3/3/169419c071a7c8b0?w=881&h=318&f=png&s=55320)
+    ![image_1d4v57vgl1obr1kfcfuunp44bo2t.png-54kB](http://user-gold-cdn.xitu.io/2019/3/3/169419c071a7c8b0?w=881&h=318&f=png&s=55320)
     
     我们假设上图中`mtr_1`产生的`redo`日志量为200字节，那么`lsn`就要在`8716`的基础上增加`200`，变为`8916`。
     
 *   如果某个`mtr`产生的一组`redo`日志占用的存储空间比较大，也就是待插入的block剩余空闲空间不足以容纳这个`mtr`提交的日志时，`lsn`增长的量就是该`mtr`生成的`redo`日志占用的字节数加上额外占用的`log block header`和`log block trailer`的字节数，就像这样：
   
-    ![image_1d4v37u011jhc1rpa1fpi5a82ca9.png-99.3kB](https://user-gold-cdn.xitu.io/2019/3/3/169419c071e6cfea?w=957&h=523&f=png&s=101664)
+    ![image_1d4v37u011jhc1rpa1fpi5a82ca9.png-99.3kB](http://user-gold-cdn.xitu.io/2019/3/3/169419c071e6cfea?w=957&h=523&f=png&s=101664)
     
     我们假设上图中`mtr_2`产生的`redo`日志量为1000字节，为了将`mtr_2`产生的`redo`日志写入`log buffer`，我们不得不额外多分配两个block，所以`lsn`的值需要在`8916`的基础上增加`1000 + 12×2 + 4 × 2 = 1032`。
     
@@ -14015,7 +14015,7 @@ mysql> SELECT * FROM account;
 
 `redo`日志是首先写到`log buffer`中，之后才会被刷新到磁盘上的`redo`日志文件。所以设计`InnoDB`的大叔提出了一个称之为`buf_next_to_write`的全局变量，标记当前`log buffer`中已经有哪些日志被刷新到磁盘中了。画个图表示就是这样：
 
-![image_1d4q3upvq17n8cargmibugve29.png-84.3kB](https://user-gold-cdn.xitu.io/2019/2/28/16934602a3b4b1be?w=821&h=410&f=png&s=86278)
+![image_1d4q3upvq17n8cargmibugve29.png-84.3kB](http://user-gold-cdn.xitu.io/2019/2/28/16934602a3b4b1be?w=821&h=410&f=png&s=86278)
 
 我们前边说`lsn`是表示当前系统中写入的`redo`日志量，这包括了写到`log buffer`而没有刷新到磁盘的日志，相应的，设计`InnoDB`的大叔提出了一个表示刷新到磁盘中的`redo`日志量的全局变量，称之为`flushed_to_disk_lsn`。系统第一次启动时，该变量的值和初始的`lsn`值是相同的，都是`8704`。随着系统的运行，`redo`日志被不断写入`log buffer`，但是并不会立即刷新到磁盘，`lsn`的值就和`flushed_to_disk_lsn`的值拉开了差距。我们演示一下：
 
@@ -14027,11 +14027,11 @@ mysql> SELECT * FROM account;
     
     此时的`lsn`已经增长到了10000，但是由于没有刷新操作，所以此时`flushed_to_disk_lsn`的值仍为`8704`，如图：
     
-    ![image_1d4v3ubbacgm13171s481trb6kj1m.png-88.5kB](https://user-gold-cdn.xitu.io/2019/3/3/169419c07932ba5d?w=1062&h=540&f=png&s=90575)
+    ![image_1d4v3ubbacgm13171s481trb6kj1m.png-88.5kB](http://user-gold-cdn.xitu.io/2019/3/3/169419c07932ba5d?w=1062&h=540&f=png&s=90575)
     
 *   随后进行将`log buffer`中的block刷新到`redo`日志文件的操作，假设将`mtr_1`和`mtr_2`的日志刷新到磁盘，那么`flushed_to_disk_lsn`就应该增长`mtr_1`和`mtr_2`写入的日志量，所以`flushed_to_disk_lsn`的值增长到了`9948`，如图：
   
-    ![image_1d4v40upc1tnt1dpe1l14u2ar4n23.png-100.2kB](https://user-gold-cdn.xitu.io/2019/3/3/169419c079c97169?w=1047&h=553&f=png&s=102599)
+    ![image_1d4v40upc1tnt1dpe1l14u2ar4n23.png-100.2kB](http://user-gold-cdn.xitu.io/2019/3/3/169419c079c97169?w=1047&h=553&f=png&s=102599)
     
 
 综上所述，当有新的`redo`日志写入到`log buffer`时，首先`lsn`的值会增长，但`flushed_to_disk_lsn`不变，随后随着不断有`log buffer`中的日志被刷新到磁盘上，`flushed_to_disk_lsn`的值也跟着增长。如果两者的值相同时，说明log buffer中的所有redo日志都已经刷新到磁盘中了。
@@ -14042,7 +14042,7 @@ mysql> SELECT * FROM account;
 
 因为`lsn`的值是代表系统写入的`redo`日志量的一个总和，一个`mtr`中产生多少日志，`lsn`的值就增加多少（当然有时候要加上`log block header`和`log block trailer`的大小），这样`mtr`产生的日志写到磁盘中时，很容易计算某一个`lsn`值在`redo`日志文件组中的偏移量，如图：
 
-![image_1d4v5sdrj1p1jrhmnfrq4pa073n.png-49.3kB](https://user-gold-cdn.xitu.io/2019/3/3/169419c07a0fd13d?w=1043&h=304&f=png&s=50514)
+![image_1d4v5sdrj1p1jrhmnfrq4pa073n.png-49.3kB](http://user-gold-cdn.xitu.io/2019/3/3/169419c07a0fd13d?w=1043&h=304&f=png&s=50514)
 
 初始时的`LSN`值是`8704`，对应文件偏移量`2048`，之后每个`mtr`向磁盘中写入多少字节日志，`lsn`的值就增长多少。
 
@@ -14050,7 +14050,7 @@ mysql> SELECT * FROM account;
 
 我们知道一个`mtr`代表一次对底层页面的原子访问，在访问过程中可能会产生一组不可分割的`redo`日志，在`mtr`结束时，会把这一组`redo`日志写入到`log buffer`中。除此之外，在`mtr`结束时还有一件非常重要的事情要做，就是把在mtr执行过程中可能修改过的页面加入到Buffer Pool的flush链表。为了防止大家早已忘记`flush链表`是个啥，我们再看一下图：
 
-![image_1d4uln1ejrt4cerr6h1tc41uok3k.png-227kB](https://user-gold-cdn.xitu.io/2019/3/2/1693d8fc3c18e991?w=1010&h=591&f=png&s=232466)
+![image_1d4uln1ejrt4cerr6h1tc41uok3k.png-227kB](http://user-gold-cdn.xitu.io/2019/3/2/1693d8fc3c18e991?w=1010&h=591&f=png&s=232466)
 
 当第一次修改某个缓存在`Buffer Pool`中的页面时，就会把这个页面对应的控制块插入到`flush链表`的头部，之后再修改该页面时由于它已经在`flush`链表中了，就不再次插入了。也就是说flush链表中的脏页是按照页面的第一次修改时间从大到小进行排序的。在这个过程中会在缓存页对应的控制块中记录两个关于页面何时修改的属性：
 
@@ -14063,17 +14063,17 @@ mysql> SELECT * FROM account;
 
 *   假设`mtr_1`执行过程中修改了`页a`，那么在`mtr_1`执行结束时，就会将`页a`对应的控制块加入到`flush链表`的头部。并且将`mtr_1`开始时对应的`lsn`，也就是`8716`写入`页a`对应的控制块的`oldest_modification`属性中，把`mtr_1`结束时对应的`lsn`，也就是8404写入`页a`对应的控制块的`newest_modification`属性中。画个图表示一下（为了让图片美观一些，我们把`oldest_modification`缩写成了`o_m`，把`newest_modification`缩写成了`n_m`）：
   
-    ![image_1d4v63pct1v9o14l3812gnj11de44.png-31.8kB](https://user-gold-cdn.xitu.io/2019/3/3/169419c0b9e35899?w=452&h=302&f=png&s=32582)
+    ![image_1d4v63pct1v9o14l3812gnj11de44.png-31.8kB](http://user-gold-cdn.xitu.io/2019/3/3/169419c0b9e35899?w=452&h=302&f=png&s=32582)
     
 *   接着假设`mtr_2`执行过程中又修改了`页b`和`页c`两个页面，那么在`mtr_2`执行结束时，就会将`页b`和`页c`对应的控制块都加入到`flush链表`的头部。并且将`mtr_2`开始时对应的`lsn`，也就是8404写入`页b`和`页c`对应的控制块的`oldest_modification`属性中，把`mtr_2`结束时对应的`lsn`，也就是9436写入`页b`和`页c`对应的控制块的`newest_modification`属性中。画个图表示一下：
   
-    ![image_1d4v64vte14tq1oc911s1v8gnn51.png-59.4kB](https://user-gold-cdn.xitu.io/2019/3/3/169419c0ba64a14c?w=918&h=322&f=png&s=60786)
+    ![image_1d4v64vte14tq1oc911s1v8gnn51.png-59.4kB](http://user-gold-cdn.xitu.io/2019/3/3/169419c0ba64a14c?w=918&h=322&f=png&s=60786)
     
     从图中可以看出来，每次新插入到`flush链表`中的节点都是被放在了头部，也就是说`flush链表`中前边的脏页修改的时间比较晚，后边的脏页修改时间比较早。
     
 *   接着假设`mtr_3`执行过程中修改了`页b`和`页d`，不过`页b`之前已经被修改过了，所以它对应的控制块已经被插入到了`flush`链表，所以在`mtr_2`执行结束时，只需要将`页d`对应的控制块都加入到`flush链表`的头部即可。所以需要将`mtr_3`开始时对应的`lsn`，也就是9436写入`页c`对应的控制块的`oldest_modification`属性中，把`mtr_3`结束时对应的`lsn`，也就是10000写入`页c`对应的控制块的`newest_modification`属性中。另外，由于`页b`在`mtr_3`执行过程中又发生了一次修改，所以需要更新`页b`对应的控制块中`newest_modification`的值为10000。画个图表示一下：
   
-    ![image_1d4v68bhl1jb9r8m6vn1b157cn5e.png-110.8kB](https://user-gold-cdn.xitu.io/2019/3/3/169419c0bace2f5a?w=1127&h=484&f=png&s=113430)
+    ![image_1d4v68bhl1jb9r8m6vn1b157cn5e.png-110.8kB](http://user-gold-cdn.xitu.io/2019/3/3/169419c0bace2f5a?w=1127&h=484&f=png&s=113430)
     
 
 总结一下上边说的，就是：flush链表中的脏页按照修改发生的时间顺序进行排序，也就是按照oldest\_modification代表的LSN值进行排序，被多次更新的页面不会重复插入到flush链表中，但是会更新newest\_modification属性的值。
@@ -14082,11 +14082,11 @@ mysql> SELECT * FROM account;
 
 有一个很不幸的事实就是我们的`redo`日志文件组容量是有限的，我们不得不选择循环使用`redo`日志文件组中的文件，但是这会造成最后写的`redo`日志与最开始写的`redo`日志`追尾`，这时应该想到：redo日志只是为了系统奔溃后恢复脏页用的，如果对应的脏页已经刷新到了磁盘，也就是说即使现在系统奔溃，那么在重启后也用不着使用redo日志恢复该页面了，所以该redo日志也就没有存在的必要了，那么它占用的磁盘空间就可以被后续的redo日志所重用。也就是说：判断某些redo日志占用的磁盘空间是否可以覆盖的依据就是它对应的脏页是否已经刷新到磁盘里。我们看一下前边一直唠叨的那个例子：
 
-![image_1d4v6epcasjm11u4l131nj41vgs68.png-112.1kB](https://user-gold-cdn.xitu.io/2019/3/3/169419c0bb00756d?w=793&h=638&f=png&s=114802)
+![image_1d4v6epcasjm11u4l131nj41vgs68.png-112.1kB](http://user-gold-cdn.xitu.io/2019/3/3/169419c0bb00756d?w=793&h=638&f=png&s=114802)
 
 如图，虽然`mtr_1`和`mtr_2`生成的`redo`日志都已经被写到了磁盘上，但是它们修改的脏页仍然留在`Buffer Pool`中，所以它们生成的`redo`日志在磁盘上的空间是不可以被覆盖的。之后随着系统的运行，如果`页a`被刷新到了磁盘，那么它对应的控制块就会从`flush链表`中移除，就像这样子：
 
-![image_1d4v6h6kp7311ni21mkn1ejkm397i.png-99.3kB](https://user-gold-cdn.xitu.io/2019/3/3/169419c0bb65d251?w=632&h=627&f=png&s=101718)
+![image_1d4v6h6kp7311ni21mkn1ejkm397i.png-99.3kB](http://user-gold-cdn.xitu.io/2019/3/3/169419c0bb65d251?w=632&h=627&f=png&s=101718)
 
 这样`mtr_1`生成的`redo`日志就没有用了，它们占用的磁盘空间就可以被覆盖掉了。设计`InnoDB`的大叔提出了一个全局变量`checkpoint_lsn`来代表当前系统中可以被覆盖的`redo`日志总量是多少，这个变量初始值也是`8704`。
 
@@ -14107,7 +14107,7 @@ mysql> SELECT * FROM account;
 
 记录完`checkpoint`的信息之后，`redo`日志文件组中各个`lsn`值的关系就像这样：
 
-![image_1d4v9cgu21mmcafb1hsp1qtj1di0p.png-79.5kB](https://user-gold-cdn.xitu.io/2019/3/3/169419c0bfca49d0?w=1086&h=570&f=png&s=81404)
+![image_1d4v9cgu21mmcafb1hsp1qtj1di0p.png-79.5kB](http://user-gold-cdn.xitu.io/2019/3/3/169419c0bfca49d0?w=1086&h=570&f=png&s=81404)
 
 ### 批量从flush链表中刷出脏页
 
@@ -14174,7 +14174,7 @@ Last checkpoint at  124052494
 
 `redo`日志恢复的起点确定了，那终点是哪个呢？这个还得从block的结构说起。我们说在写`redo`日志的时候都是顺序写的，写满了一个block之后会再往下一个block中写：
 
-![image_1d4viej35t9nvld8o3141s8pp.png-69.5kB](https://user-gold-cdn.xitu.io/2019/3/3/169419c0e6c648f8?w=851&h=357&f=png&s=71131)
+![image_1d4viej35t9nvld8o3141s8pp.png-69.5kB](http://user-gold-cdn.xitu.io/2019/3/3/169419c0e6c648f8?w=851&h=357&f=png&s=71131)
 
 普通block的`log block header`部分有一个称之为`LOG_BLOCK_HDR_DATA_LEN`的属性，该属性值记录了当前block里使用了多少字节的空间。对于被填满的block来说，该值永远为`512`。如果该属性的值不为`512`，那么就是它了，它就是此次奔溃恢复中需要扫描的最后一个block。
 
@@ -14182,7 +14182,7 @@ Last checkpoint at  124052494
 
 确定了需要扫描哪些`redo`日志进行奔溃恢复之后，接下来就是怎么进行恢复了。假设现在的`redo`日志文件中有5条`redo`日志，如图：
 
-![image_1d4vjuf9l17og1papl3e16is1m9f16.png-59.9kB](https://user-gold-cdn.xitu.io/2019/3/3/169419c0e76cca4f?w=830&h=288&f=png&s=61383)
+![image_1d4vjuf9l17og1papl3e16is1m9f16.png-59.9kB](http://user-gold-cdn.xitu.io/2019/3/3/169419c0e76cca4f?w=830&h=288&f=png&s=61383)
 
 由于`redo 0`在`checkpoint_lsn`后边，恢复时可以不管它。我们现在可以按照`redo`日志的顺序依次扫描`checkpoint_lsn`之后的各条redo日志，按照日志中记载的内容将对应的页面恢复出来。这样没什么问题，不过设计`InnoDB`的大叔还是想了一些办法加快这个恢复的过程：
 
@@ -14190,7 +14190,7 @@ Last checkpoint at  124052494
   
     根据`redo`日志的`space ID`和`page number`属性计算出散列值，把`space ID`和`page number`相同的`redo`日志放到哈希表的同一个槽里，如果有多个`space ID`和`page number`都相同的`redo`日志，那么它们之间使用链表连接起来，按照生成的先后顺序链接起来的，如图所示：
     
-    ![image_1d50lj9da176rojd12ja1lodognc.png-156.4kB](https://user-gold-cdn.xitu.io/2019/3/3/169419c0e8656fbb?w=1112&h=634&f=png&s=160128)
+    ![image_1d50lj9da176rojd12ja1lodognc.png-156.4kB](http://user-gold-cdn.xitu.io/2019/3/3/169419c0e8656fbb?w=1112&h=634&f=png&s=160128)
     
     之后就可以遍历哈希表，因为对同一个页面进行修改的`redo`日志都放在了一个槽里，所以可以一次性将一个页面修复好（避免了很多读取页面的随机IO），这样可以加快恢复速度。另外需要注意一点的是，同一个页面的`redo`日志是按照生成时间顺序进行排序的，所以恢复的时候也是按照这个顺序进行恢复，如果不按照生成时间顺序进行排序的话，那么可能出现错误。比如原先的修改操作是先插入一条记录，再删除该条记录，如果恢复时不按照这个顺序来，就可能变成先删除一条记录，再插入一条记录，这显然是错误的。
     
@@ -14212,7 +14212,7 @@ Last checkpoint at  124052494
 
 这个公式里的`0x3FFFFFFFUL`可能让大家有点困惑，其实它的二进制表示可能更亲切一点：
 
-![image_1d4rt3sm81pbe1tij3pm147op9c30.png-36.9kB](https://user-gold-cdn.xitu.io/2019/3/1/16938e096d57684c?w=950&h=295&f=png&s=37758)
+![image_1d4rt3sm81pbe1tij3pm147op9c30.png-36.9kB](http://user-gold-cdn.xitu.io/2019/3/1/16938e096d57684c?w=950&h=295&f=png&s=37758)
 
 从图中可以看出，`0x3FFFFFFFUL`对应的二进制数的前2位为0，后30位的值都为`1`。我们刚开始学计算机的时候就学过，一个二进制位与0做与运算（`&`）的结果肯定是0，一个二进制位与1做与运算（`&`）的结果就是原值。让一个数和`0x3FFFFFFFUL`做与运算的意思就是要将该值的前2个比特位的值置为0，这样该值就肯定小于或等于`0x3FFFFFFFUL`了。这也就说明了，不论lsn多大，`((lsn / 512) & 0x3FFFFFFFUL)`的值肯定在`0`~`0x3FFFFFFFUL`之间，再加1的话肯定在`1`~`0x40000000UL`之间。而`0x40000000UL`这个值大家应该很熟悉，这个值就代表着`1GB`。也就是说系统最多能产生不重复的`LOG_BLOCK_HDR_NO`值只有`1GB`个。设计InnoDB的大叔规定`redo`日志文件组中包含的所有文件大小总和不得超过512GB，一个block大小是512字节，也就是说redo日志文件组中包含的block块最多为1GB个，所以有1GB个不重复的编号值也就够用了。
 
@@ -14276,25 +14276,25 @@ innodb\_undo\_logs
 
 ### 一些链接
 
-*   MySQL官方文档：https://dev.mysql.com/doc/refman/5.7/en/
+*   MySQL官方文档：http://dev.mysql.com/doc/refman/5.7/en/
   
     `MySQL`官方文档是写作本书时参考最多的一个资料。说实话，文档写的非常通俗易懂，唯一的缺点就是太长了，导致大家看的时候无从下手。
     
-*   MySQL Internals Manual：https://dev.mysql.com/doc/internals/en/
+*   MySQL Internals Manual：http://dev.mysql.com/doc/internals/en/
   
     介绍MySQL如何实现各种功能的文档，写的比较好，但是太少了，有很多章节直接跳过了。
     
-*   何登成的github：https://github.com/hedengcheng/tech
+*   何登成的github：http://github.com/hedengcheng/tech
   
     登博的博客非常好，对事务、优化这讨论的细节也非常多，不过由于大多是PPT结构，字太少，对上下文不清楚的同学可能会一脸懵逼。
     
 *   orczhou的博客：http://www.orczhou.com/
   
-*   Jeremy Cole的博客：https://blog.jcole.us/innodb/
+*   Jeremy Cole的博客：http://blog.jcole.us/innodb/
   
     Jeremy Cole大神不仅写作了`innodb_ruby`这个非常棒的解析`InnoDB`存储结构的工具，还对这些存储结构写了一系列的博客，在我几乎要放弃深入研究表空间结构的时候，是他老人家的博客把我又从深渊里拉了回来。
     
-*   那海蓝蓝（李海翔）的博客：https://blog.csdn.net/fly2nn
+*   那海蓝蓝（李海翔）的博客：http://blog.csdn.net/fly2nn
   
 *   taobao月报：http://mysql.taobao.org/monthly/
   
@@ -14306,23 +14306,23 @@ innodb\_undo\_logs
   
     MySQL team的博客，一手资料，在我不知道看什么的时候给了很多启示。
     
-*   mysql\_lover的博客：https://blog.csdn.net/mysql\_lover/
+*   mysql\_lover的博客：http://blog.csdn.net/mysql\_lover/
   
-*   Jørgen's point of view：https://jorgenloland.blogspot.com/
+*   Jørgen's point of view：http://jorgenloland.blogspot.com/
   
-*   mariadb的关于查询优化的文档：https://mariadb.com/kb/en/library/query-optimizations/
+*   mariadb的关于查询优化的文档：http://mariadb.com/kb/en/library/query-optimizations/
   
     不得不说mariadb的文档相比MySQL的来说就非常有艺术性了（里边儿有很多漂亮的插图），我很怀疑MySQL文档是程序员直接写的，mariadb的文档是产品经理写的。当我们想研究某个功能的原理，在MySQL文档干巴巴的说明中找不到头脑时，可以参考一下mariadb娓娓道来的风格。
     
-*   Reconstructing Data Manipulation Queries from Redo Logs：https://www.sba-research.org/wp-content/uploads/publications/WSDF2012\_InnoDB.pdf
+*   Reconstructing Data Manipulation Queries from Redo Logs：http://www.sba-research.org/wp-content/uploads/publications/WSDF2012\_InnoDB.pdf
   
-*   关于InnoDB事务的一个PPT：https://mariadb.org/wp-content/uploads/2018/02/Deep-Dive\_-InnoDB-Transactions-and-Write-Paths.pdf
+*   关于InnoDB事务的一个PPT：http://mariadb.org/wp-content/uploads/2018/02/Deep-Dive\_-InnoDB-Transactions-and-Write-Paths.pdf
   
 *   非官方优化文档：http://www.unofficialmysqlguide.com/optimizer-trace.html
   
     这个文档非常好，非常非常好～
     
-*   MySQL8.0的源码文档：https://dev.mysql.com/doc/dev/mysql-server
+*   MySQL8.0的源码文档：http://dev.mysql.com/doc/dev/mysql-server
   
 
 ### 一些书籍
@@ -14372,4 +14372,4 @@ innodb\_undo\_logs
 
 希望这是各位2019年最爽的一次知识付费，如果觉得有点儿物超所值？给个打赏呗～
 
-![](https://user-gold-cdn.xitu.io/2019/3/4/1694882249cbc9e2?w=430&h=430&f=jpeg&s=41122)
+![](http://user-gold-cdn.xitu.io/2019/3/4/1694882249cbc9e2?w=430&h=430&f=jpeg&s=41122)
