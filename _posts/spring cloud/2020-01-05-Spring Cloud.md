@@ -1,9 +1,9 @@
 ---
 layout: post
 title:  Spring Cloud
-categories: Spring Cloud
+categories: SpringCloud
 description: Spring Cloud
-keywords: Spring Cloud
+keywords: SpringCloud
 ---
 # Spring Cloud
 
