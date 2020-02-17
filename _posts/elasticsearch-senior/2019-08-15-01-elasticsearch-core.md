@@ -36,7 +36,7 @@ IT系统的搜索：OA软件，办公自动化软件，会议管理，日程管�
 
 数据库来处理的话，不考虑数据库的全文索引什么的，假如商品有 1000万 个，那么基本上就要查找 1000 万次，且每次都需要加载商品的名称字段的整段字符串，并挨个寻找。
 
-![](/assets/markdown-img-paste-20181230231539116.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20181230231539116.png)
 
 1. 比方说，每条记录的指定字段的文本，可能会很长，比如说“商品描述”字段的长度，有长达数千个，甚至数万个字符，这个时候，每次都要对每条记录的所有文本进行扫描，懒判断说，你包不包含我指定的这个关键词（比如说“牙膏”）
 
@@ -56,7 +56,7 @@ IT系统的搜索：OA软件，办公自动化软件，会议管理，日程管�
 ## 全文索检索和倒排索引简述
 简单说就如下图
 
-![](/assets/markdown-img-paste-20181230232157115.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20181230232157115.png)
 
 场景：搜索“生化机”（有可能是手抖打错了，本来是生化危机），但是期望需要出来右侧的 4条 记录
 
@@ -112,7 +112,7 @@ elasticsearch 基于 lucene，隐藏复杂性，提供简单易用的 restful ap
 
    基于es执行搜索和分析可以达到秒级
 
-   ![](C:/Users/sdx/Desktop/elasticsearch-core/assets/markdown-img-paste-20181231121955923.png)
+   ![](C:/Users/sdx/Desktop/elasticsearch-core/assets/elasticsearch-senior/markdown-img-paste-20181231121955923.png)
 
 2. Cluster 集群
 
@@ -203,7 +203,7 @@ elasticsearch 基于 lucene，隐藏复杂性，提供简单易用的 restful ap
 
    默认每个索引 10 个 shard，5个 primary shard，5个 replica shard，最小的高可用配置，是 2台 服务器。
 
-![](C:/Users/sdx/Desktop/elasticsearch-core/assets/markdown-img-paste-20181231122031193.png)
+![](C:/Users/sdx/Desktop/elasticsearch-core/assets/elasticsearch-senior/markdown-img-paste-20181231122031193.png)
 
 ## 核心概念 vs 数据库核心概念
 
@@ -2606,7 +2606,7 @@ master 节点不承载所有的请求，所以不存在单节点瓶颈，那么�
 2. 自动请求路由
 3. 响应收集
 
-![](/assets/markdown-img-paste-20181231234231253.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20181231234231253.png)
 # 单节点 shard & replica 机制
 
 
@@ -2633,7 +2633,7 @@ master 节点不承载所有的请求，所以不存在单节点瓶颈，那么�
 
 如：test 的 pri=2，rep=2；那么将产生 2个 primary shard 和 4个 replica shard
 
-![](/assets/markdown-img-paste-20190101140921494.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190101140921494.png)
 
 ## 图解单 node 环境下创建 index 是什么样子的
 
@@ -2675,7 +2675,7 @@ yellow open   .kibana    id1SV_oGSjyGosKxeJApww   1   1          1            0 
 
 也就是说，一共会产生 18 个 shard；这里只有 9个，还有 9个没有被分配
 
-![](/assets/markdown-img-paste-20190101142046399.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190101142046399.png)
 
 而 pri 的数据却可以再同一台机器上，这里创建的 3个 pri 都会在这个 node 上存在
 # 2 节点 shard & replica 机制
@@ -2711,7 +2711,7 @@ green  open   .kibana    id1SV_oGSjyGosKxeJApww   1   1          1            0 
 
 ```
 
-![](/assets/markdown-img-paste-2019010114333074.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-2019010114333074.png)
 # 横向扩容机制浅析
 
 图解横向扩容过程，如何超出扩容极限，以及如何提升容错性
@@ -2728,7 +2728,7 @@ green  open   .kibana    id1SV_oGSjyGosKxeJApww   1   1          1            0 
 
 6. 这里的这些知识点，你综合起来看，就是说，一方面告诉你扩容的原理，怎么扩容，怎么提升系统整体吞吐量；另一方面要考虑到系统的容错性，怎么保证提高容错性，让尽可能多的服务器宕机，保证数据不丢失
 
-![](/assets/markdown-img-paste-20190101145206937.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190101145206937.png)
 
 自己总结：
 
@@ -2743,12 +2743,12 @@ green  open   .kibana    id1SV_oGSjyGosKxeJApww   1   1          1            0 
 
 看下图：就是一个排列的问题，3 台机器上怎么才能保证至少 2台机器上至少存在一份数据。这个是可以做到的
 
-![](/assets/markdown-img-paste-20190101150125942.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190101150125942.png)
 # 容错机制浅析
 
 图解 Elasticsearch 容错机制：master 选举，replica 容错，数据恢复
 
-![](/assets/markdown-img-paste-20190101152512479.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190101152512479.png)
 
 还是使用上一章的例子，9 shard，3 node 来说明 es 的一个最基本的容错机制
 
@@ -2816,7 +2816,7 @@ PUT /test_index/test_type/1
 
 下面图解不类似的情况下出现的性能问题
 
-![](/assets/markdown-img-paste-20190101155232556.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190101155232556.png)
 
 ## `_type元数据`
 
@@ -2987,7 +2987,7 @@ document 的全量替换、强制创建以及图解 lazy delete 机制
 
     然后新增我们给定的一个 document，当我们创建越来越多的 document 的时候，es 会在适当的时机在后台自动删除标记为 deleted 的 document
 
-![](/assets/markdown-img-paste-2019010223394843.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-2019010223394843.png)
 
 ## document 的强制创建
 
@@ -3071,14 +3071,14 @@ DELETE /test_index/test_type/1
 
 为什么会超卖，这个就太基础了，不记录笔记了；
 
-![](/assets/markdown-img-paste-20190106131626576.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190106131626576.png)
 
 ## 深度图解剖析悲观锁与乐观锁两种并发控制方案
 
 ### 悲观锁
 悲观锁：通过锁定某一条数据（独占），进行解决并发控制
 
-![](/assets/markdown-img-paste-20190106134912696.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190106134912696.png)
 
 ### 乐观锁
 
@@ -3094,7 +3094,7 @@ DELETE /test_index/test_type/1
 关于条件更新：是需要依赖数据库的按指定条件更新的功能，而不是自行在程序中处理
 :::
 
-![](/assets/markdown-img-paste-20190106135147969.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190106135147969.png)
 
 ### 优缺点
 
@@ -3128,7 +3128,7 @@ DELETE /test_index/test_type/1
 
 es 内部是基于 `_version` 版本号控制。
 
-![](/assets/markdown-img-paste-20190106141919670.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190106141919670.png)
 
 对于上图流程总结：
 
@@ -3263,7 +3263,7 @@ post /index/type/id/_update
 ### 图解 partial update 实现原理以及其优点
 partial update，看起来很方便的操作，实际内部的原理是什么样子的，然后它的优点是什么
 
-![](/assets/markdown-img-paste-20190106152319579.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190106152319579.png)
 
 **要明白在原理上与全量替换方法几乎一致：**
 
@@ -3471,7 +3471,7 @@ POST /test_index/test_type/11/_update
 
 ## 图解乐观锁并发控制原理与操作
 
-![](/assets/markdown-img-paste-20190106162031154.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190106162031154.png)
 
 1. partial update 内置乐观锁并发控制
 2. retry_on_conflict
@@ -3830,10 +3830,10 @@ es 可以作为一个分布式的文档存储系统，所以说，我们的应�
 
 路由算法限制，更改之后，那么就有部分旧数据的路由错误
 
-![](/assets/markdown-img-paste-20190106174604653.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190106174604653.png)
 # document 增删改内部原理图解揭秘
 
-![](/assets/markdown-img-paste-2019010621164080.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-2019010621164080.png)
 
 1. 客户端选择一个 node 发送请求过去，这个 node 就是 coordinating node（协调节点）
 2. coordinating node，对 document 进行路由，将请求转发给对应的 node（有primary shard）
@@ -3910,7 +3910,7 @@ green  open   .kibana    id1SV_oGSjyGosKxeJApww   1   1          1            0 
 ```
 :::
 
-![](/assets/markdown-img-paste-20190106213737933.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190106213737933.png)
 # document 查询内部原理图解揭秘
 
 1. 客户端发送请求到任意一个 node，成为 coordinate node
@@ -3934,7 +3934,7 @@ master 写入后，slave 还没有来得及同步，这个时候流量被转发�
 :::
 
 
-![](/assets/markdown-img-paste-20190106221035878.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190106221035878.png)
 # bulk 奇特 json 与性能揭秘
 
 
@@ -4067,7 +4067,7 @@ timeout 机制：指定每个 shard 就只能在 timeout 时间范围内，将�
 
 确保一次搜索请求可以再用户指定 timeout 时长内完成。为一些时间敏感的搜索应用提供良好的支持
 
-![](/assets/markdown-img-paste-20190106231310300.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190106231310300.png)
 
 简单说：在指定超时时长内返回结果，这个结果可能不是所有结果；
 
@@ -4099,7 +4099,7 @@ GET /_search?timeout=1ms
 
 ## 初步图解一下简单的搜索原理
 
-![](/assets/markdown-img-paste-20190112163551615.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190112163551615.png)
 # 分页搜索、deep paging
 
 
@@ -4152,7 +4152,7 @@ GET /test_index/test_type/_search?from=6&size=3
 这资源耗费是很大的，就如同 mycat 中的分页是一个原理，需要协调节点来聚合并返回结果，但是这个 es 是怎么解决的呢?
 
 
-![](/assets/markdown-img-paste-20190112170019724.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190112170019724.png)
 # query string search 语法以及 `_all metadata`
 
 
@@ -6476,7 +6476,7 @@ doc2     | tom  | 30
 
 这个流程就叫 query phase （查询阶段）
 
-![](/assets/markdown-img-paste-20190113215801435.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190113215801435.png)
 
 ::: tip
 这个过程还是经典的做法，有一个节点来做聚合，所以就会有单节点聚合占用资源过多的情况发生
@@ -7915,7 +7915,7 @@ you			*
 - segment：lucene 底层的 index 是分为多个 segment 的，每个 segment 都会存放部分数据
 - commit：将 buffer 的数据写入到 segment 中
 
-![](/assets/markdown-img-paste-20190120151200920.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190120151200920.png)
 
 一个 document 的写入如上图流程：
 
@@ -7937,7 +7937,7 @@ you			*
 对于这个原理概念思路的东西，听一听就好了，至于怎么实现的，貌似所有书籍教程基本上都不会解说
 :::
 
-![](/assets/markdown-img-paste-20190120151937731.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190120151937731.png)
 
 ## NRT 实现
 
@@ -7955,7 +7955,7 @@ you			*
 数据写入 os cache，并被打开供搜索的过程，叫做 refresh，默认是每隔 1秒 refresh 一次。
 也就是说，每隔一秒就会将 buffer 中的数据写入一个新的 index segment file，先写入 os cache 中。所以，es 是近实时的，数据写入到可以被搜索，默认是 1秒。
 
-![](/assets/markdown-img-paste-2019012015381449.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-2019012015381449.png)
 
 ## refresh 间隔修改
 
@@ -7989,13 +7989,13 @@ PUT /my_index
     3. 一个 commit ponit 被写入磁盘，标明了所有的 index segment
     4. filesystem cache 中的所有 index segment file 缓存数据，被 fsync 强行刷到磁盘上
 
-![](/assets/markdown-img-paste-20190120155115281.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190120155115281.png)
 
 ## 宕机后数据恢复流程
 
 基于 translog 和 commit point，如何进行数据恢复
 
-![](/assets/markdown-img-paste-20190120155716894.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190120155716894.png)
 
 
 > flush 操作
@@ -8031,7 +8031,7 @@ PUT /my_index/_settings
 4. 将新的 segment 打开供搜索
 5. 将旧的 segment 删除
 
-![](/assets/markdown-img-paste-20190120160400697.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190120160400697.png)
 
 ## `_optimize`
 

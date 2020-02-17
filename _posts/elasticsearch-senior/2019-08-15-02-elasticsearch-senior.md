@@ -5513,14 +5513,14 @@ GET /tvs/sales/_search
 - 每个 shard 查找并返回一个最大值
 - 在聚合节点上会拿到 3 个值，然后在这三个值中排序出最大的一个即可
 
-![](/assets/markdown-img-paste-20190303213046518.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190303213046518.png)
 
 有些聚合分析的算法是不好并行的，比如说 `count(distinct)`（去重后统计剩余数量，也就是唯一值个数），
 并不是说在每个 node 上直接就出一些 distinct value 就可以的，因为每个 shard 之间可能还有重复的数据，所以就不准的，
 这个时候就需要从每个 shard 上把所有相关数据都获取过来，然后计算
 如下图
 
-![](/assets/markdown-img-paste-20190303213414289.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190303213414289.png)
 
 不易并行算法进行聚合的时候，由于数据量可能太大会导致内存占用过多，性能严重影响，甚至内存溢出，
 这个时候 es 会采取近似聚合的方式，就是采用在每个 node 上进行近估计的方式，
@@ -10647,7 +10647,7 @@ PUT my_index/my_type/4
 
 什么叫某个矩形地址位置范围呢？下图给出说明
 
-![](/assets/markdown-img-paste-20190312212641701.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190312212641701.png)
 
 左上角坐标和右下角坐标可以绘制出一个矩形，这个矩形覆盖的范围就是要搜索的数据坐标
 
@@ -10855,7 +10855,7 @@ GET /hotel_app/hotels/_search
 ```
 
 ## 真实地理位置坐标体验
-![](/assets/markdown-img-paste-20190312214618391.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190312214618391.png)
 
 - 北京理工大学：116.322631,39.967157
 - 北京交通大学：116.349652,39.957866
@@ -10938,7 +10938,7 @@ GET /hotel_app/hotels/_search
 
 实验成功
 # geo_distance 实战搜索距离当前位置一定范围内的酒店
-![](/assets/markdown-img-paste-20190312214618391.png)
+![](/assets/elasticsearch-senior/markdown-img-paste-20190312214618391.png)
 
 之前讲解了在某一个范围内搜索，应用场景比如：上面的图，我指定 北京理工大学 和 新街口 这两个点，
 要搜索这个范围内的酒店
